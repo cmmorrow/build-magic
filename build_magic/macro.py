@@ -1,0 +1,98 @@
+"""Module for defining Macro classes."""
+
+import shlex
+
+
+class MacroFactory:
+    """Generates Macro objects based on the provided commands.
+
+    :param list[str] commands: The commands to use for building Macros.
+    :param list[str] prefixes: The command prefixes to use for building Macros.
+    :param list[str] suffixes: The command suffixes to use for building Macros.
+
+    :rtype: tuple[str]
+    :return: A tuple of Macro object in order of Macro.sequence.
+    """
+
+    __slots__ = ['_commands']
+
+    def __init__(self, commands, prefixes=None, suffixes=None):
+        """Instantiates a new MacroFactory object."""
+        if not prefixes:
+            prefixes = []
+        if not suffixes:
+            suffixes = []
+        while len(prefixes) < len(commands):
+            prefixes.append('')
+        while len(suffixes) < len(commands):
+            suffixes.append('')
+        # if len(prefixes) != len(suffixes):
+        #     raise ValueError('Length of prefixes unequal to length of suffixes.')
+        # if prefixes and len(prefixes) != len(commands):
+        #     raise ValueError('Length of prefixes unequal to length of commands.')
+        self._commands = tuple(zip(prefixes, commands, suffixes))
+
+    def generate(self):
+        """Generates Macro objects based on the commands supplied to the MacroFactory.
+
+        :rypte: list[Macro]
+        :return: A list of generated Macro objects.
+        """
+        macros = []
+        i = 0
+        for prefix, cmd, suffix, in self._commands:
+            macros.append(
+                Macro(cmd, sequence=i, prefix=prefix, suffix=suffix)
+            )
+            i += 1
+        return macros
+
+
+class Macro:
+    """A command to be executed by a CommandRunner.
+
+    Macros are the primary object for doing work in build-magic. A Macro is composed of a command
+    to be executed at the command-line by a CommandRunner.
+
+    :param str command: The base command to be executed as supplied by the user.
+    :param int sequence: The run order of the command.
+    :param str prefix: A command or portion of a command to append to the beginning of the base command.
+    :param str suffix: A command or portion of a command to append to the end of the base command.
+    """
+
+    __slots__ = ['_command', 'prefix', 'sequence', 'suffix']
+
+    def __init__(self, command='', sequence=0, prefix='', suffix=''):
+        """Instantiates a new Macro object."""
+        if not isinstance(command, str):
+            raise TypeError('command must by str not {}'.format(type(command)))
+        self._command = command
+        self.sequence = int(sequence)
+        self.prefix = str(prefix)
+        self.suffix = str(suffix)
+
+    @property
+    def command(self):
+        """"""
+        return self._command
+
+    def as_list(self):
+        """"""
+        def prep(cmd):
+            if cmd:
+                cmd = shlex.split(cmd)
+            else:
+                cmd = []
+            return cmd
+
+        command = prep(self.prefix) + prep(self._command) + prep(self.suffix)
+        return command
+
+    def as_string(self):
+        """"""
+        cmd = self._command
+        if self.prefix:
+            cmd = self.prefix + ' ' + cmd
+        if self.suffix:
+            cmd += ' ' + self.suffix
+        return cmd
