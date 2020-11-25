@@ -1,52 +1,144 @@
 """Module for defining CommandRunner classes."""
 
 from collections import namedtuple
+import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import time
 
 import docker
 from docker.errors import ContainerError, APIError, ImageLoadError
 import paramiko
+from scp import SCPClient
 
 """The captured output of a command executed by a CommandRunner."""
 Status = namedtuple('Status', ['stdout', 'stderr', 'exit_code'])
 
 
 class CommandRunner:
-    """An abstract class for defining methods for executing commands."""
+    """An abstract class for defining methods for executing commands.
 
-    def __init__(self, environment, timeout=30):
-        """"""
+    When instantiating and calling a CommandRunner child object,
+    the object's methods should be called in the following order:
+
+        - prepare()
+        - provision()
+        - execute()
+        - teardown()
+    """
+
+    def __init__(self, environment, working_dir='', copy_dir='', timeout=30, artifacts=None):
+        """Instantiate a new CommandRunner object."""
         self.environment = environment
+        self.working_directory = working_dir
+        self.copy_from_directory = copy_dir
         self.timeout = timeout
+        if not artifacts:
+            self.artifacts = []
+        else:
+            self.artifacts = artifacts
+
+    def copy(self, src, dst):
+        """Copies the CommandRunner object's artifacts from one path to another.
+
+        :param str|Path src: The source path to copy from.
+        :param str|Path dst: The destination path to copy to.
+        :rtype: bool
+        :return: True if src and dst are not empty strings or None.
+        """
+        print(src)
+        if src and dst:
+            for artifact in self.artifacts:
+                if src == '.':
+                    src = Path.cwd()
+                src = Path(src) / artifact
+                print(src)
+                shutil.copy(src, dst)
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def cd(directory):
+        """Changes the current working directory.
+
+        :param str|Path directory: The directory to change to.
+        :rtype: bool
+        :return: True if directory is not an empty string or None.
+        """
+        if directory:
+            path = Path(directory)
+            os.chdir(path)
+            return True
+        else:
+            return False
 
     def provision(self, func):
-        """"""
+        """Base provision() method.
+
+        This method should be overridden by dynamically assigning it to a child object.
+
+        :param callable func: A callable to execute.
+        :rtype: Any
+        :return: The result of the callable.
+        """
         func()
 
     def execute(self, macro):
-        """"""
+        """Base execute() method.
+
+        :param Macro macro: The Macro object to execute.
+        :return: None
+        """
+        raise NotImplementedError
+
+    def prepare(self):
+        """Base prepare() method.
+
+        :return: None
+        """
         raise NotImplementedError
 
     def teardown(self, func):
-        """"""
+        """Base provision() method.
+
+        This method should be overridden by dynamically assigning it to a child object.
+
+        :param callable func: A callable to execute.
+        :rtype: Any
+        :return: The result of the callable.
+        """
         func()
 
 
 class Local(CommandRunner):
-    """"""
+    """Manages macros executed on the local host machine."""
 
-    def __init__(self, environment='', timeout=30):
-        """
+    def __init__(self, environment='', working_dir='', copy_dir='', timeout=30, artifacts=None):
+        """Instantiates a new Local command runner object."""
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
 
-        :param environment:
+    def prepare(self):
+        """Changes to the specified working directory and copies artifacts if necessary.
+
+        :rtype: bool
+        :return: Returns True.
         """
-        super().__init__(environment, timeout)
+        if self.copy_from_directory:
+            self.copy(self.copy_from_directory, self.working_directory)
+        if self.working_directory:
+            self.cd(self.working_directory)
+        return True
 
     def execute(self, macro):
-        """"""
+        """Executes the Macro object on the local host machine.
+
+        :param Macro macro: The Macro object the execute.
+        :rtype: Status
+        :return: A Status object reflecting the results of the macro.
+        """
         command = macro.as_list()
         result = subprocess.run(
             command,
@@ -59,25 +151,78 @@ class Local(CommandRunner):
 
 
 class Remote(CommandRunner):
-    """"""
+    """Manages macros executed on a remote host machine."""
 
-    def __init__(self, environment, timeout=30):
-        """
-
-        :param environment:
-        """
-        super().__init__(environment, timeout)
+    def __init__(self, environment, working_dir='', copy_dir='', timeout=30, artifacts=None):
+        """Instantiates a new Remote command runner object."""
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
         self.user = None
         self.host = None
         self.port = None
-        match = re.match(r'([\w\-.]+)@([\w\-.]+)(?::([0-9]{2,5}))?$', environment)
+        match = re.match(r'(?:([\w\-.]+)@)([\w\-.]+)(?::([0-9]{2,5}))?$', environment)
         if match:
             self.user = match.group(1)
             self.host = match.group(2)
             self.port = int(match.group(3))
 
+    def copy(self, src, dst=None):
+        """Copies the object's artifacts from a directory on the local host to a directory on the remote host.
+
+        :param str|Path src: The source directory to copy from.
+        :param str|Path dst: The destination directory to copy to.
+        :rtype: bool
+        :return: True if the copy operation was successful.
+        """
+        # Add the absolute path to each artifact.
+        src = Path(src)
+        files = []
+        for artifact in self.artifacts:
+            files.append(src / artifact)
+
+        # Connect to the remote host over scp.
+        ssh = paramiko.SSHClient()
+        ssh.load_system_host_keys()
+        conn_args = dict(hostname=self.host)
+        if self.port:
+            conn_args.update(dict(port=self.port))
+        if self.user:
+            conn_args.update(dict(username=self.user))
+        ssh.connect(**conn_args)
+
+        # Copy each file to the remote host.
+        with SCPClient(ssh.get_transport()) as scp:
+            if dst:
+                scp.put(*files, remote_path=dst)
+            else:
+                scp.put(*files)
+        return True
+
+    def prepare(self):
+        """Handles copying artifacts to the remote host if necessary.
+
+        :rtype: bool
+        :return: True if copying artifacts was initiated and successful, otherwise False.
+        """
+        if self.copy_from_directory:
+            src = self.copy_from_directory
+            if self.working_directory:
+                dst = self.working_directory
+            else:
+                dst = None
+            self.copy(src, dst)
+            return True
+        else:
+            return False
+
     def execute(self, macro):
-        """"""
+        """Executes the Macro object on the remote host machine.
+
+        :param Macro macro: The Macro object to execute.
+        :rtype: Status
+        :return: A Status object that reflects the results of the macro.
+        """
+        if self.working_directory:
+            macro.prefix = f'cd {self.working_directory};'
         command = macro.as_string()
         stdout = []
         stderr = []
@@ -87,108 +232,94 @@ class Remote(CommandRunner):
         user = self.user
         port = self.port
         # noinspection PyTypeChecker
-        client = paramiko.Transport((host, port))
-        client.connect(username=user)
-        session = client.open_channel(kind='session')
-        session.exec_command(command)
+        transport = paramiko.Transport((host, port))
+        transport.connect(username=user)
+        channel = transport.open_channel(kind='session')
+        channel.exec_command(command)
 
         start = time.time()
         current = start
         while current - start < self.timeout:
-            if session.exit_status_ready():
-                exit_code = session.recv_exit_status()
-                buffer = session.recv(buff_size)
+            if channel.exit_status_ready():
+                exit_code = channel.recv_exit_status()
+                buffer = channel.recv(buff_size)
                 stdout.append(buffer)
                 if len(buffer) != 0:
                     while len(buffer) != 0:
-                        buffer = session.recv(buff_size)
+                        buffer = channel.recv(buff_size)
                         stdout.append(buffer)
-                buffer = session.recv_stderr(buff_size)
+                buffer = channel.recv_stderr(buff_size)
                 stderr.append(buffer)
                 if len(buffer) != 0:
                     while len(buffer) != 0:
-                        buffer = session.recv_stderr(buff_size)
+                        buffer = channel.recv_stderr(buff_size)
                         stdout.append(buffer)
-        session.close()
-        client.close()
+        channel.close()
+        transport.close()
         if exit_code < 0:
             raise TimeoutError('Connection to remote host {} timed out after {} seconds.'.format(host, self.timeout))
         return Status(stdout=stdout, stderr=stderr, exit_code=exit_code)
 
 
 class Vagrant(CommandRunner):
-    """"""
+    """Manages macros executed executed in a guest virtual machine managed by Vagrant."""
 
-    __slots__ = ['_vm']
-
-    def __init__(self, environment='.', timeout=30):
-        """"""
-        super().__init__(environment, timeout)
+    def __init__(self, environment='.', working_dir='/vagrant', copy_dir='', timeout=30, artifacts=None):
+        """Instantiates a new Vagrant command runner object."""
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
         self._vm = None
 
-    # def provision(self, macro):
-    #     """"""
-    #     if self.environment != '.':
-    #         os.environ['VAGRANT_CWD'] = self.environment
-    #     self._vm = vagrant.Vagrant()
-    #     try:
-    #         self._vm.up()
-    #     except subprocess.CalledProcessError as err:
-    #         return Status('', err, 1)
-    #     return Status('', '', 0)
+    def prepare(self):
+        """Handles copying artifacts to the working directory if necessary."""
+        if self.copy_from_directory:
+            self.copy(self.copy_from_directory, self.working_directory)
+            return True
+        else:
+            return False
 
     def execute(self, macro):
-        """"""
-        cmd = 'cd /vagrant; ' + macro.as_string()
-        if not self._vm:
-            self.provision(macro)
+        """Executes the Macro in the VM.
+
+        :param Macro macro: The Macro object to execute.
+        :return: The Status of the executed Macro.
+        """
+        macro.prefix = f'cd {self.working_directory};'
+        cmd = macro.as_string()
         try:
             self._vm.ssh(command=cmd)
         except subprocess.CalledProcessError as err:
             return Status('', err, 1)
         return Status('', '', 0)
 
-    # def teardown(self, macro):
-    #     """"""
-    #     if self._vm:
-    #         try:
-    #             self._vm.destroy()
-    #         except subprocess.CalledProcessError as err:
-    #             return Status('', err, 1)
-    #     return Status('', '', 0)
-
 
 class Docker(CommandRunner):
-    """"""
+    """Manages macros executed in a Docker container."""
 
-    def __init__(self, environment='alpine:latest', timeout=30, working_directory='.'):
-        """
-
-        :param environment:
-        :param timeout:
-        :param working_directory:
-        """
-        super().__init__(environment, timeout)
-        if working_directory == '.':
-            self.working_directory = Path(working_directory).cwd()
-        else:
-            self.working_directory = Path(working_directory)
+    def __init__(self, environment='alpine', working_dir='/build_magic', copy_dir='', timeout=30, artifacts=None):
+        """Instantiates a new Docker command runner object."""
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
+        self.binding = {Path.cwd(): {'bind': self.working_directory, 'mode': 'rw'}}
         self.container = None
 
-    def provision(self, macro=None):
-        """"""
-        return self.execute(macro)
+    def prepare(self):
+        """Handles copying artifacts to the working directory if necessary."""
+        if self.copy_from_directory:
+            self.copy(self.copy_from_directory, Path.cwd())
+            return True
+        else:
+            return False
 
     def execute(self, macro):
-        """
+        """Executes the Macro in the container.
 
-        :param macro:
-        :return:
+        :param Macro macro: The Macro object to execute.
+        :return: The Status of the executed Macro.
         """
         if macro:
             command = macro.as_list()
         else:
             command = macro
+
         client = docker.from_env()
         try:
             container = client.containers.run(
@@ -196,31 +327,12 @@ class Docker(CommandRunner):
                 command=command,
                 detach=False,
                 remove=True,
-                working_dir='/build_magic',
-                volumes={self.working_directory: {'bind': '/build_magic', 'mode': 'rw'}}
+                working_dir=self.working_directory,
+                volumes=self.binding
             )
             self.container = container
             status = Status('', '', exit_code=0)
         except (ContainerError, APIError, ImageLoadError) as err:
             status = Status('', stderr=err, exit_code=1)
         return status
-        # command = macro.as_list()
-        # if not self.container:
-        #     status = self.provision(macro)
-        # else:
-        #     exit_status, output = self.container.exec_run(command, workdir='/build_magic', demux=True)
-        #     status = Status(stdout=output[0], stderr=output[1], exit_code=exit_status)
-        # return status
 
-    def teardown(self, macro):
-        """"""
-        return self.execute(macro)
-        # if self.container:
-        #     try:
-        #         self.container.stop(timeout=self.timeout)
-        #         status = Status(stdout='', stderr='', exit_code=0)
-        #     except APIError as err:
-        #         status = Status(stdout='', stderr=err, exit_code=1)
-        #     return status
-        # else:
-        #     return self.execute(macro)

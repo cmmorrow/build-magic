@@ -26,10 +26,6 @@ class MacroFactory:
             prefixes.append('')
         while len(suffixes) < len(commands):
             suffixes.append('')
-        # if len(prefixes) != len(suffixes):
-        #     raise ValueError('Length of prefixes unequal to length of suffixes.')
-        # if prefixes and len(prefixes) != len(commands):
-        #     raise ValueError('Length of prefixes unequal to length of commands.')
         self._commands = tuple(zip(prefixes, commands, suffixes))
 
     def generate(self):
@@ -73,11 +69,11 @@ class Macro:
 
     @property
     def command(self):
-        """"""
+        """Provides the command to execute."""
         return self._command
 
     def as_list(self):
-        """"""
+        """Breaks up a command into a list."""
         def prep(cmd):
             if cmd:
                 cmd = shlex.split(cmd)
@@ -89,7 +85,7 @@ class Macro:
         return command
 
     def as_string(self):
-        """"""
+        """Provides a command as a string."""
         cmd = self._command
         if self.prefix:
             cmd = self.prefix + ' ' + cmd
