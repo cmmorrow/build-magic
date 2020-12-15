@@ -90,7 +90,7 @@ class Engine:
         status_code = output.ExitCode.PASSED.value
 
         # Start
-        _output.log(mode.TEST_START)
+        _output.log(mode.JOB_START)
 
         # Sort stages by sequence.
         if len(stages) > 1:
@@ -105,7 +105,7 @@ class Engine:
             _output.log(mode.STAGE_END, stage.sequence, exit_code)
 
         # TODO: This is the wrong status code - fix it.
-        _output.log(mode.TEST_END, status_code)
+        _output.log(mode.JOB_END, status_code)
         return status_code
 
 
@@ -141,7 +141,7 @@ class StageFactory:
             artifacts = []
 
         if not commands:
-            _output.log(mode.NO_TESTS)
+            _output.log(mode.NO_JOB)
             sys.exit(output.ExitCode.NO_TESTS)
 
         if runner_type == Runners.VAGRANT.value and not environment:

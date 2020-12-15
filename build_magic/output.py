@@ -20,11 +20,11 @@ class ExitCode(enum.IntEnum):
 class OutputMethod(enum.Enum):
     """Valid build-magic output methods."""
 
-    TEST_START = 'start_test'
-    TEST_END = 'end_test'
+    JOB_START = 'start_job'
+    JOB_END = 'end_job'
     STAGE_START = 'start_stage'
     STAGE_END = 'end_stage'
-    NO_TESTS = 'no_tests'
+    NO_JOB = 'no_job'
     MACRO_STATUS = 'macro_status'
     ERROR = 'error'
 
@@ -32,11 +32,11 @@ class OutputMethod(enum.Enum):
 class Output:
     """Interface for defining output methods."""
 
-    def start_test(self, *args, **kwargs):
+    def start_job(self, *args, **kwargs):
         """Indicates the beginning of a sequence of stages."""
         raise NotImplementedError
 
-    def end_test(self, *args, **kwargs):
+    def end_job(self, *args, **kwargs):
         """Indicates the end of a build-magic session."""
         raise NotImplementedError
 
@@ -48,7 +48,7 @@ class Output:
         """Indicates the end of a stage."""
         raise NotImplementedError
 
-    def no_tests(self, *args, **kwargs):
+    def no_job(self, *args, **kwargs):
         """Indicates there are no commands to execute."""
         raise NotImplementedError
 
@@ -89,12 +89,12 @@ class Basic(Output):
         """
         print(line)
 
-    def start_test(self):
+    def start_job(self):
         """Indicates the beginning of a sequence of stages."""
         message = 'build-magic {} started at {}\n'.format(version, datetime.now().strftime('%c'))
         self._display(message)
 
-    def end_test(self, status_code):
+    def end_job(self, status_code):
         """Indicates the end of a build-magic session.
 
         :param int status_code: The build-magic exit code.
@@ -125,11 +125,11 @@ class Basic(Output):
         message = 'Stage {} complete with result {}'.format(stage_number, result)
         self._display(message)
 
-    def no_tests(self):
+    def no_job(self):
         """Indicates there are no commands to execute."""
         self._display('No commands to run. Use --help for usage. Exiting...')
 
-    def macro_status(self, directive, command, status_code):
+    def macro_status(self, directive, command='', status_code=0):
         """Indicates the success status of a command.
 
         :param str directive: The executed macro's directive.
@@ -152,5 +152,5 @@ class Basic(Output):
         :param str err: The error message to display.
         :return: None
         """
-        message = '[ERROR ] {}'.format(err)
+        message = '[ ERR  ] {}'.format(err)
         self._display(message)

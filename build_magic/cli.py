@@ -1,7 +1,8 @@
 """Click CLI for running build-magic."""
 
-import click
 import sys
+
+import click
 
 from build_magic import core
 

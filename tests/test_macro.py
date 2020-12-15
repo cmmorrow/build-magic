@@ -1,4 +1,4 @@
-""""""
+"""This module hosts unit tests for the Macro class."""
 
 import pytest
 
@@ -7,24 +7,24 @@ from build_magic.macro import MacroFactory, Macro
 
 @pytest.fixture
 def cmd():
-    """"""
+    """Provides a dummy command to use for tests."""
     return 'ls'
 
 
 @pytest.fixture
 def prefix():
-    """"""
+    """Provides a dummy command to use as a prefix for tests."""
     return 'cd /tmp;'
 
 
 @pytest.fixture
 def suffix():
-    """"""
+    """Provides a dummy option to use as a suffix for tests."""
     return '-ltr'
 
 
 def test_macro_create(cmd):
-    """"""
+    """Verify creating a Macro object works as expected."""
     macro = Macro(cmd)
     assert macro.sequence == 0
     assert macro._command == cmd
@@ -35,7 +35,7 @@ def test_macro_create(cmd):
 
 
 def test_macro_create_with_prefix(cmd, prefix):
-    """"""
+    """Verify creating a Macro object with a prefix works as expected."""
     macro = Macro(cmd, prefix=prefix)
     assert macro.sequence == 0
     assert macro._command == 'ls'
@@ -46,7 +46,7 @@ def test_macro_create_with_prefix(cmd, prefix):
 
 
 def test_macro_create_suffix(cmd, suffix):
-    """"""
+    """Verify creating a Macro object with a suffix works as expected."""
     macro = Macro(cmd, suffix=suffix)
     assert macro.sequence == 0
     assert macro._command == 'ls'
@@ -57,7 +57,7 @@ def test_macro_create_suffix(cmd, suffix):
 
 
 def test_macro_create_prefix_suffix(cmd, prefix, suffix):
-    """"""
+    """Verify creating a Macro with a prefix and suffix works as expected."""
     macro = Macro(cmd, prefix=prefix, suffix=suffix)
     assert macro.sequence == 0
     assert macro._command == 'ls'
@@ -68,7 +68,7 @@ def test_macro_create_prefix_suffix(cmd, prefix, suffix):
 
 
 def test_macro_add_prefix(cmd, prefix):
-    """"""
+    """Verify adding a prefix to a Macro object after creation works as expected."""
     macro = Macro(cmd)
     assert macro.sequence == 0
     assert macro._command == cmd
@@ -84,7 +84,7 @@ def test_macro_add_prefix(cmd, prefix):
 
 
 def test_macro_add_suffix(cmd, suffix):
-    """"""
+    """Verify adding a suffix to a Macro object after creation works as expected."""
     macro = Macro(cmd)
     assert macro.sequence == 0
     assert macro._command == cmd
@@ -100,19 +100,19 @@ def test_macro_add_suffix(cmd, suffix):
 
 
 def test_macro_invalid_command():
-    """"""
+    """Test the case where the command provided to a Macro constructor isn't a string."""
     with pytest.raises(TypeError, match=r'command must by str'):
         Macro(['ls'])
 
 
 def test_macro_invalid_sequence(cmd):
-    """"""
+    """Test the case where the sequence provided to a Macro isn't an integer."""
     with pytest.raises(ValueError):
         Macro(cmd, sequence='a')
 
 
 def test_macro_invalid_prefix(cmd):
-    """"""
+    """Test the case where a prefix added to a Macro object isn't a string."""
     macro = Macro(cmd)
     macro.prefix = b'1x45k'
     with pytest.raises(TypeError):
@@ -122,7 +122,7 @@ def test_macro_invalid_prefix(cmd):
 
 
 def test_macro_factory_single_command(cmd):
-    """"""
+    """Verify the MacroFactor generate method works as expected."""
     commands = [cmd]
     factory = MacroFactory(commands)
     assert factory._commands == (('', 'ls', ''),)
@@ -133,7 +133,7 @@ def test_macro_factory_single_command(cmd):
 
 
 def test_macro_factory_single_command_with_suffix(cmd):
-    """"""
+    """Verify the MacroFactory generate method handles suffixes as expected."""
     suffixes = ['dummy.docx dummy.xlsx']
     commands = [cmd]
     factory = MacroFactory(commands, suffixes=suffixes)
@@ -144,7 +144,7 @@ def test_macro_factory_single_command_with_suffix(cmd):
 
 
 def test_macro_factory_multiple_commands():
-    """"""
+    """Verify the MacroFactory generates multiple Macro objects as expected."""
     commands = ['cd /build_magic', 'make']
     suffixes = ['', 'artifact1 artifact2 artifact3']
     factory = MacroFactory(commands, suffixes=suffixes)
@@ -157,7 +157,7 @@ def test_macro_factory_multiple_commands():
 
 
 def test_macro_factory_multiple_commands_2():
-    """"""
+    """Test the case where the number of commands passed to the MacroFactory are unequal to the suffixes."""
     commands = ['mkdir', 'rm dir1', 'rm dir2', 'rm dir3']
     suffixes = ['dir1 dir2 dir3']
     factory = MacroFactory(commands, suffixes=suffixes)
