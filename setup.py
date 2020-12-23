@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'blessings',
         'click',
+        'colorama',
         'docker',
         'paramiko',
         'python-vagrant',

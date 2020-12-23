@@ -48,13 +48,13 @@ class CommandRunner:
         :rtype: bool
         :return: True if src and dst are not empty strings or None.
         """
-        print(src)
+        if not self.artifacts:
+            return False
         if src and dst:
             for artifact in self.artifacts:
                 if src == '.':
                     src = Path.cwd()
                 src = Path(src) / artifact
-                print(src)
                 shutil.copy(src, dst)
             return True
         else:
@@ -153,17 +153,18 @@ class Local(CommandRunner):
 class Remote(CommandRunner):
     """Manages macros executed on a remote host machine."""
 
-    def __init__(self, environment, working_dir='', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment='localhost', working_dir='', copy_dir='', timeout=30, artifacts=None):
         """Instantiates a new Remote command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
         self.user = None
         self.host = None
         self.port = None
-        match = re.match(r'(?:([\w\-.]+)@)([\w\-.]+)(?::([0-9]{2,5}))?$', environment)
+        match = re.match(r'^(?:([\w\-.]+)@)?([\w\-.]+)(?::([0-9]{2,5}))?$', environment)
         if match:
             self.user = match.group(1)
             self.host = match.group(2)
-            self.port = int(match.group(3))
+            if match.group(3):
+                self.port = int(match.group(3))
 
     def copy(self, src, dst=None):
         """Copies the object's artifacts from a directory on the local host to a directory on the remote host.
@@ -177,7 +178,10 @@ class Remote(CommandRunner):
         src = Path(src)
         files = []
         for artifact in self.artifacts:
-            files.append(src / artifact)
+            files.append(str(src / artifact))
+
+        if not files:
+            return False
 
         # Connect to the remote host over scp.
         ssh = paramiko.SSHClient()
@@ -209,8 +213,7 @@ class Remote(CommandRunner):
                 dst = self.working_directory
             else:
                 dst = None
-            self.copy(src, dst)
-            return True
+            return self.copy(src, dst)
         else:
             return False
 
@@ -231,8 +234,9 @@ class Remote(CommandRunner):
         host = self.host
         user = self.user
         port = self.port
+        sock = (host, port)
         # noinspection PyTypeChecker
-        transport = paramiko.Transport((host, port))
+        transport = paramiko.Transport(sock)
         transport.connect(username=user)
         channel = transport.open_channel(kind='session')
         channel.exec_command(command)
@@ -272,7 +276,7 @@ class Vagrant(CommandRunner):
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
         if self.copy_from_directory:
-            self.copy(self.copy_from_directory, self.working_directory)
+            self.copy(self.copy_from_directory, Path.cwd())
             return True
         else:
             return False
@@ -288,7 +292,7 @@ class Vagrant(CommandRunner):
         try:
             self._vm.ssh(command=cmd)
         except subprocess.CalledProcessError as err:
-            return Status('', err, 1)
+            return Status('', str(err), 1)
         return Status('', '', 0)
 
 
@@ -298,7 +302,7 @@ class Docker(CommandRunner):
     def __init__(self, environment='alpine', working_dir='/build_magic', copy_dir='', timeout=30, artifacts=None):
         """Instantiates a new Docker command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
-        self.binding = {Path.cwd(): {'bind': self.working_directory, 'mode': 'rw'}}
+        self.binding = {str(Path.cwd()): {'bind': self.working_directory, 'mode': 'rw'}}
         self.container = None
 
     def prepare(self):
@@ -318,7 +322,7 @@ class Docker(CommandRunner):
         if macro:
             command = macro.as_list()
         else:
-            command = macro
+            command = None
 
         client = docker.from_env()
         try:
@@ -332,7 +336,8 @@ class Docker(CommandRunner):
             )
             self.container = container
             status = Status('', '', exit_code=0)
-        except (ContainerError, APIError, ImageLoadError) as err:
+        except (ContainerError, APIError) as err:
+            status = Status('', stderr=str(err), exit_code=1)
+        except ImageLoadError as err:
             status = Status('', stderr=err, exit_code=1)
         return status
-

@@ -22,23 +22,66 @@ CONFIG = click.File(mode='r', encoding='utf-8', errors='strict', lazy=False)
 Actions = core.Actions
 
 
+USAGE = """Usage: build-magic [OPTIONS] [ARGS]...
+
+build-magic is an un-opinionated build automation tool. Some potential uses include:
+* Building applications across multiple platforms.
+* Conducting installation dry runs.
+* Testing application installs across multiple platforms.
+* Deploying and installing artifacts to remote machines.
+
+Examples:
+* Archive two files on the local machine.
+    build-magic -- tar -czf myfiles.tar.gz file1.txt file2.txt
+
+* Archive two files on the local machine and delete the original files.
+    build-magic -c build "tar -czf myfiles.tar.gz file1.txt file2.txt" -c execute "rm file1.txt file2.txt"
+    
+* Copy two files to a remote machine and archive them.
+    build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
+
+* Build a project in a Linux container.
+    build-magic -r docker -e Ubuntu:latest -c build "make all"
+
+Use --help for detailed usage of each option.
+"""
+
+
 @click.command()
 @click.option('--command', '-c', help='A directive, command pair to execute.', multiple=True, type=(str, str))
-# @click.option('--config', '-C', help='The JSON formatted config file to load parameters from.', type=CONFIG)
-@click.option('--copy', '-p', help='Copy from the specified path.', default='', type=str)
+# @click.option('--config', '-C', help='The YAML formatted config file to load parameters from.', type=CONFIG)
+@click.option('--copy', help='Copy from the specified path.', default='.', type=str)
 @click.option('--environment', '-e', default='', help='The command runner environment to use.', type=str)
 @click.option('--runner', '-r', default='local', help='The command runner to use.', type=RUNNERS)
-@click.option('--working-dir', '-w', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
-@click.option('--continue-on-fail/--stop-on-fail', help='Continue to run after failure if True.', default=False)
-@click.option('--isolate', '-i', help='Execute commands in an isolated directory.', default=False)
+@click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
+@click.option('--continue/--stop', help='Continue to run after failure if True.', default=False)
+@click.option('--isolate', help='Execute commands in an isolated directory.', default=False)
 @click.option('--cleanup', help='Run commands and delete any created files if True.', default=False)
+@click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
+@click.option('--quiet', help='Suppress all output from build-magic.', type=bool)
+@click.option('--verbose/--standard', '-v', help='Verbose output.', default=False)
+@click.option('--version', help='Display the build-magic version.', type=bool)
 @click.argument('args', nargs=-1)
-def build_magic(cleanup, command, copy, continue_on_fail, environment, args, isolate, runner, working_dir):
-    """The build automation tool.
+def build_magic(
+        cleanup,
+        command,
+        copy,
+        continue_,
+        environment,
+        args,
+        isolate,
+        runner,
+        wd,
+        plain,
+        quiet,
+        verbose,
+        version,
+):
+    """An un-opinionated build automation tool.
 
     ARGS - Files as arguments to copy from the copy path to the working directory.
-           Alternatively, ARGS can be a command to execute if the --command option isn't used.
-           Instead, type -- followed by the command.
+    Alternatively, ARGS can be a single command to execute if the --command option isn't used.
+    In this case, type -- followed by the command.
     """
     # Set the action to use.
     action = Actions.DEFAULT.value
@@ -53,6 +96,10 @@ def build_magic(cleanup, command, copy, continue_on_fail, environment, args, iso
         types, commands = ['build'], [' '.join(args)]
         artifacts = []
 
+    if not commands or commands == ['']:
+        click.echo(USAGE)
+        sys.exit(1)
+
     # Build the stage.
     stage = core.StageFactory.build(
         sequence=1,
@@ -63,10 +110,10 @@ def build_magic(cleanup, command, copy, continue_on_fail, environment, args, iso
         commands=list(commands),
         environment=environment,
         copy=copy,
-        wd=working_dir,
+        wd=wd,
     )
 
     # Run the stage.
-    code = core.Engine.run([stage], continue_on_fail=continue_on_fail)
+    code = core.Engine.run([stage], continue_on_fail=continue_)
 
     sys.exit(code)
