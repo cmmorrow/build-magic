@@ -155,9 +155,8 @@ def test_local_execute_fail(local_runner, tmp_path):
         assert status.exit_code == 1
     assert status.stdout == b''
     if os.sys.platform == 'linux':
-        print(status.stderr)
         assert status.stderr == b'tar: dummy.txt: Cannot stat: No such file or directory\n' \
-                                b'tar: Error exit delayed from previous errors.\n'
+                                b'tar: Exiting with failure status due to previous errors\n'
     else:
         assert status.stderr == b'tar: dummy.txt: Cannot stat: No such file or directory\n' \
                                 b'tar: Error exit delayed from previous errors.\n'
