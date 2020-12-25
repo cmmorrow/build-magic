@@ -109,7 +109,7 @@ def test_local_constructor():
 
 def test_local_prepare(build_path, local_runner, tmp_path):
     """Verify the Local command runner prepare() method works correctly."""
-    assert str(Path.cwd().stem) == 'tests'
+    assert str(Path.cwd().resolve().stem) == 'tests'
     local_runner.working_directory = str(tmp_path)
     local_runner.prepare()
     assert 'test_local_prepare' in str(Path.cwd().stem)
@@ -133,8 +133,12 @@ def test_local_execute(build_path, local_runner, tmp_path):
     local_runner.prepare()
     status = local_runner.execute(cmd)
     assert status.exit_code == 0
-    assert status.stdout == b''
-    assert status.stderr == b'a hello.txt\n'
+    if os.sys.platform == 'linux':
+        assert status.stdout == b'hello.txt\n'
+        assert status.stderr == b''
+    else:
+        assert status.stdout == b''
+        assert status.stderr == b'a hello.txt\n'
 
 
 def test_local_execute_fail(local_runner, tmp_path):
@@ -142,7 +146,10 @@ def test_local_execute_fail(local_runner, tmp_path):
     cmd = Macro('tar -v -czf hello.tar.gz dummy.txt')
     local_runner.prepare()
     status = local_runner.execute(cmd)
-    assert status.exit_code == 1
+    if os.sys.platform == 'linux':
+        assert status.exit_code == 2
+    else:
+        assert status.exit_code == 1
     assert status.stdout == b''
     assert status.stderr == b'tar: dummy.txt: Cannot stat: No such file or directory\n' \
                             b'tar: Error exit delayed from previous errors.\n'
