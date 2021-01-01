@@ -174,3 +174,16 @@ def test_macro_factory_multiple_commands_2():
     assert macros[2].as_string() == 'rm dir2'
     assert macros[3].as_string() == 'rm dir3'
     assert [0, 1, 2, 3] == [m.sequence for m in macros]
+
+
+def test_macro_factory_multiple_commands_3():
+    """Test the case where the number of commands has an equal number of suffixes and prefixes."""
+    commands = ['b', 'e', 'h']
+    prefixes = ['a', 'd', 'g']
+    suffixes = ['c', 'f', 'i']
+    factory = MacroFactory(commands, prefixes=prefixes, suffixes=suffixes)
+    macros = factory.generate()
+    assert macros[0].as_string() == 'a b c'
+    assert macros[1].as_string() == 'd e f'
+    assert macros[2].as_string() == 'g h i'
+    assert [0, 1, 2] == [m.sequence for m in macros]

@@ -75,16 +75,15 @@ class CommandRunner:
         else:
             return False
 
-    def provision(self, func):
+    def provision(self):
         """Base provision() method.
 
         This method should be overridden by dynamically assigning it to a child object.
 
-        :param callable func: A callable to execute.
         :rtype: Any
         :return: The result of the callable.
         """
-        func()
+        return False
 
     def execute(self, macro):
         """Base execute() method.
@@ -101,16 +100,20 @@ class CommandRunner:
         """
         raise NotImplementedError
 
-    def teardown(self, func):
+    def teardown(self):
         """Base provision() method.
 
         This method should be overridden by dynamically assigning it to a child object.
 
-        :param callable func: A callable to execute.
         :rtype: Any
         :return: The result of the callable.
         """
-        func()
+        return False
+
+    @property
+    def name(self):
+        """Provides the CommandRunner name."""
+        return str(self.__class__.__name__).lower()
 
 
 class Local(CommandRunner):

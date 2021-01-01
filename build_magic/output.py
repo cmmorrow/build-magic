@@ -8,12 +8,13 @@ from build_magic import __version__ as version
 
 class ExitCode(enum.IntEnum):
     """Valid build-magic exit codes."""
-    # These exit codes are taken from pytest.
+    # These exit codes are based on pytest.
 
     PASSED = 0
     FAILED = 1
     INTERRUPTED = 2
     INTERNAL_ERROR = 3
+    INPUT_ERROR = 4
     NO_TESTS = 5
 
 

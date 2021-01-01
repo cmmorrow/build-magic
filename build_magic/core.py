@@ -25,6 +25,10 @@ class TeardownError(Exception):
     """An error when tearing down a CommandRunner."""
 
 
+class NoJobs(Exception):
+    """There are no jobs to execute."""
+
+
 class EnumExt(Enum):
     """Extension for the builtin Enum class."""
 
@@ -76,14 +80,32 @@ class Actions(EnumExt):
 
 
 class Engine:
-    """The primary driver in build-magic. The engine executes stages and reports on the results."""
+    """The primary driver in build-magic. The engine executes stages and reports on the results.
 
-    @classmethod
-    def run(cls, stages, continue_on_fail=False):
+    :param bool continue_on_fail: If True, all jobs will attempt to run, even if the previous job failed.
+        Otherwise, execution will end after a failed job.
+    :param list[Stage]|None stages: The stage or stages to execute.
+    """
+
+    __slots__ = ['_continue_on_fail', '_stages']
+
+    def __init__(self, stages=None, continue_on_fail=False):
         """Executes stages and reports the results.
 
-        :param list[Stage] stages: The stage or stages to execute.
+        :param list[Stage]|None stages: The stage or stages to execute.
         :param bool continue_on_fail:
+        :return: The highest status code reported by a stage.
+        """
+        self._continue_on_fail = continue_on_fail
+        stages = stages or []
+
+        # Sort stages by sequence.
+        if len(stages) > 1:
+            self._stages = sorted(stages, key=lambda s: s.sequence)
+
+    def run(self):
+        """Executes stages and reports the results.
+
         :return: The highest status code reported by a stage.
         """
         # Initialize the status code to 0.
@@ -92,14 +114,11 @@ class Engine:
         # Start
         _output.log(mode.JOB_START)
 
-        # Sort stages by sequence.
-        if len(stages) > 1:
-            stages = sorted(stages, key=lambda s: s.sequence)
-
-        for stage in stages:
+        for stage in self._stages:
             # Run the stage.
             _output.log(mode.STAGE_START, stage.sequence)
-            exit_code = stage.run(continue_on_fail)
+            stage.setup()
+            exit_code = stage.run(self._continue_on_fail)
             if exit_code > status_code:
                 status_code = exit_code
             _output.log(mode.STAGE_END, stage.sequence, exit_code)
@@ -142,7 +161,7 @@ class StageFactory:
 
         if not commands:
             _output.log(mode.NO_JOB)
-            sys.exit(output.ExitCode.NO_TESTS)
+            raise NoJobs
 
         if runner_type == Runners.VAGRANT.value and not environment:
             raise ValueError('Environment must be a path to a Vagrant file if using the Vagrant runner.')
@@ -162,7 +181,15 @@ class StageFactory:
         if action not in Actions.available():
             raise ValueError('Action must be one of {}.'.format(', '.join(Actions.available())))
 
-        return Stage(runner_type, environment, artifacts, commands, directives, sequence, action, copy, wd)
+        # Build the macros.
+        factory = MacroFactory(commands, suffixes=artifacts)
+        macros = factory.generate()
+
+        # Create the CommandRunner.
+        command_runner = getattr(runner, runner_type.capitalize())
+        cmd_runner = command_runner(environment, working_dir=wd, copy_dir=copy, artifacts=artifacts)
+
+        return Stage(cmd_runner, macros, directives, sequence, action)
 
 
 class Stage:
@@ -172,50 +199,73 @@ class Stage:
         '_action',
         '_command_runner',
         '_directives',
+        '_is_setup',
         '_macros',
         '_result',
         '_results',
-        '_runner',
         '_sequence',
     ]
 
-    def __init__(self, runner_type, environment, artifacts, commands, directives, sequence, action, copy, wd):
+    def __init__(self, cmd_runner, macros, directives, sequence, action):
         """Instantiates a new Stage object.
 
         Note: Stage objects should not be constructed directly and should instead be created by a StageFactory.
 
-        :param str runner_type: The CommandRunner to use.
-        :param environment: The environment the CommandRunner will use.
-        :param int sequence: The execution order of the macros.
-        :param list[str] artifacts: The artifacts to operate on.
-        :param list[str] commands: The commands to execute.
+        :param CommandRunner cmd_runner: The CommandRunner to use.
+        :param list[Macro] macros: The commands to execute.
         :param list[str] directives: The command directives.
+        :param int sequence: The execution order of the macros.
         :param str action: The Action to use.
-        :param str copy: The path to copy artifacts from.
-        :param str wd: The working directory to use.
         """
-        try:
-            command_runner = getattr(runner, runner_type.capitalize())
-        except AttributeError:
-            raise ValueError('Runner must be one of {}.'.format(', '.join(runner.Runners.available())))
-
         try:
             self._action = getattr(actions, action.capitalize())
         except AttributeError:
             raise ValueError('Action must be one of {}.'.format(', '.join(Actions.available())))
-        self._sequence = sequence
+
+        self._command_runner = cmd_runner
+        self._macros = macros
         self._directives = directives
-        self._command_runner = command_runner(environment, working_dir=wd, copy_dir=copy, artifacts=artifacts)
-        factory = MacroFactory(commands, suffixes=artifacts)
-        self._macros = sorted(factory.generate(), key=lambda m: m.sequence)
+        self._sequence = sequence
         self._results = []
         self._result = 0
-        self._runner = runner_type
+        self._is_setup = False
 
     @property
     def sequence(self):
         """The stage execution order."""
         return self._sequence
+
+    @property
+    def is_setup(self):
+        """True if the setup method was already run, else False."""
+        return self._is_setup
+
+    def setup(self):
+        """Dynamically set the provision() and teardown() methods for the Command Runner and call it's prepare() method.
+
+        :return: None
+        """
+        # Dynamically bind the action's provision function to the command runner object.
+        provision_name = (
+            self._action
+                .mapping[actions.SETUP_METHOD]
+                .get(self._command_runner.name, actions.DEFAULT_METHOD)
+        )
+        provision = getattr(actions, provision_name)
+        self._command_runner.provision = types.MethodType(provision, self._command_runner)
+
+        # Dynamically bind the action's teardown function to the command runner object.
+        teardown_name = (
+            self._action
+                .mapping[actions.TEARDOWN_METHOD]
+                .get(self._command_runner.name, actions.DEFAULT_METHOD)
+        )
+        teardown = getattr(actions, teardown_name)
+        self._command_runner.teardown = types.MethodType(teardown, self._command_runner)
+
+        # Call the command runner's prepare function first.
+        self._command_runner.prepare()
+        self._is_setup = True
 
     def run(self, continue_on_fail=False):
         """Executes the commands in the Stage.
@@ -223,18 +273,9 @@ class Stage:
         :param bool continue_on_fail: If True, keep running commands even if the last command failed. Default is False.
         :return: The highest Stage result.
         """
-        # Dynamically bind the action's provision function to the command runner object.
-        provision_name = self._action.mapping[actions.SETUP_METHOD].get(self._runner, actions.DEFAULT_METHOD)
-        provision = getattr(actions, provision_name)
-        self._command_runner.provision = types.MethodType(provision, self._command_runner)
-
-        # Dynamically bind the action's teardown function to the command runner object.
-        teardown_name = self._action.mapping[actions.TEARDOWN_METHOD].get(self._runner, actions.DEFAULT_METHOD)
-        teardown = getattr(actions, teardown_name)
-        self._command_runner.teardown = types.MethodType(teardown, self._command_runner)
-
-        # Call the command runner's prepare function first.
-        self._command_runner.prepare()
+        # Setup if not already setup.
+        if not self.is_setup:
+            self.setup()
 
         # Call the provision method.
         result = self._command_runner.provision()
@@ -244,14 +285,21 @@ class Stage:
         for mac in self._macros:
             directive = self._directives[mac.sequence]
 
-            if self._action.add_prefix.get(self._runner):
-                mac.prefix = self._action.add_prefix[self._runner]
+            # Add the prefix to the macro.
+            if self._action.add_prefix.get(self._command_runner.name):
+                mac.prefix = self._action.add_prefix[self._command_runner.name]
 
-            if self._action.add_suffix.get(self._runner):
-                mac.suffix = self._action.add_suffix[self._runner]
+            # Add the suffix to the macro.
+            if self._action.add_suffix.get(self._command_runner.name):
+                mac.suffix = self._action.add_suffix[self._command_runner.name]
 
             # Run the macro.
-            status = self._command_runner.execute(mac)
+            try:
+                status = self._command_runner.execute(mac)
+            except Exception as err:
+                raise ExecutionError(str(err))
+
+            # Handle the result.
             _output.log(mode.MACRO_STATUS, directive, mac.command, status.exit_code)
             self._results.append(status)
             if status.exit_code > 0 and not continue_on_fail:
@@ -263,6 +311,7 @@ class Stage:
         if not result:
             raise TeardownError('Teardown failed.')
 
+        # Set the exit code.
         fails = map(lambda r: True if r.exit_code > 0 else False, self._results)
         if any(fails):
             self._result = 1

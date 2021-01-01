@@ -114,6 +114,18 @@ def build_magic(
     )
 
     # Run the stage.
-    code = core.Engine.run([stage], continue_on_fail=continue_)
+    try:
+        engine = core.Engine([stage], continue_on_fail=continue_)
+        code = engine.run()
+    except core.NoJobs:
+        sys.exit(core.output.ExitCode.NO_TESTS)
+    except (NotADirectoryError, ValueError) as err:
+        print(str(err))
+        sys.exit(core.output.ExitCode.INPUT_ERROR)
+    except (core.ExecutionError, core.SetupError, core.TeardownError) as err:
+        print(str(err))
+        sys.exit(core.output.ExitCode.INTERNAL_ERROR)
+    except KeyboardInterrupt:
+        sys.exit(core.output.ExitCode.INTERRUPTED)
 
     sys.exit(code)

@@ -98,6 +98,7 @@ def test_local_constructor():
     assert not runner.artifacts
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
+    assert runner.name == 'local'
 
     runner = Local(environment='dummy', working_dir='/test', copy_dir='/other', timeout=10, artifacts=['hello.txt'])
     assert runner.environment == 'dummy'
@@ -173,6 +174,7 @@ def test_docker_constructor():
     assert runner.timeout == 30
     assert runner.binding == {str(Path.cwd()): {'bind': runner.working_directory, 'mode': 'rw'}}
     assert not runner.container
+    assert runner.name == 'docker'
 
     runner = Docker(environment='python:3', working_dir='/test', copy_dir='/other', timeout=10, artifacts=['hello.txt'])
     assert runner.environment == 'python:3'
@@ -259,6 +261,7 @@ def test_vagrant_constructor():
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
     assert not runner._vm
+    assert runner.name == 'vagrant'
 
     runner = Vagrant(environment='/opt', working_dir='/test', copy_dir='/other', timeout=10, artifacts=['hello.txt'])
     assert runner.environment == '/opt'
@@ -327,6 +330,7 @@ def test_remote_constructor():
     assert not runner.user
     assert runner.host == 'localhost'
     assert not runner.port
+    assert runner.name == 'remote'
 
 
 def test_remote_constructor_valid_ssh(valid_ssh_conn):

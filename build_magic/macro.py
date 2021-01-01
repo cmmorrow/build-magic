@@ -9,9 +9,6 @@ class MacroFactory:
     :param list[str] commands: The commands to use for building Macros.
     :param list[str] prefixes: The command prefixes to use for building Macros.
     :param list[str] suffixes: The command suffixes to use for building Macros.
-
-    :rtype: tuple[str]
-    :return: A tuple of Macro object in order of Macro.sequence.
     """
 
     __slots__ = ['_commands']
