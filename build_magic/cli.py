@@ -4,6 +4,7 @@ import sys
 
 import click
 
+from build_magic import __version__ as ver
 from build_magic import core
 
 # Get a list of command runners.
@@ -54,13 +55,13 @@ Use --help for detailed usage of each option.
 @click.option('--environment', '-e', default='', help='The command runner environment to use.', type=str)
 @click.option('--runner', '-r', default='local', help='The command runner to use.', type=RUNNERS)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
-@click.option('--continue/--stop', help='Continue to run after failure if True.', default=False)
+@click.option('--continue_/--stop', help='Continue to run after failure if True.', default=False)
 @click.option('--isolate', help='Execute commands in an isolated directory.', default=False)
 @click.option('--cleanup', help='Run commands and delete any created files if True.', default=False)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
-@click.option('--quiet', help='Suppress all output from build-magic.', type=bool)
+@click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
 @click.option('--verbose/--standard', '-v', help='Verbose output.', default=False)
-@click.option('--version', help='Display the build-magic version.', type=bool)
+@click.option('--version', help='Display the build-magic version.', is_flag=True)
 @click.argument('args', nargs=-1)
 def build_magic(
         cleanup,
@@ -83,6 +84,10 @@ def build_magic(
     Alternatively, ARGS can be a single command to execute if the --command option isn't used.
     In this case, type -- followed by the command.
     """
+    if version:
+        click.echo(ver)
+        sys.exit(0)
+
     # Set the action to use.
     action = Actions.DEFAULT.value
     if cleanup:
@@ -100,32 +105,39 @@ def build_magic(
         click.echo(USAGE)
         sys.exit(1)
 
+    if plain:
+        out = 'plain'
+    else:
+        out = 'fancy'
+
     # Build the stage.
-    stage = core.StageFactory.build(
-        sequence=1,
-        runner_type=runner,
-        directives=list(types),
-        artifacts=artifacts,
-        action=action,
-        commands=list(commands),
-        environment=environment,
-        copy=copy,
-        wd=wd,
-    )
+    try:
+        stage = core.StageFactory.build(
+            sequence=1,
+            runner_type=runner,
+            directives=list(types),
+            artifacts=artifacts,
+            action=action,
+            commands=list(commands),
+            environment=environment,
+            copy=copy,
+            wd=wd,
+        )
+    except (NotADirectoryError, ValueError) as err:
+        click.secho(str(err), fg='red', err=True)
+        sys.exit(core.output.ExitCode.INPUT_ERROR)
 
     # Run the stage.
     try:
-        engine = core.Engine([stage], continue_on_fail=continue_)
+        engine = core.Engine([stage], continue_on_fail=continue_, output_format=out)
         code = engine.run()
     except core.NoJobs:
         sys.exit(core.output.ExitCode.NO_TESTS)
-    except (NotADirectoryError, ValueError) as err:
-        print(str(err))
-        sys.exit(core.output.ExitCode.INPUT_ERROR)
     except (core.ExecutionError, core.SetupError, core.TeardownError) as err:
-        print(str(err))
+        click.secho(str(err), fg='red', err=True)
         sys.exit(core.output.ExitCode.INTERNAL_ERROR)
     except KeyboardInterrupt:
+        click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)
         sys.exit(core.output.ExitCode.INTERRUPTED)
 
     sys.exit(code)

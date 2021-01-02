@@ -2,7 +2,6 @@
 
 from enum import Enum, unique
 from pathlib import Path
-import sys
 import types
 
 from build_magic import actions, output, runner
@@ -10,7 +9,13 @@ from build_magic.macro import MacroFactory
 
 
 mode = output.OutputMethod
-_output = output.Basic()
+_output = output.Tty()
+
+
+OUTPUT_TYPES = {
+    'plain': 'Basic',
+    'fancy': 'Tty',
+}
 
 
 class ExecutionError(Exception):
@@ -89,19 +94,25 @@ class Engine:
 
     __slots__ = ['_continue_on_fail', '_stages']
 
-    def __init__(self, stages=None, continue_on_fail=False):
+    def __init__(self, stages=None, continue_on_fail=False, output_format='fancy'):
         """Executes stages and reports the results.
 
         :param list[Stage]|None stages: The stage or stages to execute.
         :param bool continue_on_fail:
+        :param str output_format:
         :return: The highest status code reported by a stage.
         """
         self._continue_on_fail = continue_on_fail
-        stages = stages or []
+        self._stages = stages or []
 
         # Sort stages by sequence.
         if len(stages) > 1:
             self._stages = sorted(stages, key=lambda s: s.sequence)
+
+        if output_format not in OUTPUT_TYPES:
+            raise ValueError('Output must be one of {}'.format(', '.join(OUTPUT_TYPES.keys())))
+        global _output
+        _output = getattr(output, OUTPUT_TYPES[output_format])()
 
     def run(self):
         """Executes stages and reports the results.
@@ -124,7 +135,7 @@ class Engine:
             _output.log(mode.STAGE_END, stage.sequence, exit_code)
 
         # TODO: This is the wrong status code - fix it.
-        _output.log(mode.JOB_END, status_code)
+        _output.log(mode.JOB_END)
         return status_code
 
 
@@ -295,6 +306,7 @@ class Stage:
 
             # Run the macro.
             try:
+                _output.log(mode.MACRO_START, directive, mac.command)
                 status = self._command_runner.execute(mac)
             except Exception as err:
                 raise ExecutionError(str(err))

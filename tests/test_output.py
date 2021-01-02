@@ -1,5 +1,6 @@
 """This module hosts unit tests for the Output classes."""
 
+from freezegun import freeze_time
 import pytest
 
 from build_magic.output import Basic, Output, OutputMethod
@@ -23,6 +24,7 @@ def test_basic_log_method(capsys):
     assert log_output == captured.out
 
 
+@freeze_time('2021-01-02 01:06:34')
 def test_basic_end_job(capsys):
     """Verify the basic end_job() method works as expected."""
     output = Output()
@@ -30,9 +32,9 @@ def test_basic_end_job(capsys):
         output.log(OutputMethod.JOB_END)
 
     output = Basic()
-    output.log(OutputMethod.JOB_END, 77)
+    output.log(OutputMethod.JOB_END)
     captured = capsys.readouterr()
-    assert captured.out == 'build-magic finished with status code 77\n'
+    assert captured.out == 'build-magic finished at 2021-01-02T01:06:34\n'
 
 
 def test_basic_start_stage(capsys):
@@ -88,6 +90,7 @@ def test_basic_no_job(capsys):
     assert captured.out == 'No commands to run. Use --help for usage. Exiting...\n'
 
 
+@freeze_time('2021-01-02 01:06:34')
 def test_basic_macro_status(capsys):
     """Verify the basic macro_status() method works as expected."""
     output = Output()
@@ -98,24 +101,25 @@ def test_basic_macro_status(capsys):
     # Only the directive.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD')
     captured = capsys.readouterr()
-    assert captured.out == '[ DONE ] BUILD\n'
+    assert captured.out == '2021-01-02T01:06:34 [ DONE  ] BUILD   \n'
 
     # Default status code.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD', 'tar -czf hello.tar.gz')
     captured = capsys.readouterr()
-    assert captured.out == '[ DONE ] BUILD : tar -czf hello.tar.gz\n'
+    assert captured.out == '2021-01-02T01:06:34 [ DONE  ] BUILD    : tar -czf hello.tar.gz\n'
 
     # No command but failing status code.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD', status_code=1)
     captured = capsys.readouterr()
-    assert captured.out == '[ FAIL ] BUILD\n'
+    assert captured.out == '2021-01-02T01:06:34 [ FAIL  ] BUILD   \n'
 
     # Command with failing status code.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD', 'tar -czf hello.tar.gz', 1)
     captured = capsys.readouterr()
-    assert captured.out == '[ FAIL ] BUILD : tar -czf hello.tar.gz\n'
+    assert captured.out == '2021-01-02T01:06:34 [ FAIL  ] BUILD    : tar -czf hello.tar.gz\n'
 
 
+@freeze_time('2021-01-02 01:06:34')
 def test_basic_error(capsys):
     """Verify the basic error() method works as expected."""
     output = Output()
@@ -125,4 +129,4 @@ def test_basic_error(capsys):
     output = Basic()
     output.log(OutputMethod.ERROR, 'An error occurred.')
     captured = capsys.readouterr()
-    assert captured.out == '[ ERR  ] An error occurred.\n'
+    assert captured.out == '2021-01-02T01:06:34 [ ERROR ] An error occurred.\n'
