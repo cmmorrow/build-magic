@@ -60,7 +60,7 @@ Use --help for detailed usage of each option.
 @click.option('--cleanup', help='Run commands and delete any created files if True.', default=False)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
 @click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
-@click.option('--verbose/--standard', '-v', help='Verbose output.', default=False)
+@click.option('--verbose', '-v', help='Verbose output.', is_flag=True)
 @click.option('--version', help='Display the build-magic version.', is_flag=True)
 @click.argument('args', nargs=-1)
 def build_magic(
@@ -107,6 +107,8 @@ def build_magic(
 
     if plain:
         out = 'plain'
+    elif quiet:
+        out = 'quiet'
     else:
         out = 'fancy'
 
@@ -129,7 +131,7 @@ def build_magic(
 
     # Run the stage.
     try:
-        engine = core.Engine([stage], continue_on_fail=continue_, output_format=out)
+        engine = core.Engine([stage], continue_on_fail=continue_, output_format=out, verbose=verbose)
         code = engine.run()
     except core.NoJobs:
         sys.exit(core.output.ExitCode.NO_TESTS)

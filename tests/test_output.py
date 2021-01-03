@@ -90,6 +90,19 @@ def test_basic_no_job(capsys):
     assert captured.out == 'No commands to run. Use --help for usage. Exiting...\n'
 
 
+def test_basic_macro_start(capsys):
+    """Verify the basic macro_start() method doesn't print anything."""
+    output = Output()
+    with pytest.raises(NotImplementedError):
+        output.log(OutputMethod.MACRO_START)
+
+    output = Basic()
+    output.log(OutputMethod.MACRO_START)
+    captured = capsys.readouterr()
+    assert not captured.out
+    assert not captured.err
+
+
 @freeze_time('2021-01-02 01:06:34')
 def test_basic_macro_status(capsys):
     """Verify the basic macro_status() method works as expected."""
@@ -130,3 +143,19 @@ def test_basic_error(capsys):
     output.log(OutputMethod.ERROR, 'An error occurred.')
     captured = capsys.readouterr()
     assert captured.out == '2021-01-02T01:06:34 [ ERROR ] An error occurred.\n'
+
+
+@freeze_time('2021-01-02 01:06:34')
+def test_basic_info(capsys):
+    """Verify the basic info() method works as expected."""
+    output = Output()
+    with pytest.raises(NotImplementedError):
+        output.log(OutputMethod.INFO)
+
+    output = Basic()
+    output.log(OutputMethod.INFO, 'This is a test.\n\n\n')
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 [ INFO  ] OUTPUT   : This is a test.\n\n\n\n'
+
+
+# TODO: Add tests for Tty and Silent.

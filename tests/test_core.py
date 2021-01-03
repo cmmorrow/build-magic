@@ -136,6 +136,19 @@ def test_stage_run_multiple_continue_on_fail():
     assert len(stage._results) == 3
 
 
+def test_stage_run_verbose(capsys):
+    """Verify the Stage run() method handles verbose mode correctly."""
+    args = (Local(), [Macro('echo hello')], ['execute'], 1, 'default')
+    stage = Stage(*args)
+    assert stage.is_setup is False
+    exit_code = stage.run(verbose=True)
+    assert exit_code == 0
+    assert len(stage._results) == 1
+    assert stage.is_setup is True
+    captured = capsys.readouterr()
+    assert '\nOUTPUT  : hello\n' in captured.out
+
+
 def test_stagefactory_build():
     """Verify the StageFactory build() method works correctly."""
     args = (0, 'local', ['execute'], None, ['ls'], '', 'default', '.', '.')

@@ -248,7 +248,7 @@ def test_docker_execute_fail(docker_runner, mocker):
     status = docker_runner.execute(cmd)
     assert status.exit_code == 1
     assert not status.stdout
-    assert isinstance(status.stderr, ImageLoadError)
+    assert status.stderr == 'ImageLoadError'
 
 
 def test_vagrant_constructor():
@@ -367,3 +367,6 @@ def test_remote_prepare(build_path, mocker, tmp_path, remote_runner):
     assert remote_runner.prepare()
     assert put.call_count == 1
     assert 'hello.txt' in put.call_args[0][0]
+
+
+# TODO: Add test for Remote execute.

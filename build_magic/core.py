@@ -15,6 +15,7 @@ _output = output.Tty()
 OUTPUT_TYPES = {
     'plain': 'Basic',
     'fancy': 'Tty',
+    'quiet': 'Silent',
 }
 
 
@@ -92,17 +93,19 @@ class Engine:
     :param list[Stage]|None stages: The stage or stages to execute.
     """
 
-    __slots__ = ['_continue_on_fail', '_stages']
+    __slots__ = ['_continue_on_fail', '_stages', '_verbose']
 
-    def __init__(self, stages=None, continue_on_fail=False, output_format='fancy'):
+    def __init__(self, stages=None, continue_on_fail=False, output_format='fancy', verbose=False):
         """Executes stages and reports the results.
 
         :param list[Stage]|None stages: The stage or stages to execute.
-        :param bool continue_on_fail:
-        :param str output_format:
+        :param bool continue_on_fail: If True, continue command execution even if a command fails or errors.
+        :param str output_format: The output interface to use for displaying messages.
+        :param bool verbose: If True, print the stdout from each Macro status.
         :return: The highest status code reported by a stage.
         """
         self._continue_on_fail = continue_on_fail
+        self._verbose = verbose
         self._stages = stages or []
 
         # Sort stages by sequence.
@@ -129,7 +132,7 @@ class Engine:
             # Run the stage.
             _output.log(mode.STAGE_START, stage.sequence)
             stage.setup()
-            exit_code = stage.run(self._continue_on_fail)
+            exit_code = stage.run(self._continue_on_fail, self._verbose)
             if exit_code > status_code:
                 status_code = exit_code
             _output.log(mode.STAGE_END, stage.sequence, exit_code)
@@ -278,10 +281,11 @@ class Stage:
         self._command_runner.prepare()
         self._is_setup = True
 
-    def run(self, continue_on_fail=False):
+    def run(self, continue_on_fail=False, verbose=False):
         """Executes the commands in the Stage.
 
         :param bool continue_on_fail: If True, keep running commands even if the last command failed. Default is False.
+        :param bool verbose: If True, print the stdout from each Macro status.
         :return: The highest Stage result.
         """
         # Setup if not already setup.
@@ -314,6 +318,9 @@ class Stage:
             # Handle the result.
             _output.log(mode.MACRO_STATUS, directive, mac.command, status.exit_code)
             self._results.append(status)
+            if verbose:
+                if status.stdout:
+                    _output.log(mode.INFO, status.stdout.decode('utf-8'))
             if status.exit_code > 0 and not continue_on_fail:
                 _output.log(mode.ERROR, status.stderr.decode('utf-8'))
                 break

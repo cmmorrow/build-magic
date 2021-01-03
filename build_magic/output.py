@@ -33,6 +33,7 @@ class OutputMethod(enum.Enum):
     MACRO_START = 'macro_start'
     MACRO_STATUS = 'macro_status'
     ERROR = 'error'
+    INFO = 'info'
 
 
 class Output:
@@ -72,6 +73,10 @@ class Output:
 
     def error(self, *args, **kwargs):
         """Communicates an error message."""
+        raise NotImplementedError
+
+    def info(self, *args, **kwargs):
+        """Communicates a general information message."""
         raise NotImplementedError
 
     @staticmethod
@@ -176,6 +181,15 @@ class Basic(Output):
         :return: None
         """
         message = '{} [ ERROR ] {}'.format(datetime.now().isoformat(), err)
+        self._display(message)
+
+    def info(self, msg):
+        """Communicates a general information message.
+
+        :param str msg: The message to print.
+        :return: None
+        """
+        message = '{} [ INFO  ] OUTPUT   : {}'.format(datetime.now().isoformat(), msg)
         self._display(message)
 
 
@@ -297,3 +311,52 @@ class Tty(Output):
         with self._term.location(position, height):
             self._display(result)
         self._display(err, err=True)
+
+    def info(self, msg):
+        """Communicates a general information message.
+
+        :param str msg: The message to print.
+        :return: None
+        """
+        message = 'OUTPUT  : {}'.format(msg)
+        self._display(message)
+
+
+class Silent(Output):
+    """Silent output that suppresses output."""
+
+    def start_job(self, *args, **kwargs):
+        """Indicates the beginning of a sequence of stages."""
+        return
+
+    def end_job(self, *args, **kwargs):
+        """Indicates the end of a build-magic session."""
+        return
+
+    def start_stage(self, *args, **kwargs):
+        """Indicates the beginning of a stage."""
+        return
+
+    def end_stage(self, *args, **kwargs):
+        """Indicates the end of a stage."""
+        return
+
+    def no_job(self, *args, **kwargs):
+        """Indicates there are no commands to execute."""
+        return
+
+    def macro_start(self, *args, **kwargs):
+        """Indicates the beginning of a command."""
+        return
+
+    def macro_status(self, *args, **kwargs):
+        """Indicates the success status of a command."""
+        return
+
+    def error(self, *args, **kwargs):
+        """Communicates an error message."""
+        return
+
+    def info(self, *args, **kwargs):
+        """Communicates a general information message."""
+        return

@@ -1,6 +1,5 @@
 """Module for defining CommandRunner classes."""
 
-from collections import namedtuple
 import os
 from pathlib import Path
 import re
@@ -13,8 +12,20 @@ from docker.errors import ContainerError, APIError, ImageLoadError
 import paramiko
 from scp import SCPClient
 
-"""The captured output of a command executed by a CommandRunner."""
-Status = namedtuple('Status', ['stdout', 'stderr', 'exit_code'])
+
+class Status:
+    """The captured output of a command executed by a CommandRunner."""
+
+    def __init__(self, stdout='', stderr='', exit_code=0):
+        """Instantiates a new Status object.
+
+        :param bytes|str stdout: The stdout captured by a CommandRunner.
+        :param bytes|str stderr: The stderr captured by a CommandRunner.
+        :param num exit_code: The exit code captured by a CommandRunner.
+        """
+        self.stdout = stdout
+        self.stderr = stderr
+        self.exit_code = exit_code
 
 
 class CommandRunner:
@@ -265,7 +276,7 @@ class Remote(CommandRunner):
         transport.close()
         if exit_code < 0:
             raise TimeoutError('Connection to remote host {} timed out after {} seconds.'.format(host, self.timeout))
-        return Status(stdout=stdout, stderr=stderr, exit_code=exit_code)
+        return Status(stdout=''.join(stdout), stderr=''.join(stderr), exit_code=exit_code)
 
 
 class Vagrant(CommandRunner):
@@ -342,5 +353,5 @@ class Docker(CommandRunner):
         except (ContainerError, APIError) as err:
             status = Status('', stderr=str(err), exit_code=1)
         except ImageLoadError as err:
-            status = Status('', stderr=err, exit_code=1)
+            status = Status('', stderr=str(err.__class__.__name__), exit_code=1)
         return status

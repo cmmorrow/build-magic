@@ -28,6 +28,7 @@ setup(
     ],
     tests_require=[
         'pytest',
+        'freezegun',
     ],
     # extras_require={
     #     'tests': ['tests'],
