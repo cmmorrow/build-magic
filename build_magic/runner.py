@@ -7,8 +7,7 @@ import shutil
 import subprocess
 import time
 
-import docker
-from docker.errors import ContainerError, APIError, ImageLoadError
+from docker.errors import ContainerError
 import paramiko
 from scp import SCPClient
 
@@ -64,7 +63,7 @@ class CommandRunner:
         if src and dst:
             for artifact in self.artifacts:
                 if src == '.':
-                    src = Path.cwd()
+                    src = Path.cwd().resolve()
                 src = Path(src) / artifact
                 shutil.copy(src, dst)
             return True
@@ -282,7 +281,7 @@ class Remote(CommandRunner):
 class Vagrant(CommandRunner):
     """Manages macros executed executed in a guest virtual machine managed by Vagrant."""
 
-    def __init__(self, environment='.', working_dir='/vagrant', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment='.', working_dir='.', copy_dir='', timeout=30, artifacts=None):
         """Instantiates a new Vagrant command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
         self._vm = None
@@ -290,7 +289,7 @@ class Vagrant(CommandRunner):
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
         if self.copy_from_directory:
-            self.copy(self.copy_from_directory, Path.cwd())
+            self.copy(self.copy_from_directory, Path.cwd().resolve())
             return True
         else:
             return False
@@ -301,28 +300,32 @@ class Vagrant(CommandRunner):
         :param Macro macro: The Macro object to execute.
         :return: The Status of the executed Macro.
         """
-        macro.prefix = f'cd {self.working_directory};'
         cmd = macro.as_string()
         try:
-            self._vm.ssh(command=cmd)
+            out = self._vm.ssh(command=cmd)
         except subprocess.CalledProcessError as err:
             return Status('', str(err), 1)
-        return Status('', '', 0)
+        return Status(out, '', 0)
 
 
 class Docker(CommandRunner):
     """Manages macros executed in a Docker container."""
 
-    def __init__(self, environment='alpine', working_dir='/build_magic', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment='alpine', working_dir='.', copy_dir='', timeout=30, artifacts=None):
         """Instantiates a new Docker command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
-        self.binding = {str(Path.cwd()): {'bind': self.working_directory, 'mode': 'rw'}}
+        self.binding = {
+            str(self.working_directory): {
+                'bind': '/build_magic',
+                'mode': 'rw',
+            }
+        }
         self.container = None
 
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
         if self.copy_from_directory:
-            self.copy(self.copy_from_directory, Path.cwd())
+            self.copy(self.copy_from_directory, self.working_directory)
             return True
         else:
             return False
@@ -338,20 +341,37 @@ class Docker(CommandRunner):
         else:
             command = None
 
-        client = docker.from_env()
+        if not self.container:
+            self.provision()
         try:
-            container = client.containers.run(
-                self.environment,
-                command=command,
-                detach=False,
-                remove=True,
-                working_dir=self.working_directory,
-                volumes=self.binding
+            code, (out, err) = self.container.exec_run(
+                cmd=command,
+                stdout=True,
+                stderr=True,
+                tty=True,
+                demux=True,
             )
-            self.container = container
-            status = Status('', '', exit_code=0)
-        except (ContainerError, APIError) as err:
+            status = Status(stdout=out, stderr=err, exit_code=code)
+        except ContainerError as err:
             status = Status('', stderr=str(err), exit_code=1)
-        except ImageLoadError as err:
-            status = Status('', stderr=str(err.__class__.__name__), exit_code=1)
         return status
+
+        # client = docker.from_env()
+        # try:
+        #     out = container = client.containers.run(
+        #         self.environment,
+        #         command=command,
+        #         detach=False,
+        #         remove=True,
+        #         working_dir=self.working_directory,
+        #         volumes=self.binding,
+        #         stdout=True,
+        #         stderr=True,
+        #     )
+        #     self.container = container
+        #     status = Status(out, '', exit_code=0)
+        # except (ContainerError, APIError) as err:
+        #     status = Status('', stderr=str(err), exit_code=1)
+        # except ImageLoadError as err:
+        #     status = Status('', stderr=str(err.__class__.__name__), exit_code=1)
+        # return status

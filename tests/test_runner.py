@@ -5,8 +5,7 @@ from pathlib import Path
 import subprocess
 from unittest.mock import MagicMock
 
-import docker
-from docker.errors import ContainerError, APIError, ImageLoadError
+from docker.errors import ContainerError
 import paramiko
 import pytest
 
@@ -167,12 +166,12 @@ def test_docker_constructor():
     """Verify the Docker command runner constructor works correctly."""
     runner = Docker()
     assert runner.environment == 'alpine'
-    assert runner.working_directory == '/build_magic'
+    assert runner.working_directory == '.'
     assert not runner.copy_from_directory
     assert not runner.artifacts
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
-    assert runner.binding == {str(Path.cwd()): {'bind': runner.working_directory, 'mode': 'rw'}}
+    assert runner.binding == {'.': {'bind': '/build_magic', 'mode': 'rw'}}
     assert not runner.container
     assert runner.name == 'docker'
 
@@ -203,26 +202,25 @@ def test_docker_prepare(docker_runner, build_path, tmp_path):
 def test_docker_execute(docker_runner, mocker):
     """Verify the Docker command runner execute() method works correctly."""
     ref = {
-        'command': ['tar', '-v', '-czf', 'hello.tar.gz', 'hello.txt'],
-        'detach': False,
-        'remove': True,
-        'working_dir': '/build_magic',
-        'volumes': {
-            str(Path.cwd()): {
-                'bind': '/build_magic',
-                'mode': 'rw',
-            }
-        }
+        'cmd': [
+            'echo',
+            'hello',
+        ],
+        'stdout': True,
+        'stderr': True,
+        'tty': True,
+        'demux': True,
     }
-    client = mocker.patch('docker.from_env', spec=docker.client.DockerClient)
-    cmd = Macro('tar -v -czf hello.tar.gz hello.txt')
+    container = mocker.patch('docker.models.containers.Container')
+    run = mocker.patch('docker.models.containers.Container.exec_run', return_value=(0, ('hello', None)))
+    cmd = Macro('echo hello')
+    docker_runner.container = container
     status = docker_runner.execute(cmd)
-    assert client.call_count == 1
-    call_args = client.mock_calls[1]
-    assert call_args[1] == ('alpine',)
+    assert run.call_count == 1
+    call_args = run.mock_calls[0]
     assert call_args[2] == ref
     assert status.exit_code == 0
-    assert not status.stdout
+    assert status.stdout == 'hello'
     assert not status.stderr
 
 
@@ -231,31 +229,21 @@ def test_docker_execute_fail(docker_runner, mocker):
     cmd = Macro('cat')
     errors = (
         ContainerError('test', 1, cmd.as_string(), 'alpine', ''),
-        APIError('fail'),
-        ImageLoadError,
     )
-    mocker.patch('docker.models.containers.ContainerCollection.run', side_effect=errors)
+    container = mocker.patch('docker.models.containers.Container')
+    mocker.patch('docker.models.containers.Container.exec_run', side_effect=errors)
+    docker_runner.container = container
     status = docker_runner.execute(cmd)
     assert status.exit_code == 1
     assert not status.stdout
     assert status.stderr == "Command 'cat' in image 'alpine' returned non-zero exit status 1: "
-
-    status = docker_runner.execute(cmd)
-    assert status.exit_code == 1
-    assert not status.stdout
-    assert status.stderr == 'fail'
-
-    status = docker_runner.execute(cmd)
-    assert status.exit_code == 1
-    assert not status.stdout
-    assert status.stderr == 'ImageLoadError'
 
 
 def test_vagrant_constructor():
     """Verify the Vagrant command runner constructor works correctly."""
     runner = Vagrant()
     assert runner.environment == '.'
-    assert runner.working_directory == '/vagrant'
+    assert runner.working_directory == '.'
     assert not runner.copy_from_directory
     assert not runner.artifacts
     assert type(runner.artifacts) == list
@@ -294,8 +282,8 @@ def test_vagrant_execute(vagrant_runner):
     vagrant_runner._vm = vm
     status = vagrant_runner.execute(cmd)
     call_args = vm.mock_calls[0]
-    assert call_args[2] == {'command': 'cd /vagrant; tar -v -czf hello.tar.gz hello.txt'}
-    assert not status.stdout
+    assert call_args[2] == {'command': 'tar -v -czf hello.tar.gz hello.txt'}
+    assert status.stdout
     assert not status.stderr
     assert status.exit_code == 0
 

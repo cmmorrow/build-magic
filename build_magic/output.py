@@ -244,10 +244,10 @@ class Tty(Output):
         message = self._term.underline + 'Starting Stage {}'.format(stage_number) + self._term.normal
         self._display(message)
 
-    def end_stage(self, stage_number=1, status_code=0):
+    def end_stage(self, stage_name=1, status_code=0):
         """Indicates the end of a stage.
 
-        :param int stage_number: The stage sequence number.
+        :param int stage_name: The stage sequence number.
         :param int status_code: The highest exit code for the stage.
         :return: None
         """
@@ -256,7 +256,7 @@ class Tty(Output):
         if status_code > 0:
             color = self._term.bold_red
             result = 'FAILED'
-        message = 'Stage {} complete with result {}{}{}'.format(stage_number, color, result, self._term.normal)
+        message = 'Stage {} finished with result {}{}{}\n'.format(stage_name, color, result, self._term.normal)
         self._display(message)
 
     def no_job(self):

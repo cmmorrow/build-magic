@@ -1,34 +1,19 @@
-"""
-Local:
-    default: provision
-    copy: copy files, provision
-    working: cd, provision
-    both: copy, cd, provision
-Remote:
-    default: Use home directory, provision
-    copy: copy files to home directory, provision
-    working: add cd prefix, provision
-    both: add cd prefix, copy to wd, provision
-Vagrant:
-    default: Use /vagrant, add cd prefix (/vagrant), provision
-    copy: copy files to /vagrant, add cd prefix (/vagrant), provision
-    working: add cd prefix (wd), provision
-    both: copy files to /vagrant, copy files to wd, add cd prefix (wd), provision
-Docker:
-    default: Set wd to /build_magic, provision
-    copy: copy files to cwd, set wd to /build_magic, provision
-    working: set wd to wd, provision
-    both: copy files to cwd, set wd, provision
-
-"""
+"""This module hosts Actions and functions to dynamically bind to CommandRunner classes."""
 
 import os
 import pathlib
 import subprocess
 
+import docker
+from docker.errors import APIError, ImageLoadError
 import paramiko
 import vagrant
 
+
+LOCAL = 'local'
+REMOTE = 'remote'
+VAGRANT = 'vagrant'
+DOCKER = 'docker'
 
 SETUP_METHOD = 'provision'
 TEARDOWN_METHOD = 'teardown'
@@ -38,10 +23,34 @@ DEFAULT_METHOD = 'null'
 
 class Action:
     """An Action is used to dynamically define the setup and teardown process for a CommandRunner.
+    At a minimum, a Default action is called to specify and dynamically bind the setup and teardown methods.
+    New functions can be added to Action classes to modify the setup and teardown behavior of a CommandRunner.
+    Additionally, commands can be added as macro prefixes and suffixes for each CommandRunner.
 
-    In most cases, a Default action is called to specify and dynamically bind the setup and teardown methods.
+    The mapping class attribute is a dictionary with keys for the setup and teardown methods.
+    Each key then has a dictionary of key/value pairs, where the key the CommandRunner name,
+    and the value is the function name to dynamically bind to the setup or teardown method. For example,
 
-    New functions can be added to Action classes to modify the setup and teardown behavior of a CommandRunner."""
+        mapping = {
+            'provision': {
+                'local': 'copy_from',
+                'remote': 'copy_to',
+            }
+        }
+
+    will map the function "copy_from()" to the "provision()" method of the Local CommandRunner class
+    and the function "copy_from()" to the "provision()" method of the Remote CommandRunner class.
+
+    The add_prefix and add_suffix class attributes are dictionaries where the key is the CommandRunner name
+    and the value is the function name to dynamically add as a prefix or suffix to each macro being executed
+    by the corresponding CommandRunner class. For example,
+
+        add_prefix = {
+            'vagrant': 'cd /',
+        }
+
+    will add the command "cd /" as a prefix to each command executed by the Vagrant CommandRunner class.
+    """
 
     # Class attribute that maps a command runner to a command that will be added before each executed command.
     add_prefix = {}
@@ -61,21 +70,21 @@ class Default(Action):
 
     mapping = {
         SETUP_METHOD: {
-            'local': 'null',
-            'remote': 'null',
-            'docker': 'null',
-            'vagrant': 'vm_up',
+            LOCAL: DEFAULT_METHOD,
+            REMOTE: DEFAULT_METHOD,
+            DOCKER: 'container_up',
+            VAGRANT: 'vm_up',
         },
         TEARDOWN_METHOD: {
-            'local': 'null',
-            'remote': 'null',
-            'docker': 'null',
-            'vagrant': 'vm_destroy',
+            LOCAL: DEFAULT_METHOD,
+            REMOTE: DEFAULT_METHOD,
+            DOCKER: 'container_destroy',
+            VAGRANT: 'vm_destroy',
         }
     }
 
     add_prefix = {
-        'vagrant': 'cd /vagrant;',
+        VAGRANT: 'cd /vagrant;',
     }
 
 
@@ -84,17 +93,44 @@ class Cleanup(Action):
 
     mapping = {
         SETUP_METHOD: {
-            'local': 'capture_dir',
-            'remote': 'remote_capture_dir',
-            'docker': 'capture_dir',
-            'vagrant': 'vm_up',
+            LOCAL: 'capture_dir',
+            REMOTE: 'remote_capture_dir',
+            DOCKER: 'capture_dir',
+            VAGRANT: 'vm_up',
         },
         TEARDOWN_METHOD: {
-            'local': 'delete_new_files',
-            'remote': 'remote_delete_files',
-            'docker': 'delete_new_files',
-            'vagrant': 'vm_destroy',
+            LOCAL: 'delete_new_files',
+            REMOTE: 'remote_delete_files',
+            DOCKER: 'delete_new_files',
+            VAGRANT: 'vm_destroy',
         }
+    }
+
+    add_prefix = {
+        VAGRANT: 'cd /vagrant;',
+    }
+
+
+class Persist(Action):
+    """Action for starting an environment but doesn't teardown."""
+
+    mapping = {
+        SETUP_METHOD: {
+            LOCAL: DEFAULT_METHOD,
+            REMOTE: DEFAULT_METHOD,
+            DOCKER: 'container_up',
+            VAGRANT: 'vm_up',
+        },
+        TEARDOWN_METHOD: {
+            LOCAL: DEFAULT_METHOD,
+            REMOTE: DEFAULT_METHOD,
+            DOCKER: DEFAULT_METHOD,
+            VAGRANT: DEFAULT_METHOD,
+        }
+    }
+
+    add_prefix = {
+        VAGRANT: 'cd /vagrant;',
     }
 
 
@@ -112,10 +148,10 @@ def vm_up(self):
     self._vm = vagrant.Vagrant()
     try:
         self._vm.up()
-        if self.working_directory != '/vagrant':
-            self._vm.ssh(command='cp /vagrant/* .')
+        # if self.working_directory != '/vagrant':
+        #     self._vm.ssh(command='cp /vagrant/* .')
     except subprocess.CalledProcessError as err:
-        print(err)
+        print(str(err))
         return False
     return True
 
@@ -185,4 +221,32 @@ def remote_delete_files(self):
         client.close()
         return True
     else:
+        return False
+
+
+def container_up(self):
+    """Starts up a new container based on the image set in self.environment."""
+    client = docker.from_env()
+    try:
+        self.container = client.containers.run(
+            self.environment,
+            detach=True,
+            tty=True,
+            entrypoint='sh',
+            working_dir='/build_magic',
+            volumes=self.binding,
+            name='build-magic',
+        )
+    except (APIError, ImageLoadError):
+        return False
+    return True
+
+
+def container_destroy(self):
+    """Destroys the container used for executing commands."""
+    try:
+        self.container.kill()
+        self.container.remove()
+        return True
+    except APIError:
         return False

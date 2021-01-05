@@ -56,11 +56,11 @@ Use --help for detailed usage of each option.
 @click.option('--runner', '-r', default='local', help='The command runner to use.', type=RUNNERS)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue_/--stop', help='Continue to run after failure if True.', default=False)
-@click.option('--isolate', help='Execute commands in an isolated directory.', default=False)
-@click.option('--cleanup', help='Run commands and delete any created files if True.', default=False)
+@click.option('--persist', help="Skips environment teardown when finished.", is_flag=True)
+@click.option('--cleanup', help='Run commands and delete any created files if True.', is_flag=True)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
 @click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
-@click.option('--verbose', '-v', help='Verbose output.', is_flag=True)
+@click.option('--verbose', '-v', help='Verbose output -- stdout from executed commands will be printed.', is_flag=True)
 @click.option('--version', help='Display the build-magic version.', is_flag=True)
 @click.argument('args', nargs=-1)
 def build_magic(
@@ -70,7 +70,7 @@ def build_magic(
         continue_,
         environment,
         args,
-        isolate,
+        persist,
         runner,
         wd,
         plain,
@@ -92,6 +92,8 @@ def build_magic(
     action = Actions.DEFAULT.value
     if cleanup:
         action = Actions.CLEANUP.value
+    elif persist:
+        action = Actions.PERSIST.value
 
     # Set the commands to use.
     if command:
@@ -103,7 +105,7 @@ def build_magic(
 
     if not commands or commands == ['']:
         click.echo(USAGE)
-        sys.exit(1)
+        sys.exit(5)
 
     if plain:
         out = 'plain'

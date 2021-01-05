@@ -82,7 +82,7 @@ class Actions(EnumExt):
 
     DEFAULT = 'default'
     CLEANUP = 'cleanup'
-    ISOLATE = 'isolate'
+    PERSIST = 'persist'
 
 
 class Engine:
@@ -295,6 +295,7 @@ class Stage:
         # Call the provision method.
         result = self._command_runner.provision()
         if not result:
+            # TODO: Execute teardown in the case of Vagrant.
             raise SetupError('Setup failed.')
 
         for mac in self._macros:
@@ -320,9 +321,17 @@ class Stage:
             self._results.append(status)
             if verbose:
                 if status.stdout:
-                    _output.log(mode.INFO, status.stdout.decode('utf-8'))
+                    if isinstance(status.stdout, bytes):
+                        out = status.stdout.decode('utf-8')
+                    else:
+                        out = str(status.stdout)
+                    _output.log(mode.INFO, out)
             if status.exit_code > 0 and not continue_on_fail:
-                _output.log(mode.ERROR, status.stderr.decode('utf-8'))
+                if isinstance(status.stderr, bytes):
+                    err = status.stderr.decode('utf-8')
+                else:
+                    err = str(status.stderr)
+                _output.log(mode.ERROR, err)
                 break
 
         # Call the teardown method.
