@@ -14,17 +14,17 @@ from build_magic.runner import Docker, Local, Remote, Vagrant
 
 
 valid_ssh = (
-    ('dummy', None, 'dummy', None),
-    ('example.com', None, 'example.com', None),
-    ('test-site', None, 'test-site', None),
-    ('user@dummy', 'user', 'dummy', None),
+    ('dummy', None, 'dummy', 22),
+    ('example.com', None, 'example.com', 22),
+    ('test-site', None, 'test-site', 22),
+    ('user@dummy', 'user', 'dummy', 22),
     ('dummy:12345', None, 'dummy', 12345),
     ('user@dummy:12345', 'user', 'dummy', 12345),
-    ('fake-user@dummy', 'fake-user', 'dummy', None),
-    ('fake.user@dummy', 'fake.user', 'dummy', None),
-    ('fake_user@dummy', 'fake_user', 'dummy', None),
-    ('test_site', None, 'test_site', None),
-    ('user1234@dummy', 'user1234', 'dummy', None),
+    ('fake-user@dummy', 'fake-user', 'dummy', 22),
+    ('fake.user@dummy', 'fake.user', 'dummy', 22),
+    ('fake_user@dummy', 'fake_user', 'dummy', 22),
+    ('test_site', None, 'test_site', 22),
+    ('user1234@dummy', 'user1234', 'dummy', 22),
     ('user1234@dummy:123', 'user1234', 'dummy', 123),
     ('a@a:12', 'a', 'a', 12),
 )
@@ -317,7 +317,7 @@ def test_remote_constructor():
     assert not runner.artifacts
     assert not runner.user
     assert runner.host == 'localhost'
-    assert not runner.port
+    assert runner.port == 22
     assert runner.name == 'remote'
 
 
@@ -354,7 +354,7 @@ def test_remote_prepare(build_path, mocker, tmp_path, remote_runner):
     remote_runner.artifacts.append('hello.txt')
     assert remote_runner.prepare()
     assert put.call_count == 1
-    assert 'hello.txt' in put.call_args[0][0]
+    assert 'hello.txt' in put.call_args[0][0][0]
 
 
 # TODO: Add test for Remote execute.

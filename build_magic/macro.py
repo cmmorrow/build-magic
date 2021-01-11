@@ -19,11 +19,14 @@ class MacroFactory:
             prefixes = []
         if not suffixes:
             suffixes = []
-        while len(prefixes) < len(commands):
-            prefixes.append('')
-        while len(suffixes) < len(commands):
-            suffixes.append('')
-        self._commands = tuple(zip(prefixes, commands, suffixes))
+        if commands is None:
+            self._commands = []
+        else:
+            while len(prefixes) < len(commands):
+                prefixes.append('')
+            while len(suffixes) < len(commands):
+                suffixes.append('')
+            self._commands = tuple(zip(prefixes, commands, suffixes))
 
     def generate(self):
         """Generates Macro objects based on the commands supplied to the MacroFactory.
@@ -34,6 +37,8 @@ class MacroFactory:
         macros = []
         i = 0
         for prefix, cmd, suffix, in self._commands:
+            if not cmd:
+                continue
             macros.append(
                 Macro(cmd, sequence=i, prefix=prefix, suffix=suffix)
             )

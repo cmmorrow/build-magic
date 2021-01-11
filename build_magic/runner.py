@@ -5,7 +5,6 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
-import time
 
 from docker.errors import ContainerError
 import paramiko
@@ -157,7 +156,6 @@ class Local(CommandRunner):
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            # capture_output=True,
             timeout=self.timeout,
         )
         return Status(result.stdout, result.stderr, result.returncode)
@@ -168,6 +166,8 @@ class Remote(CommandRunner):
 
     def __init__(self, environment='localhost', working_dir='', copy_dir='', timeout=30, artifacts=None):
         """Instantiates a new Remote command runner object."""
+        if working_dir == '.':
+            working_dir = ''
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
         self.user = None
         self.host = None
@@ -178,6 +178,27 @@ class Remote(CommandRunner):
             self.host = match.group(2)
             if match.group(3):
                 self.port = int(match.group(3))
+            else:
+                self.port = 22
+
+        self.home = os.environ.get('HOME')
+        self.key = paramiko.RSAKey.from_private_key_file(str(Path(self.home) / '.ssh' / 'id_rsa'))
+
+    def connect(self):
+        """Creates an SSH connection.
+
+        :rtype: paramiko.SSHClient
+        :return: The SSH client.
+        """
+        ssh = paramiko.SSHClient()
+        ssh.load_system_host_keys()
+        conn_args = dict(hostname=self.host, pkey=self.key)
+        if self.port:
+            conn_args.update(dict(port=self.port))
+        if self.user:
+            conn_args.update(dict(username=self.user))
+        ssh.connect(**conn_args)
+        return ssh
 
     def copy(self, src, dst=None):
         """Copies the object's artifacts from a directory on the local host to a directory on the remote host.
@@ -197,21 +218,14 @@ class Remote(CommandRunner):
             return False
 
         # Connect to the remote host over scp.
-        ssh = paramiko.SSHClient()
-        ssh.load_system_host_keys()
-        conn_args = dict(hostname=self.host)
-        if self.port:
-            conn_args.update(dict(port=self.port))
-        if self.user:
-            conn_args.update(dict(username=self.user))
-        ssh.connect(**conn_args)
+        ssh = self.connect()
 
         # Copy each file to the remote host.
-        with SCPClient(ssh.get_transport()) as scp:
+        with SCPClient(ssh.get_transport()) as cp:
             if dst:
-                scp.put(*files, remote_path=dst)
+                cp.put(files, remote_path=dst)
             else:
-                scp.put(*files)
+                cp.put(files)
         return True
 
     def prepare(self):
@@ -240,41 +254,17 @@ class Remote(CommandRunner):
         if self.working_directory:
             macro.prefix = f'cd {self.working_directory};'
         command = macro.as_string()
-        stdout = []
-        stderr = []
-        exit_code = -1
-        buff_size = 4096
-        host = self.host
-        user = self.user
-        port = self.port
-        sock = (host, port)
-        # noinspection PyTypeChecker
-        transport = paramiko.Transport(sock)
-        transport.connect(username=user)
-        channel = transport.open_channel(kind='session')
-        channel.exec_command(command)
 
-        start = time.time()
-        current = start
-        while current - start < self.timeout:
-            if channel.exit_status_ready():
-                exit_code = channel.recv_exit_status()
-                buffer = channel.recv(buff_size)
-                stdout.append(buffer)
-                if len(buffer) != 0:
-                    while len(buffer) != 0:
-                        buffer = channel.recv(buff_size)
-                        stdout.append(buffer)
-                buffer = channel.recv_stderr(buff_size)
-                stderr.append(buffer)
-                if len(buffer) != 0:
-                    while len(buffer) != 0:
-                        buffer = channel.recv_stderr(buff_size)
-                        stdout.append(buffer)
-        channel.close()
-        transport.close()
+        ssh = self.connect()
+        stdin_, stdout_, stderr_ = ssh.exec_command(command, timeout=self.timeout)
+        stdout = stdout_.readlines()
+        stderr = stderr_.readlines()
+        exit_code = stdout_.channel.recv_exit_status()
+
         if exit_code < 0:
-            raise TimeoutError('Connection to remote host {} timed out after {} seconds.'.format(host, self.timeout))
+            raise TimeoutError(
+                'Connection to remote host {} timed out after {} seconds.'.format(self.host, self.timeout)
+            )
         return Status(stdout=''.join(stdout), stderr=''.join(stderr), exit_code=exit_code)
 
 
@@ -355,23 +345,3 @@ class Docker(CommandRunner):
         except ContainerError as err:
             status = Status('', stderr=str(err), exit_code=1)
         return status
-
-        # client = docker.from_env()
-        # try:
-        #     out = container = client.containers.run(
-        #         self.environment,
-        #         command=command,
-        #         detach=False,
-        #         remove=True,
-        #         working_dir=self.working_directory,
-        #         volumes=self.binding,
-        #         stdout=True,
-        #         stderr=True,
-        #     )
-        #     self.container = container
-        #     status = Status(out, '', exit_code=0)
-        # except (ContainerError, APIError) as err:
-        #     status = Status('', stderr=str(err), exit_code=1)
-        # except ImageLoadError as err:
-        #     status = Status('', stderr=str(err.__class__.__name__), exit_code=1)
-        # return status

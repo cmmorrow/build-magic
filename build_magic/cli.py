@@ -3,6 +3,7 @@
 import sys
 
 import click
+import yaml
 
 from build_magic import __version__ as ver
 from build_magic import core
@@ -12,7 +13,7 @@ RUNNERS = click.Choice(core.Runners.available(), case_sensitive=False)
 
 
 # Defines the type for the working directory parameter.
-WORKINGDIR = click.Path(exists=False, file_okay=False, dir_okay=True, resolve_path=True, allow_dash=False)
+WORKINGDIR = click.Path(exists=False, file_okay=False, dir_okay=True, resolve_path=False, allow_dash=False)
 
 
 # Defines the type for the config file.
@@ -50,12 +51,12 @@ Use --help for detailed usage of each option.
 
 @click.command()
 @click.option('--command', '-c', help='A directive, command pair to execute.', multiple=True, type=(str, str))
-# @click.option('--config', '-C', help='The YAML formatted config file to load parameters from.', type=CONFIG)
-@click.option('--copy', help='Copy from the specified path.', default='.', type=str)
-@click.option('--environment', '-e', default='', help='The command runner environment to use.', type=str)
-@click.option('--runner', '-r', default='local', help='The command runner to use.', type=RUNNERS)
+@click.option('--config', '-C', help='The YAML formatted config file to load parameters from.', type=CONFIG)
+@click.option('--copy', help='Copy from the specified path.', default='', type=str)
+@click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
+@click.option('--runner', '-r', help='The command runner to use.', default='local', type=RUNNERS)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
-@click.option('--continue_/--stop', help='Continue to run after failure if True.', default=False)
+@click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--persist', help="Skips environment teardown when finished.", is_flag=True)
 @click.option('--cleanup', help='Run commands and delete any created files if True.', is_flag=True)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
@@ -66,6 +67,7 @@ Use --help for detailed usage of each option.
 def build_magic(
         cleanup,
         command,
+        config,
         copy,
         continue_,
         environment,
@@ -82,30 +84,10 @@ def build_magic(
 
     ARGS - Files as arguments to copy from the copy path to the working directory.
     Alternatively, ARGS can be a single command to execute if the --command option isn't used.
-    In this case, type -- followed by the command.
     """
     if version:
         click.echo(ver)
         sys.exit(0)
-
-    # Set the action to use.
-    action = Actions.DEFAULT.value
-    if cleanup:
-        action = Actions.CLEANUP.value
-    elif persist:
-        action = Actions.PERSIST.value
-
-    # Set the commands to use.
-    if command:
-        types, commands = list(zip(*command))
-        artifacts = args
-    else:
-        types, commands = ['build'], [' '.join(args)]
-        artifacts = []
-
-    if not commands or commands == ['']:
-        click.echo(USAGE)
-        sys.exit(5)
 
     if plain:
         out = 'plain'
@@ -114,31 +96,74 @@ def build_magic(
     else:
         out = 'fancy'
 
-    # Build the stage.
-    try:
-        stage = core.StageFactory.build(
-            sequence=1,
-            runner_type=runner,
-            directives=list(types),
-            artifacts=artifacts,
-            action=action,
-            commands=list(commands),
-            environment=environment,
-            copy=copy,
-            wd=wd,
-        )
-    except (NotADirectoryError, ValueError) as err:
-        click.secho(str(err), fg='red', err=True)
-        sys.exit(core.output.ExitCode.INPUT_ERROR)
+    if config:
+        # Read the config YAML file.
+        obj = yaml.safe_load(config)
+
+        stages = []
+        try:
+            stages_ = core.config_parser(obj)
+        except ValueError as err:
+            click.secho(str(err), fg='red', err=True)
+            sys.exit(core.output.ExitCode.INPUT_ERROR)
+        for i, stage_ in enumerate(stages_):
+            stage = core.StageFactory.build(
+                sequence=i + 1,
+                runner_type=stage_['runner_type'],
+                directives=stage_['directives'],
+                artifacts=stage_['artifacts'],
+                action=stage_['action'],
+                commands=stage_['commands'],
+                environment=stage_['environment'],
+                copy=stage_['copy'],
+                wd=stage_['wd'],
+            )
+            stages.append(stage)
+    else:
+        # Set the action to use.
+        action = Actions.DEFAULT.value
+        if cleanup:
+            action = Actions.CLEANUP.value
+        elif persist:
+            action = Actions.PERSIST.value
+
+        # Set the commands to use.
+        if command:
+            directives, commands = list(zip(*command))
+            artifacts = args
+        else:
+            directives, commands = ['execute'], [' '.join(args)]
+            artifacts = []
+
+        if not commands or commands == ['']:
+            click.echo(USAGE)
+            sys.exit(5)
+
+        # Build the stage.
+        try:
+            stage = core.StageFactory.build(
+                sequence=1,
+                runner_type=runner,
+                directives=list(directives),
+                artifacts=artifacts,
+                action=action,
+                commands=list(commands),
+                environment=environment,
+                copy=copy,
+                wd=wd,
+            )
+            stages = [stage]
+        except (NotADirectoryError, ValueError) as err:
+            click.secho(str(err), fg='red', err=True)
+            sys.exit(core.output.ExitCode.INPUT_ERROR)
 
     # Run the stage.
     try:
-        engine = core.Engine([stage], continue_on_fail=continue_, output_format=out, verbose=verbose)
+        engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
         code = engine.run()
     except core.NoJobs:
         sys.exit(core.output.ExitCode.NO_TESTS)
     except (core.ExecutionError, core.SetupError, core.TeardownError) as err:
-        click.secho(str(err), fg='red', err=True)
         sys.exit(core.output.ExitCode.INTERNAL_ERROR)
     except KeyboardInterrupt:
         click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)

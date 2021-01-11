@@ -187,3 +187,21 @@ def test_macro_factory_multiple_commands_3():
     assert macros[1].as_string() == 'd e f'
     assert macros[2].as_string() == 'g h i'
     assert [0, 1, 2] == [m.sequence for m in macros]
+
+
+def test_macro_factory_no_command():
+    """Test the case where there is no command passed to MacroFactory."""
+    # commands is an empty list.
+    factory = MacroFactory([])
+    macros = factory.generate()
+    assert macros == []
+
+    # commands is None.
+    factory = MacroFactory(None)
+    macros = factory.generate()
+    assert macros == []
+
+    # command is a list of empty strings.
+    factory = MacroFactory([''])
+    macros = factory.generate()
+    assert macros == []

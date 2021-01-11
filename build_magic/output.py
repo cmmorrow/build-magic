@@ -16,9 +16,9 @@ class ExitCode(enum.IntEnum):
 
     PASSED = 0
     FAILED = 1
-    INTERRUPTED = 2
+    INTERRUPTED = 4
     INTERNAL_ERROR = 3
-    INPUT_ERROR = 4
+    INPUT_ERROR = 2
     NO_TESTS = 5
 
 
@@ -310,7 +310,7 @@ class Tty(Output):
         result = self._term.bold_red + '{:<8}'.format('ERROR') + self._term.normal
         with self._term.location(position, height):
             self._display(result)
-        self._display(err, err=True)
+        self._display(self._term.red + str(err) + self._term.normal, err=True)
 
     def info(self, msg):
         """Communicates a general information message.

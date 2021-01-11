@@ -12,6 +12,7 @@ freezegun==1.0.0
 idna==2.10
 importlib-metadata==2.0.0
 iniconfig==1.1.1
+jsonschema==3.2.0
 packaging==20.4
 paramiko==2.7.2
 pluggy==0.13.1
@@ -19,10 +20,12 @@ py==1.9.0
 pycparser==2.20
 PyNaCl==1.4.0
 pyparsing==2.4.7
+pyrsistent==0.17.3
 pytest==6.1.1
 pytest-mock==3.4.0
 python-dateutil==2.8.1
 python-vagrant==0.5.15
+PyYAML==5.3.1
 requests==2.24.0
 scp==0.13.3
 six==1.15.0

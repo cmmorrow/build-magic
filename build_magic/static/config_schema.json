@@ -1,0 +1,320 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The build-magic config file schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "stages": [
+                {
+                    "stage": {
+                        "name": "build",
+                        "runner": "docker",
+                        "environment": "alpine:latest",
+                        "verbose": true,
+                        "commands": [
+                            {
+                                "build": "make all"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "stage": {
+                        "name": "install",
+                        "runner": "vagrant",
+                        "environment": "/home/user/project",
+                        "wd": "$HOME/build/RPMS/x64",
+                        "persist": true,
+                        "commands": [
+                            {
+                                "install": "dnf install *.rpm"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "required": [
+        "stages"
+    ],
+    "properties": {
+        "stages": {
+            "$id": "#/properties/stages",
+            "type": "array",
+            "title": "The stages schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": [],
+            "examples": [
+                [
+                    {
+                        "stage": {
+                            "name": "build",
+                            "runner": "docker",
+                            "environment": "alpine:latest",
+                            "commands": [
+                                {
+                                    "build": "make all"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "stage": {
+                            "name": "install",
+                            "runner": "vagrant",
+                            "environment": "/home/user/project",
+                            "wd": "$HOME/build/RPMS/x64",
+                            "persist": true,
+                            "commands": [
+                                {
+                                    "install": "dnf install *.rpm"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            ],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/stages/items",
+                "anyOf": [
+                    {
+                        "$id": "#/properties/stages/items/anyOf/0",
+                        "type": "object",
+                        "title": "The first anyOf schema",
+                        "description": "An explanation about the purpose of this instance.",
+                        "default": {},
+                        "examples": [
+                            {
+                                "stage": {
+                                    "name": "build",
+                                    "runner": "docker",
+                                    "environment": "alpine:latest",
+                                    "verbose": true,
+                                    "commands": [
+                                        {
+                                            "build": "make all"
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "required": [
+                            "stage"
+                        ],
+                        "properties": {
+                            "stage": {
+                                "$id": "#/properties/stages/items/anyOf/0/properties/stage",
+                                "type": "object",
+                                "title": "The stage schema",
+                                "description": "An explanation about the purpose of this instance.",
+                                "default": {},
+                                "examples": [
+                                    {
+                                        "name": "build",
+                                        "runner": "docker",
+                                        "environment": "alpine:latest",
+                                        "commands": [
+                                            {
+                                                "build": "make all"
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "required": [
+                                    "commands"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/name",
+                                        "type": "string",
+                                        "title": "The name schema",
+                                        "description": "The stage name.",
+                                        "default": "",
+                                        "examples": [
+                                            "build",
+                                            1,
+                                            "test-job"
+                                        ]
+                                    },
+                                    "runner": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/runner",
+                                        "type": "string",
+                                        "title": "The runner schema",
+                                        "description": "The command runner the stage should use.",
+                                        "default": "local",
+                                        "enum": ["local", "remote", "docker", "vagrant"],
+                                        "examples": [
+                                            "local",
+                                            "remote",
+                                            "docker",
+                                            "vagrant"
+                                        ]
+                                    },
+                                    "environment": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/environment",
+                                        "type": "string",
+                                        "title": "The environment schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": "",
+                                        "examples": [
+                                            "Vagrantfile",
+                                            "alpine:latest",
+                                            ".",
+                                            "/home/user/src",
+                                          "user@hostname"
+                                        ]
+                                    },
+                                    "cleanup": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/cleanup",
+                                        "type": "boolean",
+                                        "title": "The cleanup schema",
+                                        "description": "",
+                                        "default": false
+                                    },
+                                    "persist": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/persist",
+                                        "type": "boolean",
+                                        "title": "The persist schema",
+                                        "description": "",
+                                        "default": false
+                                    },
+                                    "continue on fail": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/continue%20on%20fail",
+                                        "type": "boolean",
+                                        "title": "The continue on fail schema",
+                                        "description": "",
+                                        "default": false
+                                    },
+                                    "copy from directory": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/copy%20from%20directory",
+                                        "type": "string",
+                                        "title": "The copy from directory schema",
+                                        "description": "",
+                                        "default": ".",
+                                        "examples": [
+                                            ".",
+                                            "/home/user/project/build/artifacts"
+                                        ]
+                                    },
+                                    "working directory": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/working%20directory",
+                                        "type": "string",
+                                        "title": "The working directory schema",
+                                        "description": "",
+                                        "default": ".",
+                                        "examples": [
+                                            ".",
+                                            "/opt/project/src",
+                                            "C:\\project\\src"
+                                        ]
+                                    },
+                                    "artifacts": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/artifacts",
+                                        "type": "array",
+                                        "title": "The artifacts schema",
+                                        "description": "",
+                                        "default": [],
+                                        "additionalItems": true,
+                                        "items": {
+                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/artifacts/items",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "commands": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands",
+                                        "type": "array",
+                                        "title": "The commands schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": [],
+                                        "examples": [
+                                            [
+                                                {
+                                                    "build": "make all"
+                                                }
+                                            ]
+                                        ],
+                                        "additionalItems": true,
+                                        "items": {
+                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items",
+                                            "anyOf": [
+                                                {
+                                                    "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0",
+                                                    "type": "object",
+                                                    "title": "The first anyOf schema",
+                                                    "description": "An explanation about the purpose of this instance.",
+                                                    "default": {},
+                                                    "examples": [
+                                                        {
+                                                            "build": "make all"
+                                                        }
+                                                    ],
+                                                    "properties": {
+                                                        "build": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/build",
+                                                            "type": "string",
+                                                            "title": "The build schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "examples": [
+                                                                "make all",
+                                                                "tar -czf myfiles.tar.gz file1.txt file2.txt",
+                                                                "python setup.py sdist bdist_wheel",
+                                                                "go build /home/user/project/src",
+                                                                "npm run build",
+                                                                "mvn clean compile",
+                                                                "docker build -t myproject ."
+                                                            ]
+                                                        },
+                                                        "execute": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/execute",
+                                                            "type": "string",
+                                                            "title": "The execute schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "examples": [
+                                                                "ls",
+                                                                "mv dist/* /opt"
+                                                            ]
+                                                        },
+                                                        "install": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/install",
+                                                            "type": "string",
+                                                            "title": "The install schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "default": "",
+                                                            "examples": [
+                                                                "dnf install myproject.rpm",
+                                                                "docker install myproject",
+                                                                "apt install myproject.deb"
+                                                            ]
+                                                        },
+                                                        "deploy": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/deploy",
+                                                            "type": "string",
+                                                            "title": "The deploy schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "default": "",
+                                                            "examples": [
+                                                            ]
+                                                        }
+                                                    },
+                                                    "additionalProperties": false
+                                                }
+                                            ]
+                                        }
+                                    }
+                                },
+                                "additionalProperties": false
+                            }
+                        },
+                        "additionalProperties": true
+                    }
+                ]
+            }
+        }
+    },
+    "additionalProperties": false
+}

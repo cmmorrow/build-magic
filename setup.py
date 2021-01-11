@@ -21,9 +21,11 @@ setup(
         'blessings',
         'click',
         'colorama',
+        'jsonschema',
         'docker',
         'paramiko',
         'python-vagrant',
+        'PyYAML',
         'scp',
     ],
     tests_require=[

@@ -3,7 +3,9 @@
 import pytest
 
 from build_magic.actions import Default
-from build_magic.core import Engine, ExecutionError, NoJobs, SetupError, Stage, StageFactory, TeardownError
+from build_magic.core import (
+    config_parser, Engine, ExecutionError, NoJobs, SetupError, Stage, StageFactory, TeardownError
+)
 from build_magic.macro import Macro
 from build_magic.runner import Local
 
@@ -203,13 +205,6 @@ def test_stagefactory_build_invalid_copy_directory():
         StageFactory.build(*args)
 
 
-def test_stagefactory_build_invalid_wd():
-    """Test the case where a non-existent working directory is passed to the StageFactory build() method."""
-    args = (0, 'local', ['execute'], None, ['ls'], '', 'default', '.', 'dummy')
-    with pytest.raises(NotADirectoryError, match='Path dummy does not exist or is not a directory.'):
-        StageFactory.build(*args)
-
-
 def test_stagefactory_build_unequal_directives_and_commands():
     """Test the case where the number of commands is unequal to the number of directives."""
     args = (0, 'local', ['execute', 'build'], None, ['ls'], '', 'default', '.', '.')
@@ -235,3 +230,92 @@ def test_engine_constructor():
     assert engine._stages[1].sequence == 1
     assert engine._stages[2].sequence == 2
     assert not engine._continue_on_fail
+
+
+def test_config_parser():
+    """Verify the config parser works correctly."""
+    config = {
+        'stages': [
+            {
+                'stage': {
+                    'name': 'stage 1',
+                    'persist': True,
+                    'continue on fail': True,
+                    'runner': 'docker',
+                    'environment': 'alpine:latest',
+                    'copy from directory': '/src',
+                    'artifacts': [
+                        'file1.txt',
+                        'file2.txt',
+                    ],
+                    'commands': [
+                        {'build': 'tar -czf myfiles.tar.gz file1.txt file2.txt'},
+                        {'execute': 'rm file1.txt file2.txt'}
+                    ]
+                }
+            },
+            {
+                'stage': {
+                    'name': 'stage 2',
+                    'cleanup': True,
+                    'working directory': '/src',
+                    'commands': [
+                        {'install': 'tar -xzf myfiles.tar.gz'},
+                        {'execute': 'rm myfiles.tar.gz'},
+                        {'deploy': 'cat file1.txt file2.txt'},
+                    ]
+                }
+            }
+        ]
+    }
+    ref = [
+        {
+            'name': 'stage 1',
+            'runner_type': 'docker',
+            'environment': 'alpine:latest',
+            'continue': True,
+            'wd': '.',
+            'copy': '/src',
+            'artifacts': ['file1.txt', 'file2.txt'],
+            'action': 'persist',
+            'commands': [
+                'tar -czf myfiles.tar.gz file1.txt file2.txt',
+                'rm file1.txt file2.txt',
+            ],
+            'directives': [
+                'build',
+                'execute',
+            ]
+        },
+        {
+            'name': 'stage 2',
+            'runner_type': 'local',
+            'environment': '',
+            'continue': False,
+            'wd': '/src',
+            'copy': '.',
+            'artifacts': [],
+            'action': 'cleanup',
+            'commands': [
+                'tar -xzf myfiles.tar.gz',
+                'rm myfiles.tar.gz',
+                'cat file1.txt file2.txt',
+            ],
+            'directives': [
+                'install',
+                'execute',
+                'deploy',
+            ]
+        }
+    ]
+    stages = config_parser(config)
+    assert stages == ref
+
+
+def test_config_parser_validation_fail():
+    """Test the case where config file schema validation fails."""
+    config = {
+        'blah': []
+    }
+    with pytest.raises(ValueError):
+        config_parser(config)

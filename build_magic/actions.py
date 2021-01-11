@@ -71,7 +71,7 @@ class Default(Action):
     mapping = {
         SETUP_METHOD: {
             LOCAL: DEFAULT_METHOD,
-            REMOTE: DEFAULT_METHOD,
+            REMOTE: 'remote_capture_dir',
             DOCKER: 'container_up',
             VAGRANT: 'vm_up',
         },
@@ -168,7 +168,7 @@ def vm_destroy(self):
 
 def capture_dir(self):
     """Capture a list of all the files in a directory."""
-    pwd = pathlib.Path.cwd()
+    pwd = pathlib.Path.cwd().resolve()
     self.existing_files = [file for file in pwd.iterdir()]
     return True
 
@@ -176,9 +176,8 @@ def capture_dir(self):
 def delete_new_files(self):
     """Deletes all files not previously captured."""
     if hasattr(self, 'existing_files'):
-        pwd = pathlib.Path.cwd()
-        current_files = pwd.iterdir()
-        for file in current_files:
+        pwd = pathlib.Path.cwd().resolve()
+        for file in pwd.iterdir():
             if file not in self.existing_files:
                 os.remove(file)
         return True
@@ -188,37 +187,31 @@ def delete_new_files(self):
 
 def remote_capture_dir(self):
     """Capture a list of all the files in a directory on a remote system."""
-    client = paramiko.SSHClient()
-    client.load_system_host_keys()
-    client.connect(self.host, self.port, self.user)
+    client = self.connect()
     if self.working_directory:
         cmd = f'ls {self.working_directory}'
     else:
         cmd = 'ls'
     stdin, stdout, stderr = client.exec_command(cmd)
-    self.existing_files = [file for file in str(stdout).split(' ')]
-    client.close()
+    self.existing_files = [file.strip() for file in stdout.readlines()]
     return True
 
 
 def remote_delete_files(self):
     """Deletes all files not previously captured on a remote system."""
     if hasattr(self, 'existing_files'):
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.connect(self.host, self.port, self.user)
+        client = self.connect()
         if self.working_directory:
             cmd = f'ls {self.working_directory}'
         else:
             cmd = 'ls'
         stdin, stdout, stderr = client.exec_command(cmd)
-        current_files = [file for file in str(stdout).split(' ')]
+        current_files = [file.strip() for file in stdout.readlines()]
         for file in current_files:
             if file not in self.existing_files:
                 if self.working_directory:
                     file = str(self.working_directory) + '/' + file
                 client.exec_command(f'rm {file}')
-        client.close()
         return True
     else:
         return False

@@ -4,6 +4,9 @@ from enum import Enum, unique
 from pathlib import Path
 import types
 
+import json
+from jsonschema import ValidationError, validate as jsvalidator
+
 from build_magic import actions, output, runner
 from build_magic.macro import MacroFactory
 
@@ -85,6 +88,61 @@ class Actions(EnumExt):
     PERSIST = 'persist'
 
 
+def config_parser(config):
+    """Parse the parameters from a build-magic config file.
+
+    :param dict config: The content of the config file to parse.
+    :rtype: list[dict]
+    :return: A list of stage parameters.
+    """
+    # Read the config schema.
+    schema = Path(__file__).resolve().parent / 'static' / 'config_schema.json'
+    with open(schema, 'r') as file:
+        schema = json.load(file)
+
+    # Validate the config file.
+    try:
+        jsvalidator(config, schema=schema)
+    except ValidationError as err:
+        raise ValueError('Config validation failed: {}'.format(err))
+
+    # Build the stages.
+    stages = []
+    for data in config['stages']:
+        data = data['stage']
+        stage = dict()
+        stage['name'] = data.get('name', '')
+        stage['runner_type'] = data.get('runner', Runners.LOCAL.value)
+        stage['environment'] = data.get('environment', '')
+        stage['continue'] = data.get('continue on fail', False)
+        stage['wd'] = data.get('working directory', '.')
+        stage['copy'] = data.get('copy from directory', '.')
+        stage['artifacts'] = data.get('artifacts', [])
+
+        # Set the actions.
+        cleanup = data.get(Actions.CLEANUP.value, False)
+        persist = data.get(Actions.PERSIST.value, False)
+        if cleanup:
+            stage['action'] = Actions.CLEANUP.value
+        elif persist:
+            stage['action'] = Actions.PERSIST.value
+        else:
+            stage['action'] = Actions.DEFAULT.value
+
+        # Set the command and directives.
+        macros = data.get('commands', [])
+        commands = []
+        directives = []
+        for macro in macros:
+            directives.append(list(macro.keys())[0])
+            commands.append(list(macro.values())[0])
+        stage['commands'] = commands
+        stage['directives'] = directives
+        stages.append(stage)
+
+    return stages
+
+
 class Engine:
     """The primary driver in build-magic. The engine executes stages and reports on the results.
 
@@ -132,7 +190,15 @@ class Engine:
             # Run the stage.
             _output.log(mode.STAGE_START, stage.sequence)
             stage.setup()
-            exit_code = stage.run(self._continue_on_fail, self._verbose)
+            try:
+                exit_code = stage.run(self._continue_on_fail, self._verbose)
+            except (SetupError, ExecutionError, TeardownError) as err:
+                exit_code = output.ExitCode.INTERNAL_ERROR
+                _output.log(mode.ERROR, err)
+                _output.log(mode.STAGE_END, stage.sequence, exit_code)
+                _output.log(mode.JOB_END)
+                raise err
+
             if exit_code > status_code:
                 status_code = exit_code
             _output.log(mode.STAGE_END, stage.sequence, exit_code)
@@ -183,11 +249,8 @@ class StageFactory:
         if runner_type == Runners.DOCKER.value and not environment:
             raise ValueError('Environment must be a Docker image if using the Docker runner.')
 
-        if not Path(copy).exists():
+        if copy and not Path(copy).exists():
             raise NotADirectoryError(f'Path {copy} does not exist.')
-
-        if not Path(wd).exists():
-            raise NotADirectoryError(f'Path {wd} does not exist or is not a directory.')
 
         if len(commands) != (len(directives)):
             raise ValueError('Length of commands unequal to length of command types.')
@@ -198,6 +261,8 @@ class StageFactory:
         # Build the macros.
         factory = MacroFactory(commands, suffixes=artifacts)
         macros = factory.generate()
+        if not macros:
+            raise ValueError('There are no commands to execute.')
 
         # Create the CommandRunner.
         command_runner = getattr(runner, runner_type.capitalize())
