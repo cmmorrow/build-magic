@@ -281,7 +281,7 @@ class Tty(Output):
             message = '{:<8}: {} {} {}'.format(directive.upper(), command, '.' * spacing, status)
         self._display(message)
 
-    def macro_status(self, directive, command='', status_code=0):
+    def macro_status(self, directive='', command='', status_code=0):
         """Indicates the success status of a command.
 
         :param str directive: The executed macro's directive.
@@ -292,9 +292,10 @@ class Tty(Output):
         width = self.get_width()
         position = width - 10
         height = self.get_height() - 2
-        result = self._term.bold_green + '{:<8}'.format('COMPLETE') + self._term.normal
         if status_code > 0:
             result = self._term.bold_red + '{:<8}'.format('FAILED') + self._term.normal
+        else:
+            result = self._term.bold_green + '{:<8}'.format('COMPLETE') + self._term.normal
         with self._term.location(position, height):
             self._display(result)
 

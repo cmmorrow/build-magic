@@ -88,6 +88,12 @@ def build_path(tmp_path_factory):
     return magic
 
 
+@pytest.fixture
+def mock_key(mocker):
+    """Provides a mock RSAKey object."""
+    mocker.patch('paramiko.RSAKey.from_private_key_file', spec=paramiko.RSAKey)
+
+
 def test_local_constructor():
     """Verify the Local command runner constructor works correctly."""
     runner = Local()
@@ -110,7 +116,7 @@ def test_local_constructor():
 def test_local_prepare(build_path, local_runner, tmp_path):
     """Verify the Local command runner prepare() method works correctly."""
     if os.sys.platform == 'linux':
-        assert str(Path.cwd().stem) == 'build-magic'
+        assert str(Path.cwd().stem) == 'build-magic1'
     else:
         assert str(Path.cwd().stem) == 'tests'
     local_runner.working_directory = str(tmp_path)
@@ -185,7 +191,6 @@ def test_docker_constructor():
 
 def test_docker_prepare(docker_runner, build_path, tmp_path):
     """Verify the Docker command runner prepare() method works correctly."""
-    # assert str(Path.cwd().stem) == 'tests'
     os.chdir(str(tmp_path))
     assert not docker_runner.prepare()
 
@@ -261,7 +266,6 @@ def test_vagrant_constructor():
 
 def test_vagrant_prepare(build_path, tmp_path, vagrant_runner):
     """Verify the Vagrant command runner prepare() method works correctly."""
-    # assert str(Path.cwd().stem) == 'tests'
     os.chdir(str(tmp_path))
     assert not vagrant_runner.prepare()
 
@@ -307,7 +311,7 @@ def test_vagrant_execute_fail(vagrant_runner):
     assert status.stderr == f"Command '{command}' returned non-zero exit status 100."
 
 
-def test_remote_constructor():
+def test_remote_constructor(mock_key):
     """Verify the Remote command runner constructor works correctly."""
     runner = Remote()
     assert runner.environment == 'localhost'
@@ -321,7 +325,7 @@ def test_remote_constructor():
     assert runner.name == 'remote'
 
 
-def test_remote_constructor_valid_ssh(valid_ssh_conn):
+def test_remote_constructor_valid_ssh(mock_key, valid_ssh_conn):
     """Validate Remote command runner SSH connections strings."""
     valid = valid_ssh_conn
     runner = Remote(environment=valid[0])
@@ -330,7 +334,7 @@ def test_remote_constructor_valid_ssh(valid_ssh_conn):
     assert runner.port == valid[3]
 
 
-def test_remote_constructor_bad_ssh(bad_ssh_conn):
+def test_remote_constructor_bad_ssh(bad_ssh_conn, mock_key):
     """Test the case where Remote command runner SSH connection strings are invalid."""
     bad = bad_ssh_conn
     runner = Remote(environment=bad[0])
@@ -339,7 +343,7 @@ def test_remote_constructor_bad_ssh(bad_ssh_conn):
     assert runner.port == bad[3]
 
 
-def test_remote_prepare(build_path, mocker, tmp_path, remote_runner):
+def test_remote_prepare(build_path, mocker, mock_key, tmp_path, remote_runner):
     """Verify the Remote command runner prepare() method works correctly."""
     mocker.patch('paramiko.SSHClient', spec=paramiko.SSHClient)
     put = mocker.patch('scp.SCPClient.put', return_value=None)

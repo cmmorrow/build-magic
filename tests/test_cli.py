@@ -269,7 +269,10 @@ def test_cli_continue_on_fail(cli):
 def test_cli_stop_on_fail(cli):
     """Verify the --stop option works correctly."""
     res = cli.invoke(build_magic, ['--verbose', '--stop', '-c', 'execute', 'cp', '-c', 'execute', 'echo hello'])
-    assert 'usage: cp' in res.output
+    if os.sys.platform == 'linux':
+        assert 'cp: missing file operand' in res.output
+    else:
+        assert 'usage: cp' in res.output
     assert 'OUTPUT  : hello' not in res.output
     assert res.exit_code == 1
 
