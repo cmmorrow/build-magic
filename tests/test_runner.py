@@ -392,7 +392,7 @@ def test_remote_constructor_bad_ssh(bad_ssh_conn, mock_key):
     assert runner.port == bad[3]
 
 
-def test_remote_prepare(build_path, mocker, tmp_path, remote_runner):
+def test_remote_prepare(build_path, mock_key, mocker, tmp_path, remote_runner):
     """Verify the Remote command runner prepare() method works correctly."""
     mocker.patch('paramiko.SSHClient', spec=paramiko.SSHClient)
     put = mocker.patch('scp.SCPClient.put', return_value=None)
@@ -410,7 +410,7 @@ def test_remote_prepare(build_path, mocker, tmp_path, remote_runner):
     assert 'hello.txt' in put.call_args[0][0][0]
 
 
-def test_remote_execute(mocker, remote_runner):
+def test_remote_execute(mock_key, mocker, remote_runner):
     """Verify the Remote command runner execute() method works correctly."""
     conn = mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
     exek = mocker.patch(
@@ -434,7 +434,7 @@ def test_remote_execute(mocker, remote_runner):
     assert status.exit_code == 0
 
 
-def test_remote_execute_timeout(mocker, remote_runner):
+def test_remote_execute_timeout(mock_key, mocker, remote_runner):
     """Test the case the Remote command runner execute() method raises a Timeout error."""
     conn = mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
     close = mocker.patch('paramiko.SSHClient.close')
@@ -446,7 +446,7 @@ def test_remote_execute_timeout(mocker, remote_runner):
     assert close.call_count == 1
 
 
-def test_remote_execute_fail(mocker, remote_runner):
+def test_remote_execute_fail(mock_key, mocker, remote_runner):
     """Test the case where the Remote execute() method fails."""
     conn = mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
     exek = mocker.patch(
