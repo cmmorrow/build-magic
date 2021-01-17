@@ -54,7 +54,7 @@ Use --help for detailed usage of each option.
 @click.option('--config', '-C', help='The YAML formatted config file to load parameters from.', type=CONFIG)
 @click.option('--copy', help='Copy from the specified path.', default='', type=str)
 @click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
-@click.option('--runner', '-r', help='The command runner to use.', default='local', type=RUNNERS)
+@click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--persist', help="Skips environment teardown when finished.", is_flag=True)
@@ -96,74 +96,90 @@ def build_magic(
     else:
         out = 'fancy'
 
+    stages_ = []
+
     if config:
         # Read the config YAML file.
         obj = yaml.safe_load(config)
 
-        stages = []
+        # Parse the YAML file and set the options.
         try:
-            stages_ = core.config_parser(obj)
+            stages = core.config_parser(obj)
         except ValueError as err:
             click.secho(str(err), fg='red', err=True)
             sys.exit(core.output.ExitCode.INPUT_ERROR)
-        for i, stage_ in enumerate(stages_):
-            stage = core.StageFactory.build(
-                sequence=i + 1,
-                runner_type=stage_['runner_type'],
-                directives=stage_['directives'],
-                artifacts=stage_['artifacts'],
-                action=stage_['action'],
-                commands=stage_['commands'],
-                environment=stage_['environment'],
-                copy=stage_['copy'],
-                wd=stage_['wd'],
-            )
-            stages.append(stage)
-    else:
-        # Set the action to use.
-        action = Actions.DEFAULT.value
-        if cleanup:
-            action = Actions.CLEANUP.value
-        elif persist:
-            action = Actions.PERSIST.value
 
-        # Set the commands to use.
+        for i, stage_ in enumerate(stages):
+            stages_.append(
+                dict(
+                    sequence=i + 1,
+                    runner_type=stage_['runner_type'],
+                    directives=stage_['directives'],
+                    artifacts=stage_['artifacts'],
+                    action=stage_['action'],
+                    commands=stage_['commands'],
+                    environment=stage_['environment'],
+                    copy=stage_['copy'],
+                    wd=stage_['wd'],
+                )
+            )
+    else:
+        # Set the commands from the command line.
         if command:
             directives, commands = list(zip(*command))
             artifacts = args
         else:
             directives, commands = ['execute'], [' '.join(args)]
             artifacts = []
-
         if not commands or commands == ['']:
             click.echo(USAGE)
             sys.exit(5)
 
-        # Build the stage.
-        try:
-            stage = core.StageFactory.build(
+        stages_.append(
+            dict(
                 sequence=1,
-                runner_type=runner,
-                directives=list(directives),
+                runner_type=core.Runners.LOCAL.value,
+                directives=directives,
                 artifacts=artifacts,
-                action=action,
-                commands=list(commands),
+                action=Actions.DEFAULT.value,
+                commands=commands,
                 environment=environment,
                 copy=copy,
                 wd=wd,
             )
-            stages = [stage]
+        )
+
+    # Override values in the config file with options set at the command line.
+    for stage in stages_:
+        if cleanup:
+            stage.update(dict(action=Actions.CLEANUP.value))
+        elif persist:
+            stage.update(dict(action=Actions.PERSIST.value))
+        if environment:
+            stage.update(dict(environment=environment))
+        if copy:
+            stage.update(dict(copy=copy))
+        if len(wd) > 1:
+            stage.update(dict(wd=wd))
+        if runner:
+            stage.update(dict(runner_type=runner))
+
+    # Build the stages.
+    stages = []
+    for stage in stages_:
+        try:
+            stages.append(core.StageFactory.build(**stage))
         except (NotADirectoryError, ValueError) as err:
             click.secho(str(err), fg='red', err=True)
             sys.exit(core.output.ExitCode.INPUT_ERROR)
 
-    # Run the stage.
+    # Run the stages.
     try:
         engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
         code = engine.run()
     except core.NoJobs:
         sys.exit(core.output.ExitCode.NO_TESTS)
-    except (core.ExecutionError, core.SetupError, core.TeardownError) as err:
+    except (core.ExecutionError, core.SetupError, core.TeardownError):
         sys.exit(core.output.ExitCode.INTERNAL_ERROR)
     except KeyboardInterrupt:
         click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)

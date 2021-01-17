@@ -116,7 +116,7 @@ def config_parser(config):
         stage['environment'] = data.get('environment', '')
         stage['continue'] = data.get('continue on fail', False)
         stage['wd'] = data.get('working directory', '.')
-        stage['copy'] = data.get('copy from directory', '.')
+        stage['copy'] = data.get('copy from directory', '')
         stage['artifacts'] = data.get('artifacts', [])
 
         # Set the actions.
@@ -358,7 +358,10 @@ class Stage:
             self.setup()
 
         # Call the provision method.
-        result = self._command_runner.provision()
+        try:
+            result = self._command_runner.provision()
+        except Exception as err:
+            raise SetupError(str(err))
         if not result:
             # TODO: Execute teardown in the case of Vagrant.
             raise SetupError('Setup failed.')

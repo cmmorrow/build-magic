@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import socket
 import subprocess
 
 from docker.errors import ContainerError
@@ -24,6 +25,71 @@ class Status:
         self.stdout = stdout
         self.stderr = stderr
         self.exit_code = exit_code
+
+    def __repr__(self):
+        """Overrides the default string representation to display stdout, stderr, and exit_code.
+
+        :rtype: str
+        :return: The Status string representation.
+        """
+        return f'<stdout={self.stdout}, stderr={self.stderr}, exit_code={self.exit_code}>'
+
+    def __eq__(self, other):
+        """Compare two Status object to see if they are equal.
+
+        :param Status other: The Status object to compare against.
+        :rtype: bool
+        :return: True if the Status objects are equal, otherwise False.
+        """
+        if not isinstance(other, Status):
+            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        return self.stdout == other.stdout and self.stderr == other.stderr and self.exit_code == other.exit_code
+
+    def __lt__(self, other):
+        """Compare if the exit code of the current Status object is less than the exit code of another Status object.
+
+        :param Status other: The Status object to compare against.
+        :rtype: bool
+        :return: True if the exit code is less than the exit code of other, else False.
+        """
+        if not isinstance(other, Status):
+            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        return self.exit_code < other.exit_code
+
+    def __le__(self, other):
+        """Compare if the exit code of the current Status object is less than or equal to the exit code of another
+        Status object.
+
+        :param Status other: The Status object to compare against.
+        :rtype: bool
+        :return: True if the exit code is less than or equal to the exit code of other, else False.
+        """
+        if not isinstance(other, Status):
+            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        return self.exit_code <= other.exit_code
+
+    def __gt__(self, other):
+        """Compare if the exit code of the current Status object is greater than the exit code of another Status object.
+
+        :param Status other: The Status object to compare against.
+        :rtype: bool
+        :return: True if the exit code is greater than the exit code of other, else False.
+        """
+        if not isinstance(other, Status):
+            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        return self.exit_code > other.exit_code
+
+    def __ge__(self, other):
+        """Check if the exit code of the Status object is greater than or equal to the exit code of another Status
+        object.
+
+        :param Status other: The Status object to compare against.
+        :rtype: bool
+        :return: True if the exit code is greater than or equal to the exit code of other, else False.
+        """
+        if not isinstance(other, Status):
+            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        return self.exit_code >= other.exit_code
 
 
 class CommandRunner:
@@ -197,7 +263,10 @@ class Remote(CommandRunner):
             conn_args.update(dict(port=self.port))
         if self.user:
             conn_args.update(dict(username=self.user))
-        ssh.connect(**conn_args)
+        try:
+            ssh.connect(**conn_args)
+        except socket.gaierror:
+            raise Exception('SSH connection failed.')
         return ssh
 
     def copy(self, src, dst=None):
@@ -256,15 +325,17 @@ class Remote(CommandRunner):
         command = macro.as_string()
 
         ssh = self.connect()
-        stdin_, stdout_, stderr_ = ssh.exec_command(command, timeout=self.timeout)
-        stdout = stdout_.readlines()
-        stderr = stderr_.readlines()
-        exit_code = stdout_.channel.recv_exit_status()
-
-        if exit_code < 0:
+        try:
+            stdin_, stdout_, stderr_ = ssh.exec_command(command, timeout=self.timeout)
+            stdout = stdout_.readlines()
+            stderr = stderr_.readlines()
+            exit_code = stdout_.channel.recv_exit_status()
+        except socket.timeout:
             raise TimeoutError(
                 'Connection to remote host {} timed out after {} seconds.'.format(self.host, self.timeout)
             )
+        finally:
+            ssh.close()
         return Status(stdout=''.join(stdout), stderr=''.join(stderr), exit_code=exit_code)
 
 
@@ -305,7 +376,7 @@ class Docker(CommandRunner):
         """Instantiates a new Docker command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
         self.binding = {
-            str(self.working_directory): {
+            str(Path(self.working_directory).resolve()): {
                 'bind': '/build_magic',
                 'mode': 'rw',
             }

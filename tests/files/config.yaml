@@ -1,0 +1,6 @@
+stages:
+  - stage:
+      name: Test stage
+      commands:
+        - execute: echo hello
+        - execute: ls

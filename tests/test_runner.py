@@ -2,15 +2,17 @@
 
 import os
 from pathlib import Path
+import socket
 import subprocess
 from unittest.mock import MagicMock
 
 from docker.errors import ContainerError
 import paramiko
 import pytest
+import vagrant
 
 from build_magic.macro import Macro
-from build_magic.runner import Docker, Local, Remote, Vagrant
+from build_magic.runner import Docker, Local, Remote, Status, Vagrant
 
 
 valid_ssh = (
@@ -94,6 +96,44 @@ def mock_key(mocker):
     mocker.patch('paramiko.RSAKey.from_private_key_file', spec=paramiko.RSAKey)
 
 
+def test_status_equal():
+    """Verify the Status equality comparison works correctly."""
+    status1 = Status(stdout='test', stderr='An error', exit_code=1)
+    status2 = Status('test', 'An error', 1)
+    status3 = Status(stdout='test')
+
+    # Test equality.
+    assert status1 == status2
+
+    # Test inequality.
+    assert status1 != status3
+
+    # Test identity.
+    assert status1 is not status2
+
+
+def test_status_less_than():
+    """Verify the Status less than comparison works correctly."""
+    status1 = Status(stdout='test')
+    status2 = Status(stderr='An error.', exit_code=99)
+    status3 = Status(stderr='Another error.', exit_code=99)
+
+    assert status1 < status2
+    assert not status2 < status3
+    assert status2 <= status3
+
+
+def test_status_greater_than():
+    """Verify the Status greater than comparison works correctly."""
+    status1 = Status(stdout='test')
+    status2 = Status(stderr='An error.', exit_code=99)
+    status3 = Status(stderr='Another error.', exit_code=99)
+
+    assert status2 > status1
+    assert not status2 > status3
+    assert status2 >= status3
+
+
 def test_local_constructor():
     """Verify the Local command runner constructor works correctly."""
     runner = Local()
@@ -116,9 +156,9 @@ def test_local_constructor():
 def test_local_prepare(build_path, local_runner, tmp_path):
     """Verify the Local command runner prepare() method works correctly."""
     if os.sys.platform == 'linux':
-        assert str(Path.cwd().stem) == 'build-magic1'
+        assert str(Path.cwd().resolve().stem) == 'build_magic1'
     else:
-        assert str(Path.cwd().stem) == 'tests'
+        assert str(Path.cwd().resolve().stem) == 'tests'
     local_runner.working_directory = str(tmp_path)
     local_runner.prepare()
     assert 'test_local_prepare' in str(Path.cwd().stem)
@@ -177,7 +217,7 @@ def test_docker_constructor():
     assert not runner.artifacts
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
-    assert runner.binding == {'.': {'bind': '/build_magic', 'mode': 'rw'}}
+    assert runner.binding == {str(Path.cwd().resolve()): {'bind': '/build_magic', 'mode': 'rw'}}
     assert not runner.container
     assert runner.name == 'docker'
 
@@ -311,6 +351,15 @@ def test_vagrant_execute_fail(vagrant_runner):
     assert status.stderr == f"Command '{command}' returned non-zero exit status 100."
 
 
+def test_vagrant_execute_not_found(mocker, vagrant_runner):
+    """Test the case where the Vagrant exe cannot be found."""
+    mocker.patch('vagrant.Vagrant.ssh', side_effect=RuntimeError)
+    cmd = Macro('ls')
+    vagrant_runner._vm = vagrant.Vagrant()
+    with pytest.raises(RuntimeError):
+        vagrant_runner.execute(cmd)
+
+
 def test_remote_constructor(mock_key):
     """Verify the Remote command runner constructor works correctly."""
     runner = Remote()
@@ -343,7 +392,7 @@ def test_remote_constructor_bad_ssh(bad_ssh_conn, mock_key):
     assert runner.port == bad[3]
 
 
-def test_remote_prepare(build_path, mocker, mock_key, tmp_path, remote_runner):
+def test_remote_prepare(build_path, mocker, tmp_path, remote_runner):
     """Verify the Remote command runner prepare() method works correctly."""
     mocker.patch('paramiko.SSHClient', spec=paramiko.SSHClient)
     put = mocker.patch('scp.SCPClient.put', return_value=None)
@@ -361,4 +410,61 @@ def test_remote_prepare(build_path, mocker, mock_key, tmp_path, remote_runner):
     assert 'hello.txt' in put.call_args[0][0][0]
 
 
-# TODO: Add test for Remote execute.
+def test_remote_execute(mocker, remote_runner):
+    """Verify the Remote command runner execute() method works correctly."""
+    conn = mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        return_value=(
+            None,
+            MagicMock(readlines=lambda: 'hello', channel=MagicMock(recv_exit_status=lambda: 0)),
+            MagicMock(readlines=lambda: '')
+        )
+    )
+    close = mocker.patch('paramiko.SSHClient.close')
+    cmd = Macro('echo hello')
+    status = remote_runner.execute(cmd)
+    assert exek.call_args[0][0] == 'echo hello'
+    assert exek.call_args[1] == {'timeout': 30}
+    assert conn.call_count == 1
+    assert exek.call_count == 1
+    assert close.call_count == 1
+    assert not status.stderr
+    assert status.stdout == 'hello'
+    assert status.exit_code == 0
+
+
+def test_remote_execute_timeout(mocker, remote_runner):
+    """Test the case the Remote command runner execute() method raises a Timeout error."""
+    conn = mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
+    close = mocker.patch('paramiko.SSHClient.close')
+    mocker.patch('paramiko.SSHClient.exec_command', side_effect=socket.timeout)
+    cmd = Macro('echo hello')
+    with pytest.raises(TimeoutError):
+        remote_runner.execute(cmd)
+    assert conn.call_count == 1
+    assert close.call_count == 1
+
+
+def test_remote_execute_fail(mocker, remote_runner):
+    """Test the case where the Remote execute() method fails."""
+    conn = mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        return_value=(
+            None,
+            MagicMock(readlines=lambda: '', channel=MagicMock(recv_exit_status=lambda: 1)),
+            MagicMock(readlines=lambda: 'An error message')
+        )
+    )
+    close = mocker.patch('paramiko.SSHClient.close')
+    cmd = Macro('cp')
+    status = remote_runner.execute(cmd)
+    assert exek.call_args[0][0] == 'cp'
+    assert exek.call_args[1] == {'timeout': 30}
+    assert conn.call_count == 1
+    assert exek.call_count == 1
+    assert close.call_count == 1
+    assert status.stderr == 'An error message'
+    assert status.stdout == ''
+    assert status.exit_code == 1

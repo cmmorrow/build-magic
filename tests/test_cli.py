@@ -277,7 +277,11 @@ def test_cli_stop_on_fail(cli):
     assert res.exit_code == 1
 
 
-# TODO: Add config tests
+def test_cli_config(cli):
+    """Verify the --config option works correctly."""
+    file = Path(__file__).resolve().parent / 'files' / 'config.yaml'
+    res = cli.invoke(build_magic, ['--config', str(file)])
+    assert res.exit_code == 0
 
 
 # TODO: Add action tests

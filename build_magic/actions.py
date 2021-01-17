@@ -71,7 +71,7 @@ class Default(Action):
     mapping = {
         SETUP_METHOD: {
             LOCAL: DEFAULT_METHOD,
-            REMOTE: 'remote_capture_dir',
+            REMOTE: DEFAULT_METHOD,
             DOCKER: 'container_up',
             VAGRANT: 'vm_up',
         },

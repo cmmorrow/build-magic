@@ -293,7 +293,7 @@ def test_config_parser():
             'environment': '',
             'continue': False,
             'wd': '/src',
-            'copy': '.',
+            'copy': '',
             'artifacts': [],
             'action': 'cleanup',
             'commands': [
