@@ -1,6 +1,5 @@
 """Module for defining build-magic core classes and exceptions."""
 
-from enum import Enum, unique
 from pathlib import Path
 import types
 
@@ -8,84 +7,12 @@ import json
 from jsonschema import ValidationError, validate as jsvalidator
 
 from build_magic import actions, output, runner
+from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import MacroFactory
+from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
 
-
-mode = output.OutputMethod
+mode = OutputMethod
 _output = output.Tty()
-
-
-OUTPUT_TYPES = {
-    'plain': 'Basic',
-    'fancy': 'Tty',
-    'quiet': 'Silent',
-}
-
-
-class ExecutionError(Exception):
-    """A general build-magic execution error."""
-
-
-class SetupError(Exception):
-    """An error when setting up a CommandRunner."""
-
-
-class TeardownError(Exception):
-    """An error when tearing down a CommandRunner."""
-
-
-class NoJobs(Exception):
-    """There are no jobs to execute."""
-
-
-class EnumExt(Enum):
-    """Extension for the builtin Enum class."""
-
-    def __contains__(self, item):
-        """Adds dictionary-like key searching behavior to class attributes.
-
-        :param item: The item to check for in class attributes.
-        :return: The matching value.
-        """
-        values = self.available()
-        return item in values
-
-    @classmethod
-    def available(cls):
-        """Provides the enum values as a list.
-
-        :return: A list of available enum values.
-        """
-        return [src.value for src in cls.__members__.values()]
-
-
-@unique
-class Runners(EnumExt):
-    """Valid command runner argument names."""
-
-    LOCAL = 'local'
-    REMOTE = 'remote'
-    VAGRANT = 'vagrant'
-    DOCKER = 'docker'
-
-
-@unique
-class Directive(EnumExt):
-    """Valid directive argument names."""
-
-    BUILD = 'build'
-    DEPLOY = 'deploy'
-    EXECUTE = 'execute'
-    INSTALL = 'install'
-
-
-@unique
-class Actions(EnumExt):
-    """Valid action argument names."""
-
-    DEFAULT = 'default'
-    CLEANUP = 'cleanup'
-    PERSIST = 'persist'
 
 
 def config_parser(config):
@@ -170,10 +97,10 @@ class Engine:
         if len(stages) > 1:
             self._stages = sorted(stages, key=lambda s: s.sequence)
 
-        if output_format not in OUTPUT_TYPES:
-            raise ValueError('Output must be one of {}'.format(', '.join(OUTPUT_TYPES.keys())))
+        if output_format not in OutputTypes.names():
+            raise ValueError('Output must be one of {}'.format(', '.join(OutputTypes.names())))
         global _output
-        _output = getattr(output, OUTPUT_TYPES[output_format])()
+        _output = getattr(output, OutputTypes[output_format].value)()
 
     def run(self):
         """Executes stages and reports the results.
@@ -181,7 +108,7 @@ class Engine:
         :return: The highest status code reported by a stage.
         """
         # Initialize the status code to 0.
-        status_code = output.ExitCode.PASSED.value
+        status_code = ExitCode.PASSED.value
 
         # Start
         _output.log(mode.JOB_START)
@@ -193,7 +120,7 @@ class Engine:
             try:
                 exit_code = stage.run(self._continue_on_fail, self._verbose)
             except (SetupError, ExecutionError, TeardownError) as err:
-                exit_code = output.ExitCode.INTERNAL_ERROR
+                exit_code = ExitCode.INTERNAL_ERROR
                 _output.log(mode.ERROR, err)
                 _output.log(mode.STAGE_END, stage.sequence, exit_code)
                 _output.log(mode.JOB_END)
@@ -235,7 +162,7 @@ class StageFactory:
                 raise ValueError(
                     'Directive must be one of {}'.format(', '.join(Directive.available()))
                 )
-
+        # TODO: Add the name attribute instead of always using a number.
         if not artifacts:
             artifacts = []
 
@@ -361,10 +288,10 @@ class Stage:
         try:
             result = self._command_runner.provision()
         except Exception as err:
-            raise SetupError(str(err))
+            raise SetupError(exception=err)
         if not result:
             # TODO: Execute teardown in the case of Vagrant.
-            raise SetupError('Setup failed.')
+            raise SetupError
 
         for mac in self._macros:
             directive = self._directives[mac.sequence]
@@ -382,7 +309,7 @@ class Stage:
                 _output.log(mode.MACRO_START, directive, mac.command)
                 status = self._command_runner.execute(mac)
             except Exception as err:
-                raise ExecutionError(str(err))
+                raise ExecutionError(exception=err)
 
             # Handle the result.
             _output.log(mode.MACRO_STATUS, directive, mac.command, status.exit_code)
@@ -405,7 +332,7 @@ class Stage:
         # Call the teardown method.
         result = self._command_runner.teardown()
         if not result:
-            raise TeardownError('Teardown failed.')
+            raise TeardownError
 
         # Set the exit code.
         fails = map(lambda r: True if r.exit_code > 0 else False, self._results)

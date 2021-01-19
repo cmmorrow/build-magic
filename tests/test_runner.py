@@ -155,10 +155,6 @@ def test_local_constructor():
 
 def test_local_prepare(build_path, local_runner, tmp_path):
     """Verify the Local command runner prepare() method works correctly."""
-    if os.sys.platform == 'linux':
-        assert str(Path.cwd().resolve().stem) == 'build_magic1'
-    else:
-        assert str(Path.cwd().resolve().stem) == 'tests'
     local_runner.working_directory = str(tmp_path)
     local_runner.prepare()
     assert 'test_local_prepare' in str(Path.cwd().stem)

@@ -4,7 +4,8 @@ from freezegun import freeze_time
 import pytest
 
 from build_magic import __version__ as version
-from build_magic.output import Basic, Output, OutputMethod, Silent, Tty
+from build_magic.output import Basic, Output, Silent, Tty
+from build_magic.reference import OutputMethod
 
 
 def test_basic_log_method(capsys):

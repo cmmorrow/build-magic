@@ -4,8 +4,9 @@ import pytest
 
 from build_magic.actions import Default
 from build_magic.core import (
-    config_parser, Engine, ExecutionError, NoJobs, SetupError, Stage, StageFactory, TeardownError
+    config_parser, Engine, Stage, StageFactory
 )
+from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import Macro
 from build_magic.runner import Local
 
@@ -75,7 +76,7 @@ def test_stage_run_setup_fail(mocker):
     mocker.patch('build_magic.actions.null', return_value=False)
     args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
     stage = Stage(*args)
-    with pytest.raises(SetupError):
+    with pytest.raises(SetupError, match='Setup failed'):
         stage.run()
 
 
@@ -84,7 +85,7 @@ def test_stage_run_teardown_fail(mocker):
     mocker.patch('build_magic.actions.null', side_effect=(True, False))
     args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
     stage = Stage(*args)
-    with pytest.raises(TeardownError):
+    with pytest.raises(TeardownError, match='Teardown failed'):
         stage.run()
 
 
@@ -101,7 +102,7 @@ def test_stage_run_exception(mocker):
     mocker.patch('build_magic.runner.Local.execute', side_effect=RuntimeError)
     args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
     stage = Stage(*args)
-    with pytest.raises(ExecutionError):
+    with pytest.raises(ExecutionError, match='Command execution error'):
         stage.run()
 
 
@@ -183,7 +184,7 @@ def test_stagefactory_build_invalid_directive():
 def test_stagefactory_build_no_jobs():
     """Test the case where no jobs a passed to the StageFactory build() method."""
     args = (0, 'local', ['execute'], None, [], '', 'default', '.', '.')
-    with pytest.raises(NoJobs):
+    with pytest.raises(NoJobs, match='No jobs to execute'):
         StageFactory.build(*args)
 
 

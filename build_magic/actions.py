@@ -6,7 +6,6 @@ import subprocess
 
 import docker
 from docker.errors import APIError, ImageLoadError
-import paramiko
 import vagrant
 
 

@@ -8,7 +8,7 @@ import pytest
 
 from build_magic import __version__ as version
 from build_magic.cli import build_magic
-from build_magic.output import ExitCode
+from build_magic.reference import ExitCode
 
 
 @pytest.fixture

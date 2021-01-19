@@ -1,39 +1,13 @@
 """Module for defining build-magic output functionality."""
 
 from datetime import datetime
-import enum
 import sys
 
 from blessings import Terminal
 from colorama import init
 
 from build_magic import __version__ as version
-
-
-class ExitCode(enum.IntEnum):
-    """Valid build-magic exit codes."""
-    # These exit codes are based on pytest.
-
-    PASSED = 0
-    FAILED = 1
-    INTERRUPTED = 4
-    INTERNAL_ERROR = 3
-    INPUT_ERROR = 2
-    NO_TESTS = 5
-
-
-class OutputMethod(enum.Enum):
-    """Valid build-magic output methods."""
-
-    JOB_START = 'start_job'
-    JOB_END = 'end_job'
-    STAGE_START = 'start_stage'
-    STAGE_END = 'end_stage'
-    NO_JOB = 'no_job'
-    MACRO_START = 'macro_start'
-    MACRO_STATUS = 'macro_status'
-    ERROR = 'error'
-    INFO = 'info'
+from build_magic.reference import OutputMethod
 
 
 class Output:
@@ -95,7 +69,7 @@ class Output:
     def log(self, method, *args, **kwargs):
         """Generic method for calling valid output methods.
 
-        :param str|OutputMethod method: The output method to use.
+        :param str|build_magic.reference.OutputMethod method: The output method to use.
         :param args: Optional arguments to pass to the output method.
         :param kwargs: Optional kwargs to pass to the output method.
         :return: None

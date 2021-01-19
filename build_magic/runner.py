@@ -248,6 +248,7 @@ class Remote(CommandRunner):
                 self.port = 22
 
         self.home = os.environ.get('HOME')
+        # TODO: Add the ability to change the key path and type.
         self.key = paramiko.RSAKey.from_private_key_file(str(Path(self.home) / '.ssh' / 'id_rsa'))
 
     def connect(self):
