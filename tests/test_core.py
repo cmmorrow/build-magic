@@ -4,7 +4,7 @@ import pytest
 
 from build_magic.actions import Default
 from build_magic.core import (
-    config_parser, Engine, Stage, StageFactory
+    config_parser, Engine, iterate_sequence, Stage, StageFactory
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import Macro
@@ -320,3 +320,14 @@ def test_config_parser_validation_fail():
     }
     with pytest.raises(ValueError):
         config_parser(config)
+
+
+def test_iterative_sequence():
+    """Verify the iterate_sequence works correctly."""
+    seq = iterate_sequence()
+    out = []
+    i = 0
+    while i < 5:
+        out.append(next(seq))
+        i += 1
+    assert out == [1, 2, 3, 4, 5]

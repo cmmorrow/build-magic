@@ -87,9 +87,7 @@ def test_cli_help(cli):
 
 Options:
   -c, --command <TEXT TEXT>...    A directive, command pair to execute.
-  -C, --config FILENAME           The YAML formatted config file to load
-                                  parameters from.
-
+  -C, --config FILENAME           The config file to load parameters from.
   --copy TEXT                     Copy from the specified path.
   -e, --environment TEXT          The command runner environment to use.
   -r, --runner [local|remote|vagrant|docker]
@@ -296,6 +294,20 @@ def test_cli_config(cli):
     assert 'EXECUTE : ls'
     assert 'Stage 1: Test stage - finished with result COMPLETE'
     assert 'build-magic finished in'
+
+
+def test_cli_config_multi(cli):
+    """Verify assigning multiple config files works correctly."""
+    file1 = Path(__file__).resolve().parent / 'files' / 'config.yaml'
+    file2 = Path(__file__).resolve().parent / 'files' / 'multi.yaml'
+    res = cli.invoke(build_magic, ['--config', str(file1), '--config', str(file2)])
+    assert res.exit_code == 0
+    assert 'Starting Stage 1: Test stage'
+    assert 'Starting Stage 2: Stage A'
+    assert 'Starting Stage 3: Stage B'
+    assert 'Stage 1: Test stage - finished with result COMPLETE'
+    assert 'Stage 2: Stage A - finished with result COMPLETE'
+    assert 'Stage 3: Stage B - finished with result COMPLETE'
 
 
 # TODO: Add action tests

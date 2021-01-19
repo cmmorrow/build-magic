@@ -49,7 +49,7 @@ Use --help for detailed usage of each option.
 # TODO: Add runner specific options.
 @click.command()
 @click.option('--command', '-c', help='A directive, command pair to execute.', multiple=True, type=(str, str))
-@click.option('--config', '-C', help='The YAML formatted config file to load parameters from.', type=CONFIG)
+@click.option('--config', '-C', help='The config file to load parameters from.', multiple=True, type=CONFIG)
 @click.option('--copy', help='Copy from the specified path.', default='', type=str)
 @click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
 @click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
@@ -99,31 +99,33 @@ def build_magic(
     stages_ = []
 
     if config:
-        # Read the config YAML file.
-        obj = yaml.safe_load(config)
+        seq = core.iterate_sequence()
+        for cfg in config:
+            # Read the config YAML file.
+            obj = yaml.safe_load(cfg)
 
-        # Parse the YAML file and set the options.
-        try:
-            stages = core.config_parser(obj)
-        except ValueError as err:
-            click.secho(str(err), fg='red', err=True)
-            sys.exit(ExitCode.INPUT_ERROR)
+            # Parse the YAML file and set the options.
+            try:
+                stages = core.config_parser(obj)
+            except ValueError as err:
+                click.secho(str(err), fg='red', err=True)
+                sys.exit(ExitCode.INPUT_ERROR)
 
-        for i, stage_ in enumerate(stages):
-            stages_.append(
-                dict(
-                    sequence=i + 1,
-                    runner_type=stage_['runner_type'],
-                    directives=stage_['directives'],
-                    artifacts=stage_['artifacts'],
-                    action=stage_['action'],
-                    commands=stage_['commands'],
-                    environment=stage_['environment'],
-                    copy=stage_['copy'],
-                    wd=stage_['wd'],
-                    name=stage_['name'],
+            for stage_ in stages:
+                stages_.append(
+                    dict(
+                        sequence=next(seq),
+                        runner_type=stage_['runner_type'],
+                        directives=stage_['directives'],
+                        artifacts=stage_['artifacts'],
+                        action=stage_['action'],
+                        commands=stage_['commands'],
+                        environment=stage_['environment'],
+                        copy=stage_['copy'],
+                        wd=stage_['wd'],
+                        name=stage_['name'],
+                    )
                 )
-            )
     else:
         # Set the commands from the command line.
         if command:

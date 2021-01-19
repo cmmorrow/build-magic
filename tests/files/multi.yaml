@@ -1,0 +1,10 @@
+stages:
+  - stage:
+      name: Stage A
+      commands:
+        - execute: ls
+        - build: touch hello.txt
+  - stage:
+      name: Stage B
+      commands:
+        - execute: ls hello.txt

@@ -15,6 +15,18 @@ mode = OutputMethod
 _output = output.Tty()
 
 
+def iterate_sequence():
+    """Increments the output sequence by one each time it's called.
+
+    :rtype: Iterator[int]
+    :return: The iterative sequence value.
+    """
+    seq = 1
+    while True:
+        yield seq
+        seq += 1
+
+
 def config_parser(config):
     """Parse the parameters from a build-magic config file.
 
@@ -163,7 +175,7 @@ class StageFactory:
                 raise ValueError(
                     'Directive must be one of {}'.format(', '.join(Directive.available()))
                 )
-        # TODO: Add the name attribute instead of always using a number.
+
         if not artifacts:
             artifacts = []
 
