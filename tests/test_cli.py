@@ -94,6 +94,7 @@ Options:
   -e, --environment TEXT          The command runner environment to use.
   -r, --runner [local|remote|vagrant|docker]
                                   The command runner to use.
+  --name TEXT                     The stage name to use.
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   --persist                       Skips environment teardown when finished.
@@ -135,6 +136,14 @@ def test_cli_runner(cli):
 
     res = cli.invoke(build_magic, ['--runner', 'local', 'ls'])
     assert res.exit_code == ExitCode.PASSED
+
+
+def test_cli_stage_name(cli):
+    """Verify the stage --name option works as expected."""
+    res = cli.invoke(build_magic, ['--name', 'test stage', 'echo hello'])
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: test stage' in res.output
+    assert 'Stage 1: test stage - finished with result COMPLETE'
 
 
 def test_cli_invalid_runner(cli):
@@ -282,6 +291,11 @@ def test_cli_config(cli):
     file = Path(__file__).resolve().parent / 'files' / 'config.yaml'
     res = cli.invoke(build_magic, ['--config', str(file)])
     assert res.exit_code == 0
+    assert 'Starting Stage 1: Test stage'
+    assert 'EXECUTE : echo hello'
+    assert 'EXECUTE : ls'
+    assert 'Stage 1: Test stage - finished with result COMPLETE'
+    assert 'build-magic finished in'
 
 
 # TODO: Add action tests

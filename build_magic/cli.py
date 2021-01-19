@@ -53,6 +53,7 @@ Use --help for detailed usage of each option.
 @click.option('--copy', help='Copy from the specified path.', default='', type=str)
 @click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
 @click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
+@click.option('--name', help='The stage name to use.', type=str)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--persist', help="Skips environment teardown when finished.", is_flag=True)
@@ -72,6 +73,7 @@ def build_magic(
         args,
         persist,
         runner,
+        name,
         wd,
         plain,
         quiet,
@@ -119,6 +121,7 @@ def build_magic(
                     environment=stage_['environment'],
                     copy=stage_['copy'],
                     wd=stage_['wd'],
+                    name=stage_['name'],
                 )
             )
     else:
@@ -146,6 +149,8 @@ def build_magic(
                 wd=wd,
             )
         )
+        if name:
+            stages_[0].update(dict(name=name))
 
     # Override values in the config file with options set at the command line.
     for stage in stages_:

@@ -115,7 +115,7 @@ class Engine:
 
         for stage in self._stages:
             # Run the stage.
-            _output.log(mode.STAGE_START, stage.sequence)
+            _output.log(mode.STAGE_START, stage.sequence, stage.name)
             stage.setup()
             try:
                 exit_code = stage.run(self._continue_on_fail, self._verbose)
@@ -128,7 +128,7 @@ class Engine:
 
             if exit_code > status_code:
                 status_code = exit_code
-            _output.log(mode.STAGE_END, stage.sequence, exit_code)
+            _output.log(mode.STAGE_END, stage.sequence, exit_code, stage.name)
 
         # TODO: This is the wrong status code - fix it.
         _output.log(mode.JOB_END)
@@ -139,7 +139,7 @@ class StageFactory:
     """Validates and generates Stage objects."""
 
     @classmethod
-    def build(cls, sequence, runner_type, directives, artifacts, commands, environment, action, copy, wd):
+    def build(cls, sequence, runner_type, directives, artifacts, commands, environment, action, copy, wd, name=None):
         """Validates inputs and generates a new Stage object.
 
         :param int sequence: The sequence order to run the stage in.
@@ -151,6 +151,7 @@ class StageFactory:
         :param str action: The Stage action to use for execution.
         :param str copy: The directory to copy artifacts from, to the working directory.
         :param str wd: The working directory to use for executing commands.
+        :param str|None name: The stage name if provided.
         :rtype: Stage
         :return: The generated Stage object.
         """
@@ -195,7 +196,7 @@ class StageFactory:
         command_runner = getattr(runner, runner_type.capitalize())
         cmd_runner = command_runner(environment, working_dir=wd, copy_dir=copy, artifacts=artifacts)
 
-        return Stage(cmd_runner, macros, directives, sequence, action)
+        return Stage(cmd_runner, macros, directives, sequence, action, name)
 
 
 class Stage:
@@ -210,9 +211,10 @@ class Stage:
         '_result',
         '_results',
         '_sequence',
+        '_name',
     ]
 
-    def __init__(self, cmd_runner, macros, directives, sequence, action):
+    def __init__(self, cmd_runner, macros, directives, sequence, action, name=None):
         """Instantiates a new Stage object.
 
         Note: Stage objects should not be constructed directly and should instead be created by a StageFactory.
@@ -222,6 +224,7 @@ class Stage:
         :param list[str] directives: The command directives.
         :param int sequence: The execution order of the macros.
         :param str action: The Action to use.
+        :param str|None: The stage name if provided.
         """
         try:
             self._action = getattr(actions, action.capitalize())
@@ -235,6 +238,7 @@ class Stage:
         self._results = []
         self._result = 0
         self._is_setup = False
+        self._name = name
 
     @property
     def sequence(self):
@@ -245,6 +249,11 @@ class Stage:
     def is_setup(self):
         """True if the setup method was already run, else False."""
         return self._is_setup
+
+    @property
+    def name(self):
+        """The stage name."""
+        return self._name
 
     def setup(self):
         """Dynamically set the provision() and teardown() methods for the Command Runner and call it's prepare() method.

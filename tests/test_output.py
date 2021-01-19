@@ -56,6 +56,11 @@ def test_basic_start_stage(capsys):
     captured = capsys.readouterr()
     assert captured.out == 'Starting Stage 7\n'
 
+    # Assign stage name.
+    output.log(OutputMethod.STAGE_START, 7, 'test stage')
+    captured = capsys.readouterr()
+    assert captured.out == 'Starting Stage 7: test stage\n'
+
 
 def test_basic_end_stage(capsys):
     """Verify the end_stage() method works as expected."""
@@ -74,10 +79,15 @@ def test_basic_end_stage(capsys):
     captured = capsys.readouterr()
     assert captured.out == 'Stage 7 complete with result DONE\n'
 
-    # Assigned stague number and status.
+    # Assigned stage number and status.
     output.log(OutputMethod.STAGE_END, 7, 1)
     captured = capsys.readouterr()
     assert captured.out == 'Stage 7 complete with result FAIL\n'
+
+    # Assigned stage number, status, and name.
+    output.log(OutputMethod.STAGE_END, 7, 1, 'test-stage')
+    captured = capsys.readouterr()
+    assert captured.out == 'Stage 7: test-stage - complete with result FAIL\n'
 
 
 def test_basic_no_job(capsys):
@@ -186,6 +196,10 @@ def test_tty_start_stage(capsys):
     captured = capsys.readouterr()
     assert captured.out == 'Starting Stage 1\n'
 
+    output.log(OutputMethod.STAGE_START, name='test-stage')
+    captured = capsys.readouterr()
+    assert captured.out == 'Starting Stage 1: test-stage\n'
+
 
 def test_tty_end_stage(capsys):
     """Verify the end_stage() method works correctly."""
@@ -197,6 +211,10 @@ def test_tty_end_stage(capsys):
     output.log(OutputMethod.STAGE_END, 1, 1)
     captured = capsys.readouterr()
     assert captured.out == 'Stage 1 finished with result FAILED\n\n'
+
+    output.log(OutputMethod.STAGE_END, 1, 1, 'test-stage')
+    captured = capsys.readouterr()
+    assert captured.out == 'Stage 1: test-stage - finished with result FAILED\n\n'
 
 
 def test_tty_no_job(capsys):
