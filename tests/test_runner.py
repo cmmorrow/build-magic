@@ -12,6 +12,7 @@ import pytest
 import vagrant
 
 from build_magic.macro import Macro
+from build_magic.reference import KeyPath, KeyType
 from build_magic.runner import Docker, Local, Remote, Status, Vagrant
 
 
@@ -91,9 +92,18 @@ def build_path(tmp_path_factory):
 
 
 @pytest.fixture
+def ssh_path(tmp_path_factory):
+    """Provides a temp directory with a sample SSH key."""
+    magic = tmp_path_factory.mktemp('build_magic')
+    key = magic / 'key_ecdsa'
+    paramiko.ECDSAKey.generate().write_private_key_file(str(key))
+    return magic
+
+
+@pytest.fixture
 def mock_key(mocker):
     """Provides a mock RSAKey object."""
-    mocker.patch('paramiko.RSAKey.from_private_key_file', spec=paramiko.RSAKey)
+    return mocker.patch('paramiko.RSAKey.from_private_key_file', return_value=paramiko.RSAKey.generate(512))
 
 
 def test_status_equal():
@@ -197,11 +207,15 @@ def test_local_execute_fail(local_runner, tmp_path):
         assert status.exit_code == 1
     assert status.stdout == b''
     if os.sys.platform == 'linux':
-        assert status.stderr == b'tar: dummy.txt: Cannot stat: No such file or directory\n' \
-                                b'tar: Exiting with failure status due to previous errors\n'
+        assert status.stderr == (
+            b'tar: dummy.txt: Cannot stat: No such file or directory\n'
+            b'tar: Exiting with failure status due to previous errors\n'
+        )
     else:
-        assert status.stderr == b'tar: dummy.txt: Cannot stat: No such file or directory\n' \
-                                b'tar: Error exit delayed from previous errors.\n'
+        assert status.stderr == (
+            b'tar: dummy.txt: Cannot stat: No such file or directory\n'
+            b'tar: Error exit delayed from previous errors.\n'
+        )
 
 
 def test_docker_constructor():
@@ -368,6 +382,7 @@ def test_remote_constructor(mock_key):
     assert runner.host == 'localhost'
     assert runner.port == 22
     assert runner.name == 'remote'
+    assert isinstance(runner.key, paramiko.RSAKey)
 
 
 def test_remote_constructor_valid_ssh(mock_key, valid_ssh_conn):
@@ -386,6 +401,28 @@ def test_remote_constructor_bad_ssh(bad_ssh_conn, mock_key):
     assert runner.user == bad[1]
     assert runner.host == bad[2]
     assert runner.port == bad[3]
+
+
+def test_remote_with_parameters(ssh_path):
+    """Verify the Remote command runner handles passed in parameters correctly."""
+    ref = paramiko.ECDSAKey.from_private_key_file(f'{ssh_path}/key_ecdsa')
+    params = {
+        'keypath': KeyPath(f'{ssh_path}/key_ecdsa'),
+        'keytype': KeyType('ecdsa'),
+    }
+    runner = Remote('user@myhost', parameters=params)
+    assert isinstance(runner.key, paramiko.ECDSAKey)
+    assert runner.key == ref
+
+
+def test_remote_invalid_parameters_filtered_out(mock_key):
+    """Test the case where invalid parameters are passed to the Remote command runner and filtered out."""
+    params = {
+        'dummy': type('Hello', (), {}),
+        'wrong': type('Other', (), {}),
+    }
+    runner = Remote('user@myhost', parameters=params)
+    assert runner.parameters == {}
 
 
 def test_remote_prepare(build_path, mock_key, mocker, tmp_path, remote_runner):

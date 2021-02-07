@@ -1,5 +1,6 @@
 """Module for defining build-magic core classes and exceptions."""
 
+
 from pathlib import Path
 import types
 
@@ -10,6 +11,14 @@ from build_magic import actions, output, runner
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import MacroFactory
 from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
+from build_magic.reference import KeyPath, KeyType
+
+# Add valid Parameter classes here.
+PARAMETERS = (
+    KeyPath,
+    KeyType,
+)
+
 
 mode = OutputMethod
 _output = output.Tty()
@@ -151,7 +160,80 @@ class StageFactory:
     """Validates and generates Stage objects."""
 
     @classmethod
-    def build(cls, sequence, runner_type, directives, artifacts, commands, environment, action, copy, wd, name=None):
+    def _build_macros(cls, commands, artifacts):
+        """Build Macro objects from provided commands.
+
+        :param list[str] commands: The commands to use for building the Macro objects.
+        :param list[str] artifacts: The artifacts to use for building the Macro objects.
+        :rtype: list[Macro]
+        :return: A list of Macro objects.
+        """
+        factory = MacroFactory(commands, suffixes=artifacts)
+        return factory.generate()
+
+    @classmethod
+    def _build_command_runner(cls, runner_type, environment, parameters, copy, wd, artifacts):
+        """Build a CommandRunner object.
+
+        :param str runner_type: The command runner to use for executing commands.
+        :param str environment: The Stage environment to use.
+        :param str copy: The directory to copy artifacts from, to the working directory.
+        :param str wd: The working directory to use for executing commands.
+        :param list[str] artifacts: The Stage artifacts to work on.
+        :param dict parameters: The user-supplied parameters to pass to the command runner.
+        :rtype: CommandRunner
+        :return: The CommandRunner object to use for executing the Stage's commands.
+        """
+        if runner_type not in Runners.available():
+            raise ValueError('Runner must be one of {}.'.format(', '.join(Runners.available())))
+
+        if runner_type == Runners.VAGRANT.value and not environment:
+            raise ValueError('Environment must be a path to a Vagrant file if using the Vagrant runner.')
+
+        if runner_type == Runners.DOCKER.value and not environment:
+            raise ValueError('Environment must be a Docker image if using the Docker runner.')
+
+        if copy and not Path(copy).exists():
+            raise NotADirectoryError(f'Path {copy} does not exist.')
+
+        command_runner = getattr(runner, runner_type.capitalize())
+        return command_runner(environment, working_dir=wd, copy_dir=copy, artifacts=artifacts, parameters=parameters)
+
+    @classmethod
+    def _build_parameters(cls, parameters):
+        """Build the Parameter objects for the CommandRunner to use.
+
+        :param list[tuple] parameters: The parameter keys and their corresponding classes.
+        :rtype: dict[str, build_magic.reference.Parameter]
+        :return: A dictionary of Parameter objects instantiated with the passed in values.
+        """
+        if not parameters:
+            return {}
+        parameter_map = dict([(p.ALIAS, p) if p.ALIAS else (p.KEY, p) for p in PARAMETERS])
+        params = {}
+        for param_key, param_value in parameters:
+            if param_key not in parameter_map.keys():
+                raise ValueError(f'Parameter {param_key} is not a valid parameter.')
+            param = parameter_map[param_key]
+            # Instantiating param can fail with a reference.ValidationError.
+            params[param_key] = param(param_value)
+        return params
+
+    @classmethod
+    def build(
+            cls,
+            sequence,
+            runner_type,
+            directives,
+            artifacts,
+            commands,
+            environment,
+            action,
+            copy,
+            wd,
+            name=None,
+            parameters=None,
+    ):
         """Validates inputs and generates a new Stage object.
 
         :param int sequence: The sequence order to run the stage in.
@@ -164,11 +246,13 @@ class StageFactory:
         :param str copy: The directory to copy artifacts from, to the working directory.
         :param str wd: The working directory to use for executing commands.
         :param str|None name: The stage name if provided.
+        :param list[tuple]|None parameters: The optional parameters passed by the user.
         :rtype: Stage
         :return: The generated Stage object.
         """
-        if runner_type not in Runners.available():
-            raise ValueError('Runner must be one of {}.'.format(', '.join(Runners.available())))
+        if not commands:
+            _output.log(mode.NO_JOB)
+            raise NoJobs
 
         for directive in directives:
             if directive not in Directive.available():
@@ -176,37 +260,32 @@ class StageFactory:
                     'Directive must be one of {}'.format(', '.join(Directive.available()))
                 )
 
-        if not artifacts:
-            artifacts = []
-
-        if not commands:
-            _output.log(mode.NO_JOB)
-            raise NoJobs
-
-        if runner_type == Runners.VAGRANT.value and not environment:
-            raise ValueError('Environment must be a path to a Vagrant file if using the Vagrant runner.')
-
-        if runner_type == Runners.DOCKER.value and not environment:
-            raise ValueError('Environment must be a Docker image if using the Docker runner.')
-
-        if copy and not Path(copy).exists():
-            raise NotADirectoryError(f'Path {copy} does not exist.')
-
         if len(commands) != (len(directives)):
             raise ValueError('Length of commands unequal to length of command types.')
 
         if action not in Actions.available():
             raise ValueError('Action must be one of {}.'.format(', '.join(Actions.available())))
 
+        # Build the parameters.
+        params = cls._build_parameters(parameters)
+
+        if not artifacts:
+            artifacts = []
+
         # Build the macros.
-        factory = MacroFactory(commands, suffixes=artifacts)
-        macros = factory.generate()
+        macros = cls._build_macros(commands=commands, artifacts=artifacts)
         if not macros:
             raise ValueError('There are no commands to execute.')
 
         # Create the CommandRunner.
-        command_runner = getattr(runner, runner_type.capitalize())
-        cmd_runner = command_runner(environment, working_dir=wd, copy_dir=copy, artifacts=artifacts)
+        cmd_runner = cls._build_command_runner(
+            runner_type,
+            environment,
+            copy=copy,
+            wd=wd,
+            artifacts=artifacts,
+            parameters=params,
+        )
 
         return Stage(cmd_runner, macros, directives, sequence, action, name)
 
@@ -224,6 +303,7 @@ class Stage:
         '_results',
         '_sequence',
         '_name',
+        '_parameters',
     ]
 
     def __init__(self, cmd_runner, macros, directives, sequence, action, name=None):
@@ -236,7 +316,7 @@ class Stage:
         :param list[str] directives: The command directives.
         :param int sequence: The execution order of the macros.
         :param str action: The Action to use.
-        :param str|None: The stage name if provided.
+        :param str|None name: The stage name if provided.
         """
         try:
             self._action = getattr(actions, action.capitalize())

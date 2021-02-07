@@ -95,6 +95,7 @@ Options:
   --name TEXT                     The stage name to use.
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
+  -p, --parameter <TEXT TEXT>...  Key/value used for runner specific settings.
   --persist                       Skips environment teardown when finished.
   --cleanup                       Run commands and delete any created files if
                                   True.

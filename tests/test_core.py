@@ -8,6 +8,7 @@ from build_magic.core import (
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import Macro
+from build_magic.reference import KeyPath, KeyType
 from build_magic.runner import Local
 
 
@@ -218,6 +219,17 @@ def test_stagefactory_build_invalid_action():
     args = (0, 'local', ['execute'], None, ['ls'], '', 'dummy', '.', '.')
     with pytest.raises(ValueError, match='Action must be one of'):
         StageFactory.build(*args)
+
+
+def test_stagefactory_build_parameters():
+    """Verify the StageFactory build_parameters() class method works correctly."""
+    ref = {
+        'keytype': KeyType('ECDSAKey'),
+        'keypath': KeyPath('$HOME/.ssh/key_ecdsa'),
+    }
+    params = [('keypath', f'$HOME/.ssh/key_ecdsa'), ('keytype', 'ecdsa')]
+    out = StageFactory._build_parameters(params)
+    assert out == ref
 
 
 def test_engine_constructor():

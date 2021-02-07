@@ -104,16 +104,25 @@ class CommandRunner:
         - teardown()
     """
 
-    def __init__(self, environment, working_dir='', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment, working_dir='', copy_dir='', timeout=30, artifacts=None, parameters=None):
         """Instantiate a new CommandRunner object."""
         self.environment = environment
         self.working_directory = working_dir
         self.copy_from_directory = copy_dir
         self.timeout = timeout
-        if not artifacts:
-            self.artifacts = []
-        else:
-            self.artifacts = artifacts
+        self.artifacts = [] if not artifacts else artifacts
+        self.parameters = {} if not parameters else parameters
+
+    @staticmethod
+    def filter_parameters(parameters, parameter_names):
+        """Filter parameters for those with a key in parameter_names.
+
+        :param dict[str, build_magic.reference.Parameter]   parameters: The parameters to filter.
+        :param tuple[str] parameter_names: A list of parameter names to filter by.
+        :rtype: dict[str, build_magic.reference.Parameter]
+        :return: The remaining parameters with the non-matching parameters filtered out.
+        """
+        return filter(lambda p: True if type(p[1]).__name__ in parameter_names else False, parameters.items())
 
     def copy(self, src, dst):
         """Copies the CommandRunner object's artifacts from one path to another.
@@ -194,9 +203,9 @@ class CommandRunner:
 class Local(CommandRunner):
     """Manages macros executed on the local host machine."""
 
-    def __init__(self, environment='', working_dir='', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment='', working_dir='', copy_dir='', timeout=30, artifacts=None, parameters=None):
         """Instantiates a new Local command runner object."""
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
 
     def prepare(self):
         """Changes to the specified working directory and copies artifacts if necessary.
@@ -230,26 +239,61 @@ class Local(CommandRunner):
 class Remote(CommandRunner):
     """Manages macros executed on a remote host machine."""
 
-    def __init__(self, environment='localhost', working_dir='', copy_dir='', timeout=30, artifacts=None):
+    _default_ssh_path = Path('~/.ssh').expanduser()
+    _environment_pattern = r'^(?:([\w\-.]+)@)?([\w\-.]+)(?::([0-9]{2,5}))?$'
+
+    def __init__(
+            self,
+            environment='localhost',
+            working_dir='',
+            copy_dir='',
+            timeout=30,
+            artifacts=None,
+            parameters=None,
+    ):
         """Instantiates a new Remote command runner object."""
         if working_dir == '.':
             working_dir = ''
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
+
+        param_names = (
+            'KeyPath',
+            'KeyType',
+            'KeyPassword',
+            'SSHUser',
+            'SSHPassword',
+            'GuestWorkingDirectory',
+        )
+        # Filter out parameters where the type isn't in param_names.
+        if parameters:
+            params = dict(self.filter_parameters(parameters, param_names))
+        else:
+            params = None
+
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
+
         self.user = None
         self.host = None
         self.port = None
-        match = re.match(r'^(?:([\w\-.]+)@)?([\w\-.]+)(?::([0-9]{2,5}))?$', environment)
+        match = re.match(self._environment_pattern, environment)
         if match:
-            self.user = match.group(1)
-            self.host = match.group(2)
-            if match.group(3):
-                self.port = int(match.group(3))
-            else:
-                self.port = 22
+            self.user, self.host = match.group(1), match.group(2)
+            self.port = int(match.group(3)) if match.group(3) else 22
 
-        self.home = os.environ.get('HOME')
-        # TODO: Add the ability to change the key path and type.
-        self.key = paramiko.RSAKey.from_private_key_file(str(Path(self.home) / '.ssh' / 'id_rsa'))
+        # Get the SSH key type from parameters or default to RSA.
+        key_type_param = self.parameters.get('keytype')
+        if key_type_param:
+            key_type = getattr(paramiko, f'{key_type_param.value}')
+        else:
+            key_type = paramiko.RSAKey
+
+        # Get the SSH private key path from parameters or default to $HOME/.ssh/id_rsa.
+        key_path_param = self.parameters.get('keypath')
+        if key_path_param:
+            key_path = key_path_param.value
+        else:
+            key_path = str(self._default_ssh_path / 'id_rsa')
+
+        self.key = key_type.from_private_key_file(key_path)
 
     def connect(self):
         """Creates an SSH connection.

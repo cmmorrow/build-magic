@@ -42,3 +42,9 @@ class NoJobs(BuildMagicException):
     """There are no jobs to execute."""
 
     msg = 'No jobs to execute'
+
+
+class ValidationError(BuildMagicException):
+    """Parameter validation failed."""
+
+    msg = 'Validation failed'

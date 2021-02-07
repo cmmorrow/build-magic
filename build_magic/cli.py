@@ -8,10 +8,10 @@ import yaml
 from build_magic import __version__ as ver
 from build_magic import core
 from build_magic.exc import ExecutionError, NoJobs, SetupError, TeardownError
-from build_magic.reference import Actions, ExitCode, OutputTypes, Runners
+from build_magic import reference
 
 # Get a list of command runners.
-RUNNERS = click.Choice(Runners.available(), case_sensitive=False)
+RUNNERS = click.Choice(reference.Runners.available(), case_sensitive=False)
 
 
 # Defines the type for the working directory parameter.
@@ -46,7 +46,7 @@ Examples:
 Use --help for detailed usage of each option.
 """
 
-# TODO: Add runner specific options.
+
 @click.command()
 @click.option('--command', '-c', help='A directive, command pair to execute.', multiple=True, type=(str, str))
 @click.option('--config', '-C', help='The config file to load parameters from.', multiple=True, type=CONFIG)
@@ -56,6 +56,7 @@ Use --help for detailed usage of each option.
 @click.option('--name', help='The stage name to use.', type=str)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
+@click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
 @click.option('--persist', help="Skips environment teardown when finished.", is_flag=True)
 @click.option('--cleanup', help='Run commands and delete any created files if True.', is_flag=True)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
@@ -71,6 +72,7 @@ def build_magic(
         continue_,
         environment,
         args,
+        parameter,
         persist,
         runner,
         name,
@@ -89,12 +91,13 @@ def build_magic(
         click.echo(ver)
         sys.exit(0)
 
+    # Get the output type.
     if plain:
-        out = OutputTypes.plain.name
+        out = reference.OutputTypes.plain.name
     elif quiet:
-        out = OutputTypes.quiet.name
+        out = reference.OutputTypes.quiet.name
     else:
-        out = OutputTypes.fancy.name
+        out = reference.OutputTypes.fancy.name
 
     stages_ = []
 
@@ -109,7 +112,7 @@ def build_magic(
                 stages = core.config_parser(obj)
             except ValueError as err:
                 click.secho(str(err), fg='red', err=True)
-                sys.exit(ExitCode.INPUT_ERROR)
+                sys.exit(reference.ExitCode.INPUT_ERROR)
 
             for stage_ in stages:
                 stages_.append(
@@ -141,14 +144,15 @@ def build_magic(
         stages_.append(
             dict(
                 sequence=1,
-                runner_type=Runners.LOCAL.value,
+                runner_type=reference.Runners.LOCAL.value,
                 directives=directives,
                 artifacts=artifacts,
-                action=Actions.DEFAULT.value,
+                action=reference.Actions.DEFAULT.value,
                 commands=commands,
                 environment=environment,
                 copy=copy,
                 wd=wd,
+                parameters=parameter,
             )
         )
         if name:
@@ -157,9 +161,9 @@ def build_magic(
     # Override values in the config file with options set at the command line.
     for stage in stages_:
         if cleanup:
-            stage.update(dict(action=Actions.CLEANUP.value))
+            stage.update(dict(action=reference.Actions.CLEANUP.value))
         elif persist:
-            stage.update(dict(action=Actions.PERSIST.value))
+            stage.update(dict(action=reference.Actions.PERSIST.value))
         if environment:
             stage.update(dict(environment=environment))
         if copy:
@@ -174,20 +178,20 @@ def build_magic(
     for stage in stages_:
         try:
             stages.append(core.StageFactory.build(**stage))
-        except (NotADirectoryError, ValueError) as err:
+        except (NotADirectoryError, ValueError, reference.ValidationError) as err:
             click.secho(str(err), fg='red', err=True)
-            sys.exit(ExitCode.INPUT_ERROR)
+            sys.exit(reference.ExitCode.INPUT_ERROR)
 
     # Run the stages.
     try:
         engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
         code = engine.run()
     except NoJobs:
-        sys.exit(ExitCode.NO_TESTS)
+        sys.exit(reference.ExitCode.NO_TESTS)
     except (ExecutionError, SetupError, TeardownError):
-        sys.exit(ExitCode.INTERNAL_ERROR)
+        sys.exit(reference.ExitCode.INTERNAL_ERROR)
     except KeyboardInterrupt:
         click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)
-        sys.exit(ExitCode.INTERRUPTED)
+        sys.exit(reference.ExitCode.INTERRUPTED)
 
     sys.exit(code)
