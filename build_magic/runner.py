@@ -306,8 +306,16 @@ class Remote(CommandRunner):
             key_pass_param = self.parameters.get('key_password').value
         else:
             key_pass_param = None
-
-        return key_type.from_private_key_file(key_path, password=key_pass_param)
+        try:
+            return key_type.from_private_key_file(key_path, password=key_pass_param)
+        except (
+            FileNotFoundError,
+            IOError,
+            Exception,
+            paramiko.ssh_exception.SSHException,
+            paramiko.PasswordRequiredException,
+        ) as err:
+            raise ValueError(f'SSH failure: {err}')
 
     def connect(self):
         """Creates an SSH connection.

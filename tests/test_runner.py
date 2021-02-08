@@ -434,6 +434,25 @@ def test_remote_passphrase_key(ssh_key_with_password):
     assert runner.key.can_sign()
 
 
+def test_remote_passphrase_key_fail(ssh_key_with_password):
+    """Test the case where an invalid private key password is provided."""
+    params = {
+        'keypath': KeyPath(f'{ssh_key_with_password}/id_rsa'),
+        'keypass': KeyPassword('11111'),
+    }
+    with pytest.raises(ValueError):
+        Remote('user@myhost', parameters=params)
+
+
+def test_remote_key_file_not_found():
+    """Test the case where the private key file doesn't exist."""
+    params = {
+        'keypath': KeyPath(f'/zztle3aw399cx/id_rsa'),
+    }
+    with pytest.raises(ValueError):
+        Remote('user@myhost', parameters=params)
+
+
 def test_remote_invalid_parameters_filtered_out(mock_key):
     """Test the case where invalid parameters are passed to the Remote command runner and filtered out."""
     params = {
@@ -496,6 +515,14 @@ def test_remote_execute_timeout(mock_key, mocker, remote_runner):
         remote_runner.execute(cmd)
     assert conn.call_count == 1
     assert close.call_count == 1
+
+
+def test_remote_connection_fail(mock_key, mocker, remote_runner):
+    """Test the case where the Remote command runner fails to connect."""
+    mocker.patch('paramiko.SSHClient.connect', side_effect=socket.gaierror)
+    cmd = Macro('echo hello')
+    with pytest.raises(Exception, match='SSH connection failed.'):
+        remote_runner.execute(cmd)
 
 
 def test_remote_execute_fail(mock_key, mocker, remote_runner):
