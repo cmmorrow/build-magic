@@ -2,8 +2,10 @@
 
 import os
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from click.testing import CliRunner
+import paramiko
 import pytest
 
 from build_magic import __version__ as version
@@ -290,11 +292,11 @@ def test_cli_config(cli):
     file = Path(__file__).resolve().parent / 'files' / 'config.yaml'
     res = cli.invoke(build_magic, ['--config', str(file)])
     assert res.exit_code == 0
-    assert 'Starting Stage 1: Test stage'
-    assert 'EXECUTE : echo hello'
-    assert 'EXECUTE : ls'
-    assert 'Stage 1: Test stage - finished with result COMPLETE'
-    assert 'build-magic finished in'
+    assert 'Starting Stage 1: Test stage' in res.output
+    assert 'EXECUTE : echo hello' in res.output
+    assert 'EXECUTE : ls' in res.output
+    assert 'Stage 1: Test stage - finished with result COMPLETE' in res.output
+    assert 'build-magic finished in' in res.output
 
 
 def test_cli_config_multi(cli):
@@ -303,12 +305,33 @@ def test_cli_config_multi(cli):
     file2 = Path(__file__).resolve().parent / 'files' / 'multi.yaml'
     res = cli.invoke(build_magic, ['--config', str(file1), '--config', str(file2)])
     assert res.exit_code == 0
-    assert 'Starting Stage 1: Test stage'
-    assert 'Starting Stage 2: Stage A'
-    assert 'Starting Stage 3: Stage B'
-    assert 'Stage 1: Test stage - finished with result COMPLETE'
-    assert 'Stage 2: Stage A - finished with result COMPLETE'
-    assert 'Stage 3: Stage B - finished with result COMPLETE'
+    assert 'Starting Stage 1: Test stage' in res.output
+    assert 'Starting Stage 2: Stage A' in res.output
+    assert 'Starting Stage 3: Stage B' in res.output
+    assert 'Stage 1: Test stage - finished with result COMPLETE' in res.output
+    assert 'Stage 2: Stage A - finished with result COMPLETE' in res.output
+    assert 'Stage 3: Stage B - finished with result COMPLETE' in res.output
+
+
+def test_cli_config_parameters(cli, mocker):
+    """Verify assigning parameters from a config file works correctly."""
+    mocker.patch('paramiko.ECDSAKey.from_private_key_file')
+    mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
+    mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        return_value=(
+            None,
+            MagicMock(readlines=lambda: 'hello', channel=MagicMock(recv_exit_status=lambda: 0)),
+            MagicMock(readlines=lambda: '')
+        )
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    config = Path(__file__).resolve().parent / 'files' / 'parameters.yaml'
+    res = cli.invoke(build_magic, ['--config', str(config)])
+    assert res.exit_code == 0
+    assert "Starting Stage 1" in res.output
+    assert "EXECUTE : echo hello ................................................ RUNNING" in res.output
+    assert "Stage 1 finished with result COMPLETE" in res.output
 
 
 # TODO: Add action tests

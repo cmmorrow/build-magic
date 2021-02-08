@@ -298,7 +298,8 @@ def test_config_parser():
             'directives': [
                 'build',
                 'execute',
-            ]
+            ],
+            'parameters': [],
         },
         {
             'name': 'stage 2',
@@ -318,11 +319,83 @@ def test_config_parser():
                 'install',
                 'execute',
                 'deploy',
-            ]
+            ],
+            'parameters': [],
         }
     ]
     stages = config_parser(config)
     assert stages == ref
+
+
+def test_config_parser_with_parameters():
+    """Verify the config parser handles parameters correctly."""
+    config = {
+        'stages': [
+            {
+                'stage': {
+                    'runner': 'remote',
+                    'environment': 'user@myhost:2222',
+                    'parameters': [
+                        {'keytype': 'ecdsa'},
+                        {'keypath': '$HOME/user/.ssh/key_ecdsa'},
+                        {'keypass': '"1234"'},
+                    ],
+                    'commands': [
+                        {'execute': 'ls'},
+                    ]
+                }
+            }
+        ]
+    }
+    ref = [
+        {
+            'name': '',
+            'runner_type': 'remote',
+            'environment': 'user@myhost:2222',
+            'continue': False,
+            'wd': '.',
+            'copy': '',
+            'artifacts': [],
+            'action': 'default',
+            'commands': [
+                'ls',
+            ],
+            'directives': [
+                'execute',
+            ],
+            'parameters': [
+                ('keytype', 'ecdsa'),
+                ('keypath', '$HOME/user/.ssh/key_ecdsa'),
+                ('keypass', '"1234"'),
+            ],
+        }
+    ]
+    stages = config_parser(config)
+    assert stages == ref
+
+
+def test_config_parser_with_parameters_validation_fail():
+    """Test the case where an invalid parameter value is provided."""
+    config = {
+        'stages': [
+            {
+                'stage': {
+                    'runner': 'remote',
+                    'environment': 'user@myhost:2222',
+                    'parameters': [
+                        {'keytype': 'dummy'},
+                        {'keypath': '$HOME/user/.ssh/key_ecdsa'},
+                        {'keypass': '"1234"'},
+                    ],
+                    'commands': [
+                        {'execute': 'ls'},
+                    ]
+                }
+            }
+        ]
+    }
+    with pytest.raises(ValueError):
+        config_parser(config)
 
 
 def test_config_parser_validation_fail():

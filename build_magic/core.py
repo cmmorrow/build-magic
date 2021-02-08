@@ -11,12 +11,13 @@ from build_magic import actions, output, runner
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import MacroFactory
 from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
-from build_magic.reference import KeyPath, KeyType
+from build_magic.reference import KeyPassword, KeyPath, KeyType
 
 # Add valid Parameter classes here.
 PARAMETERS = (
     KeyPath,
     KeyType,
+    KeyPassword,
 )
 
 
@@ -86,6 +87,10 @@ def config_parser(config):
             commands.append(list(macro.values())[0])
         stage['commands'] = commands
         stage['directives'] = directives
+
+        # Set the parameters.
+        parameters = data.get('parameters', [])
+        stage['parameters'] = [tuple(param.items())[0] for param in parameters]
         stages.append(stage)
 
     return stages

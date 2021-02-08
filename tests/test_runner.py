@@ -12,7 +12,7 @@ import pytest
 import vagrant
 
 from build_magic.macro import Macro
-from build_magic.reference import KeyPath, KeyType
+from build_magic.reference import KeyPassword, KeyPath, KeyType
 from build_magic.runner import Docker, Local, Remote, Status, Vagrant
 
 
@@ -97,6 +97,15 @@ def ssh_path(tmp_path_factory):
     magic = tmp_path_factory.mktemp('build_magic')
     key = magic / 'key_ecdsa'
     paramiko.ECDSAKey.generate().write_private_key_file(str(key))
+    return magic
+
+
+@pytest.fixture
+def ssh_key_with_password(tmp_path_factory):
+    """Provides a temp directory with a sample SSH key protected with passphrase."""
+    magic = tmp_path_factory.mktemp('build_magic')
+    key = magic / 'id_rsa'
+    paramiko.RSAKey.generate(1024).write_private_key_file(str(key), password="1234")
     return magic
 
 
@@ -413,6 +422,16 @@ def test_remote_with_parameters(ssh_path):
     runner = Remote('user@myhost', parameters=params)
     assert isinstance(runner.key, paramiko.ECDSAKey)
     assert runner.key == ref
+
+
+def test_remote_passphrase_key(ssh_key_with_password):
+    """Verify the Remote command runner handles a password protected key."""
+    params = {
+        'keypath': KeyPath(f'{ssh_key_with_password}/id_rsa'),
+        'keypass': KeyPassword('1234'),
+    }
+    runner = Remote('user@myhost', parameters=params)
+    assert runner.key.can_sign()
 
 
 def test_remote_invalid_parameters_filtered_out(mock_key):

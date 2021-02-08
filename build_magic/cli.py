@@ -127,6 +127,7 @@ def build_magic(
                         copy=stage_['copy'],
                         wd=stage_['wd'],
                         name=stage_['name'],
+                        parameters=stage_['parameters'],
                     )
                 )
     else:

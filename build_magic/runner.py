@@ -259,8 +259,6 @@ class Remote(CommandRunner):
             'KeyPath',
             'KeyType',
             'KeyPassword',
-            'SSHUser',
-            'SSHPassword',
             'GuestWorkingDirectory',
         )
         # Filter out parameters where the type isn't in param_names.
@@ -279,6 +277,14 @@ class Remote(CommandRunner):
             self.user, self.host = match.group(1), match.group(2)
             self.port = int(match.group(3)) if match.group(3) else 22
 
+        self.key = self._get_ssh_key()
+
+    def _get_ssh_key(self):
+        """Get the SSH private key to use for authentication.
+
+        :rtype: paramiko.PKey
+        :return: The SSH private key object.
+        """
         # Get the SSH key type from parameters or default to RSA.
         key_type_param = self.parameters.get('keytype')
         if key_type_param:
@@ -293,7 +299,15 @@ class Remote(CommandRunner):
         else:
             key_path = str(self._default_ssh_path / 'id_rsa')
 
-        self.key = key_type.from_private_key_file(key_path)
+        # Get the SSH private key password from parameters if provided.
+        if 'keypass' in self.parameters:
+            key_pass_param = self.parameters.get('keypass').value
+        elif 'key_password' in self.parameters:
+            key_pass_param = self.parameters.get('key_password').value
+        else:
+            key_pass_param = None
+
+        return key_type.from_private_key_file(key_path, password=key_pass_param)
 
     def connect(self):
         """Creates an SSH connection.

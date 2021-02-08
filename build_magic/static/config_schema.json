@@ -305,6 +305,74 @@
                                                 }
                                             ]
                                         }
+                                    },
+                                    "parameters": {
+                                        "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters",
+                                        "type": "array",
+                                        "title": "The commands schema",
+                                        "description": "An explanation about the purpose of this instance.",
+                                        "default": [],
+                                        "additionalItems": true,
+                                        "items": {
+                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters/items",
+                                            "anyOf": [
+                                                {
+                                                    "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0",
+                                                    "type": "object",
+                                                    "default": {},
+                                                    "examples": [
+                                                        {
+                                                            "keytype": "rsa"
+                                                        }
+                                                    ],
+                                                    "properties": {
+                                                        "keytype": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keytype",
+                                                            "type": "string",
+                                                            "default": "",
+                                                            "enum": [
+                                                                "dsa",
+                                                                "dss",
+                                                                "rsa",
+                                                                "ecdsa",
+                                                                "ed25519",
+                                                                "DSSKey",
+                                                                "RSAKey",
+                                                                "ECDSAKey",
+                                                                "Ed25519Key"
+                                                            ],
+                                                            "examples": [
+                                                                "rsa",
+                                                                "ecdsa",
+                                                                "RSAKey",
+                                                                "ECDSAKey"
+                                                            ]
+                                                        },
+                                                        "keypath": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keypath",
+                                                            "type": "string",
+                                                            "default": "",
+                                                            "examples": [
+                                                                "~/.ssh/id_rsa"
+                                                            ]
+                                                        },
+                                                        "keypass": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keypass",
+                                                            "type": "string",
+                                                            "description": "The password for the SSH private key if required.",
+                                                            "default": ""
+                                                        },
+                                                        "key_password": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/key_password",
+                                                            "type": "string",
+                                                            "description": "The password for the SSH private key if required.",
+                                                            "default": ""
+                                                        }
+                                                    },
+                                                    "additionalProperties": true
+                                                }
+                                            ]
+                                        }
                                     }
                                 },
                                 "additionalProperties": false
