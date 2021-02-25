@@ -254,6 +254,16 @@
                                                         }
                                                     ],
                                                     "properties": {
+                                                        "test": {
+                                                            "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/test",
+                                                            "type": "string",
+                                                            "title": "The test schema",
+                                                            "description": "An explanation about the purpose of this instance.",
+                                                            "examples": [
+                                                                "myapp --help",
+                                                                "systemctl status myapp"
+                                                            ]
+                                                        },
                                                         "build": {
                                                             "$id": "#/properties/stages/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/build",
                                                             "type": "string",

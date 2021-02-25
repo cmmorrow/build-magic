@@ -6,7 +6,7 @@ from build_magic.actions import Default
 from build_magic.core import (
     config_parser, Engine, iterate_sequence, Stage, StageFactory
 )
-from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
+from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs, ValidationError
 from build_magic.macro import Macro
 from build_magic.reference import KeyPath, KeyType
 from build_magic.runner import Local
@@ -210,7 +210,7 @@ def test_stagefactory_build_invalid_copy_directory():
 def test_stagefactory_build_unequal_directives_and_commands():
     """Test the case where the number of commands is unequal to the number of directives."""
     args = (0, 'local', ['execute', 'build'], None, ['ls'], '', 'default', '.', '.')
-    with pytest.raises(ValueError, match='Length of commands unequal'):
+    with pytest.raises(ValueError, match='Length of commands unequal to length of directives.'):
         StageFactory.build(*args)
 
 
@@ -222,7 +222,7 @@ def test_stagefactory_build_invalid_action():
 
 
 def test_stagefactory_build_parameters():
-    """Verify the StageFactory build_parameters() class method works correctly."""
+    """Verify the StageFactory _build_parameters() class method works correctly."""
     ref = {
         'keytype': KeyType('ECDSAKey'),
         'keypath': KeyPath('$HOME/.ssh/key_ecdsa'),
@@ -230,6 +230,20 @@ def test_stagefactory_build_parameters():
     params = [('keypath', f'$HOME/.ssh/key_ecdsa'), ('keytype', 'ecdsa')]
     out = StageFactory._build_parameters(params)
     assert out == ref
+
+
+def test_stagefactory_build_parameters_invalid():
+    """Test the case where StageFactory _build_parameters() is passed an invalid parameter."""
+    params = [('dummy', '1234')]
+    with pytest.raises(ValueError, match='Parameter dummy is not a valid parameter.'):
+        StageFactory._build_parameters(params)
+
+
+def test_stagefactory_build_parameters_validation_fail():
+    """Test the case where StageFactory _build_parameters() is passed an invalid parameter value."""
+    params = [('keytype', 'dummy')]
+    with pytest.raises(ValidationError):
+        StageFactory._build_parameters(params)
 
 
 def test_engine_constructor():

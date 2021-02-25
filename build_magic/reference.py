@@ -81,7 +81,7 @@ class Parameter(metaclass=ParameterMeta):
         if self.enum:
             if not self.validate_enum():
                 valid = (e.value for e in self.enum.__members__.values())
-                raise ValidationError(message=f'Value {self.value} is not one of {valid}.')
+                raise ValidationError(message=f'Value {self.value} is not one of {set(valid)}.')
 
     def __repr__(self):
         """The string representation of the Parameter object.
@@ -224,6 +224,7 @@ class Runners(EnumExt):
 class Directive(EnumExt):
     """Valid directive argument names."""
 
+    TEST = 'test'
     BUILD = 'build'
     DEPLOY = 'deploy'
     EXECUTE = 'execute'

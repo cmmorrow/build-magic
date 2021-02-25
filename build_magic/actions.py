@@ -1,5 +1,6 @@
 """This module hosts Actions and functions to dynamically bind to CommandRunner classes."""
 
+import hashlib
 import os
 import pathlib
 import subprocess
@@ -18,6 +19,63 @@ SETUP_METHOD = 'provision'
 TEARDOWN_METHOD = 'teardown'
 
 DEFAULT_METHOD = 'null'
+
+
+def _get_files_and_hashes(client, directory=''):
+    """Helper function for getting file names and their corresponding SHA1 hashes from a unix-like file system.
+
+    :param paramiko.SSHClient client: The SSHClient object to use for executing the command.
+    :param str directory: The directory to recursively fetch file names and hashes from.
+    :rtype: paramiko.channel.ChannelFile
+    :return: The resulting stdout object from the executed command.
+    """
+    if directory:
+        cmd = f'find {directory} -type f | xargs shasum {directory}/*'
+    else:
+        cmd = 'find $PWD -type f | xargs shasum $PWD/*'
+    stdin, stdout, stderr = client.exec_command(cmd)
+    return stdout
+
+
+def _get_files_unix(client, working_directory=''):
+    """Helper function for getting a list of files on a remote unix-like file system.
+
+    :param paramiko.SSHClient client: The SSHClient object to use for executing the command.
+    :param str working_directory: The directory to recursively fetch file names from.
+    :rtype: paramiko.channel.ChannelFile
+    :return: The resulting stdout object from the executed command.
+    """
+    if working_directory:
+        cmd = f'find {working_directory} -type f'
+    else:
+        cmd = 'find $PWD -type f'
+    stdin, stdout, stderr = client.exec_command(cmd)
+    return stdout
+
+
+def _get_files_windows(client, working_directory=''):
+    """Helper function for getting a list of files on a remote Windows system.
+
+    :param paramiko.SSHClient client: The SSHClient object to use for executing the command.
+    :param str working_directory: The directory to recursively fetch file names from.
+    :rtype: paramiko.channel.ChannelFile
+    :return: The resulting stdout object from the executed command.
+    """
+    if working_directory:
+        cmd = f'dir {working_directory} /a-D /S /B'
+    else:
+        cmd = 'dir /a-D /S /B'
+    stdin, stdout, stderr = client.exec_command(cmd)
+    return stdout
+
+
+def _parse_files(file_list):
+    """Helper function to parse a list of files into a tuple for storage.
+
+    :param list[str] file_list: A list of file names to parse and format.
+    :return: A list of tuples where the first value is the file name and the second value is None.
+    """
+    return [(file.strip(), None) for file in file_list if file]
 
 
 class Action:
@@ -157,7 +215,7 @@ def vm_up(self):
 
 def vm_destroy(self):
     """Destroys the VM used for executing commands."""
-    if self._vm:
+    if hasattr(self, '_vm') and self._vm:
         try:
             self._vm.destroy()
         except subprocess.CalledProcessError:
@@ -166,19 +224,34 @@ def vm_destroy(self):
 
 
 def capture_dir(self):
-    """Capture a list of all the files in a directory."""
-    pwd = pathlib.Path.cwd().resolve()
-    self.existing_files = [file for file in pwd.iterdir()]
+    """Capture a list of all the files and their MD5 hashes in a directory."""
+    try:
+        pwd = pathlib.Path.cwd().resolve()
+        self._existing_files = []
+        for file in pwd.rglob('*'):
+            self._existing_files.append((str(file), hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
+    except (IsADirectoryError, Exception):
+        return False
     return True
 
 
 def delete_new_files(self):
     """Deletes all files not previously captured."""
-    if hasattr(self, 'existing_files'):
-        pwd = pathlib.Path.cwd().resolve()
-        for file in pwd.iterdir():
-            if file not in self.existing_files:
-                os.remove(file)
+    if hasattr(self, '_existing_files') and isinstance(self._existing_files, list):
+        if len(self._existing_files) > 0:
+            files, hashes = zip(*self._existing_files)
+            pwd = pathlib.Path.cwd().resolve()
+            current = [(file, hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()) for file in pwd.iterdir()]
+            _, new_hashes = zip(*current)
+            for file, hash_ in current:
+                # Remove any new files.
+                if str(file) not in files and hash_ not in hashes:
+                    os.remove(file)
+                    continue
+                # Remove any files copied from existing files.
+                elif hash_ in hashes and (str(file), hash_) not in self._existing_files and new_hashes.count(hash_) > 1:
+                    os.remove(file)
+                    continue
         return True
     else:
         return False
@@ -187,30 +260,122 @@ def delete_new_files(self):
 def remote_capture_dir(self):
     """Capture a list of all the files in a directory on a remote system."""
     client = self.connect()
-    if self.working_directory:
-        cmd = f'ls {self.working_directory}'
-    else:
-        cmd = 'ls'
+    cmd = 'uname'
+    # Try to get the OS of the remote system.
     stdin, stdout, stderr = client.exec_command(cmd)
-    self.existing_files = [file.strip() for file in stdout.readlines()]
+    if stdout.channel.recv_exit_status() == 0:
+        if stdout.readlines()[0] in ('Linux', 'Darwin'):
+            # Try to get the filename and SHA1 hashes of the remote working directory.
+            stdout = _get_files_and_hashes(client, self.working_directory)
+
+            if stdout.channel.recv_exit_status() == 0:
+                existing = []
+                for line in stdout.readlines():
+                    if line:
+                        hash_, file = tuple(line.split('  '))
+                        existing.append((file, hash_))
+                    else:
+                        continue
+                self._existing_files = existing
+            # If trying to get the hashes fails, just use the filenames.
+            else:
+                stdout = _get_files_unix(client, self.working_directory)
+                self._existing_files = _parse_files(stdout.readlines())
+        elif stdout.readlines()[0].startswith('Windows'):
+            stdout = _get_files_windows(client, self.working_directory)
+
+            if stdout.channel.recv_exit_status() == 0:
+                self._existing_files = _parse_files(stdout.readlines())
+            else:
+                return False
+        else:
+            # OS type isn't supported yet.
+            return False
+    else:
+        # Check if we're connecting to Windows.
+        cmd = '%OS%'
+        stdin, stdout, stderr = client.exec_command(cmd)
+        if stdout.readlines()[0] == 'Windows_NT':
+            stdout = _get_files_windows(client, self.working_directory)
+
+            if stdout.channel.recv_exit_status() == 0:
+                self._existing_files = _parse_files(stdout.readlines())
+            else:
+                return False
+        else:
+            return False
     return True
 
 
 def remote_delete_files(self):
     """Deletes all files not previously captured on a remote system."""
-    if hasattr(self, 'existing_files'):
-        client = self.connect()
-        if self.working_directory:
-            cmd = f'ls {self.working_directory}'
-        else:
-            cmd = 'ls'
-        stdin, stdout, stderr = client.exec_command(cmd)
-        current_files = [file.strip() for file in stdout.readlines()]
-        for file in current_files:
-            if file not in self.existing_files:
-                if self.working_directory:
-                    file = str(self.working_directory) + '/' + file
-                client.exec_command(f'rm {file}')
+    if hasattr(self, '_existing_files') and isinstance(self._existing_files, list):
+        if len(self._existing_files) > 0:
+            current_files = []
+            client = self.connect()
+            cmd = 'uname'
+            # Try to get the OS of the remote system.
+            stdin, stdout, stderr = client.exec_command(cmd)
+            if stdout.channel.recv_exit_status() == 0:
+                if stdout.readlines()[0] in ('Linux', 'Darwin'):
+                    # Try to get the filename and SHA1 hashes of the remote working directory.
+                    stdout = _get_files_and_hashes(client, self.working_directory)
+                    if stdout.channel.recv_exit_status() == 0:
+                        for line in stdout.readlines():
+                            if line:
+                                hash_, file = tuple(line.split('  '))
+                                current_files.append((file, hash_))
+                            else:
+                                continue
+                    # If trying to get the hashes fails, just use the filenames.
+                    else:
+                        stdout = _get_files_unix(client, self.working_directory)
+                        if stdout.channel.recv_exit_status() == 0:
+                            current_files = _parse_files(stdout.readlines())
+                        else:
+                            # Cannot get the filenames.
+                            return False
+                elif stdout.readlines()[0].startswith('Windows'):
+                    stdout = _get_files_windows(client, self.working_directory)
+                    if stdout.channel.recv_exit_status() == 0:
+                        current_files = _parse_files(stdout.readlines())
+                    else:
+                        # Cannot get the filenames.
+                        return False
+                else:
+                    # OS type isn't supported yet.
+                    return False
+            else:
+                # Check if we're connecting to Windows.
+                cmd = '%OS%'
+                stdin, stdout, stderr = client.exec_command(cmd)
+                if stdout.readlines()[0] == 'Windows_NT':
+                    stdout = _get_files_windows(client, self.working_directory)
+                    if stdout.channel.recv_exit_status() == 0:
+                        current_files = _parse_files(stdout.readlines())
+                    else:
+                        # Cannot get the filenames.
+                        return False
+                else:
+                    # Fail maybe because the default shell is PowerShell?
+                    return False
+
+            files, hashes = zip(*self._existing_files)
+            _, new_hashes = zip(*current_files)
+            to_delete = []
+            for file, hash_ in current_files:
+                if str(file) not in files and hash_ not in hashes:
+                    if self.working_directory:
+                        file = pathlib.Path(self.working_directory) / file
+                    to_delete.append(f'"{file}"')
+                    continue
+                elif hash_ in hashes and (str(file), hash_) not in self._existing_files and new_hashes.count(hash_) > 1:
+                    if self.working_directory:
+                        file = pathlib.Path(self.working_directory) / file
+                    to_delete.append(f'"{file}"')
+                    continue
+            if to_delete:
+                client.exec_command(f'rm {" ".join(to_delete)}')
         return True
     else:
         return False
@@ -229,7 +394,7 @@ def container_up(self):
             volumes=self.binding,
             name='build-magic',
         )
-    except (APIError, ImageLoadError):
+    except (APIError, AttributeError, ImageLoadError):
         return False
     return True
 
@@ -240,5 +405,5 @@ def container_destroy(self):
         self.container.kill()
         self.container.remove()
         return True
-    except APIError:
+    except (APIError, Exception):
         return False

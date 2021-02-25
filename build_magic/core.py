@@ -266,7 +266,7 @@ class StageFactory:
                 )
 
         if len(commands) != (len(directives)):
-            raise ValueError('Length of commands unequal to length of command types.')
+            raise ValueError('Length of commands unequal to length of directives.')
 
         if action not in Actions.available():
             raise ValueError('Action must be one of {}.'.format(', '.join(Actions.available())))

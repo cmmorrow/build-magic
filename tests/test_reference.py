@@ -149,7 +149,7 @@ def test_parameter_enum_validation_fail():
         KEY = 'test'
         ENUM = TestEnum
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match='Validation failed: Value 7 is not one of'):
         Test(7)
 
 
@@ -186,7 +186,7 @@ def test_parameter_pattern_fail():
         KEY = 'Test'
         PATTERN = r'solid|liquid|gas'
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValidationError, match='Validation failed: Value plasma does not match solid|liquid|gas.'):
         Test('plasma')
 
 

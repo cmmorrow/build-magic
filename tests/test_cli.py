@@ -249,14 +249,14 @@ def test_cli_copy(cli, tmp_file):
     """Verify the --copy option works correctly."""
     res = cli.invoke(build_magic, ['--copy', str(tmp_file), '--verbose', '-c', 'execute', 'cat hello.txt', 'hello.txt'])
     assert 'OUTPUT  : hello world' in res.output
-    assert res.exit_code == 0
+    assert res.exit_code == ExitCode.PASSED
 
 
 def test_cli_working_directory(cli, tmp_file):
     """Verify the --wd option works correctly."""
     res = cli.invoke(build_magic, ['--wd', str(tmp_file), '--verbose', '-c', 'execute', 'cat hello.txt'])
     assert 'OUTPUT  : hello world' in res.output
-    assert res.exit_code == 0
+    assert res.exit_code == ExitCode.PASSED
 
 
 def test_cli_copy_working_directory(cli, current_file):
@@ -266,14 +266,14 @@ def test_cli_copy_working_directory(cli, current_file):
         ['--copy', '.', '--wd', str(current_file), '--verbose', '-c', 'build', 'cat hello.txt', 'hello.txt'],
     )
     assert 'OUTPUT  : hello world' in res.output
-    assert res.exit_code == 0
+    assert res.exit_code == ExitCode.PASSED
 
 
 def test_cli_continue_on_fail(cli):
     """Verify the --continue option works correctly."""
     res = cli.invoke(build_magic, ['--verbose', '--continue', '-c', 'execute', 'cp', '-c', 'execute', 'echo hello'])
     assert 'OUTPUT  : hello' in res.output
-    assert res.exit_code == 1
+    assert res.exit_code == ExitCode.FAILED
 
 
 def test_cli_stop_on_fail(cli):
@@ -284,14 +284,36 @@ def test_cli_stop_on_fail(cli):
     else:
         assert 'usage: cp' in res.output
     assert 'OUTPUT  : hello' not in res.output
-    assert res.exit_code == 1
+    assert res.exit_code == ExitCode.FAILED
+
+
+def test_cli_parameters(cli):
+    """Verify the --parameter option works correctly."""
+    res = cli.invoke(build_magic, ['-p', 'keytype', 'rsa', '--parameter', 'keypass', '1234', 'echo hello'])
+    assert res.exit_code == ExitCode.PASSED
+    assert 'EXECUTE : echo hello ................................................ RUNNING' in res.output
+    assert 'Stage 1 finished with result COMPLETE' in res.output
+
+
+def test_cli_parameters_invalid_parameter(cli):
+    """Test the case where an invalid parameter is provided."""
+    res = cli.invoke(build_magic, ['-p', 'dummy', '1234', 'echo hello'])
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert res.output == 'Parameter dummy is not a valid parameter.\n'
+
+
+def test_cli_parameters_invalid_parameter_value(cli):
+    """Test the case where an invalid parameter value is provided."""
+    res = cli.invoke(build_magic, ['-p', 'keytype', 'dummy', 'echo hello'])
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert "Validation failed: Value dummy is not one of " in res.output
 
 
 def test_cli_config(cli):
     """Verify the --config option works correctly."""
     file = Path(__file__).resolve().parent / 'files' / 'config.yaml'
     res = cli.invoke(build_magic, ['--config', str(file)])
-    assert res.exit_code == 0
+    assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
     assert 'EXECUTE : echo hello' in res.output
     assert 'EXECUTE : ls' in res.output
@@ -304,7 +326,7 @@ def test_cli_config_multi(cli):
     file1 = Path(__file__).resolve().parent / 'files' / 'config.yaml'
     file2 = Path(__file__).resolve().parent / 'files' / 'multi.yaml'
     res = cli.invoke(build_magic, ['--config', str(file1), '--config', str(file2)])
-    assert res.exit_code == 0
+    assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
     assert 'Starting Stage 2: Stage A' in res.output
     assert 'Starting Stage 3: Stage B' in res.output
@@ -328,7 +350,7 @@ def test_cli_config_parameters(cli, mocker):
     mocker.patch('paramiko.SSHClient.close')
     config = Path(__file__).resolve().parent / 'files' / 'parameters.yaml'
     res = cli.invoke(build_magic, ['--config', str(config)])
-    assert res.exit_code == 0
+    assert res.exit_code == ExitCode.PASSED
     assert "Starting Stage 1" in res.output
     assert "EXECUTE : echo hello ................................................ RUNNING" in res.output
     assert "Stage 1 finished with result COMPLETE" in res.output
