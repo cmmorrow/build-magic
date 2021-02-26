@@ -243,7 +243,7 @@ def test_action_capture_dir(build_hashes, build_path, generic_runner):
     ref = list(zip(files, build_hashes))
     generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert generic_runner._existing_files == ref
+    assert sorted(generic_runner._existing_files) == sorted(ref)
 
 
 def test_action_capture_dir_empty(empty_path, generic_runner):
@@ -271,7 +271,7 @@ def test_action_delete_new_files(build_hashes, build_path, generic_runner):
     generic_runner._existing_files = list(zip(files, build_hashes))
     generic_runner.execute(Macro('tar -czf myfiles.tar.gz file1.txt file2.txt'))
     assert generic_runner.teardown()
-    assert [str(file) for file in Path.cwd().resolve().iterdir()] == files
+    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(files)
 
 
 def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner):
@@ -282,7 +282,7 @@ def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner):
     generic_runner._existing_files = list(zip(files, build_hashes))
     generic_runner.execute(Macro('cp file2.txt temp.txt'))
     assert generic_runner.teardown()
-    assert [str(file) for file in Path.cwd().resolve().iterdir()] == files
+    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(files)
 
 
 def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path, generic_runner):
@@ -294,7 +294,7 @@ def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path,
     generic_runner.execute(Macro('mv file2.txt temp.txt'))
     ref_files = [str(file) for file in Path.cwd().resolve().iterdir()]
     assert generic_runner.teardown()
-    assert [str(file) for file in Path.cwd().resolve().iterdir()] == ref_files
+    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(ref_files)
 
 
 def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path, generic_runner):
@@ -306,7 +306,7 @@ def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path
     generic_runner.execute(Macro('mv file1.txt file2.txt'))
     ref_files = [str(file) for file in Path.cwd().resolve().iterdir()]
     assert generic_runner.teardown()
-    assert [str(file) for file in Path.cwd().resolve().iterdir()] == ref_files
+    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(ref_files)
 
 
 def test_action_delete_new_files_empty_directory(empty_path, generic_runner):

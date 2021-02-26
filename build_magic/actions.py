@@ -228,7 +228,7 @@ def capture_dir(self):
     try:
         pwd = pathlib.Path.cwd().resolve()
         self._existing_files = []
-        for file in pwd.rglob('*'):
+        for file in sorted(pwd.rglob('*')):
             self._existing_files.append((str(file), hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
     except (IsADirectoryError, Exception):
         return False
