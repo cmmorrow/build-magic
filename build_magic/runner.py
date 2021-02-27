@@ -226,12 +226,13 @@ class Local(CommandRunner):
         :rtype: Status
         :return: A Status object reflecting the results of the macro.
         """
-        command = macro.as_list()
+        command = macro.as_string()
         result = subprocess.run(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             timeout=self.timeout,
+            shell=True,
         )
         return Status(result.stdout, result.stderr, result.returncode)
 

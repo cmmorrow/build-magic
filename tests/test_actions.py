@@ -1,5 +1,6 @@
 """This module hosts unit tests for the actions module."""
 
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -241,8 +242,12 @@ def test_action_capture_dir(build_hashes, build_path, generic_runner):
     os.chdir(str(build_path))
     generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().iterdir()]
-    ref = list(zip(files, build_hashes))
+    ref = []
+    for file in files:
+        ref.append((file, hashlib.sha1(Path(file).read_bytes()).hexdigest()))
     assert generic_runner.provision()
+    print(sorted(ref))
+    print(sorted(generic_runner._existing_files))
     assert sorted(generic_runner._existing_files) == sorted(ref)
 
 
