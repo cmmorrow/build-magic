@@ -239,9 +239,9 @@ def test_action_container_destroy_error(generic_runner):
 def test_action_capture_dir(build_hashes, build_path, generic_runner):
     """Verify the capture_dir() function works correctly."""
     os.chdir(str(build_path))
+    generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().iterdir()]
     ref = list(zip(files, build_hashes))
-    generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
     assert generic_runner.provision()
     assert sorted(generic_runner._existing_files) == sorted(ref)
 
