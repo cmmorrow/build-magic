@@ -284,7 +284,10 @@ def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner):
     os.chdir(str(build_path))
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().iterdir()]
-    generic_runner._existing_files = list(zip(files, build_hashes))
+    existing = []
+    for file in files:
+        existing.append((file, hashlib.sha1(Path(file).read_bytes()).hexdigest()))
+    generic_runner._existing_files = existing
     generic_runner.execute(Macro('cp file2.txt temp.txt'))
     assert generic_runner.teardown()
     assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(files)
