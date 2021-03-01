@@ -12,7 +12,7 @@ import pytest
 import vagrant
 
 from build_magic.macro import Macro
-from build_magic.reference import KeyPassword, KeyPath, KeyType
+from build_magic.reference import GuestWorkingDirectory, KeyPassword, KeyPath, KeyType
 from build_magic.runner import Docker, Local, Remote, Status, Vagrant
 
 
@@ -239,13 +239,23 @@ def test_docker_constructor():
     assert runner.binding == {str(Path.cwd().resolve()): {'bind': '/build_magic', 'mode': 'rw'}}
     assert not runner.container
     assert runner.name == 'docker'
+    assert runner.guest_wd == '/build_magic'
 
-    runner = Docker(environment='python:3', working_dir='/test', copy_dir='/other', timeout=10, artifacts=['hello.txt'])
+    runner = Docker(
+        environment='python:3',
+        working_dir='/test',
+        copy_dir='/other',
+        timeout=10,
+        artifacts=['hello.txt'],
+        parameters={'guestwd': GuestWorkingDirectory('/app')}
+    )
     assert runner.environment == 'python:3'
     assert runner.working_directory == '/test'
     assert runner.copy_from_directory == '/other'
     assert runner.timeout == 10
     assert runner.artifacts == ['hello.txt']
+    assert runner.guest_wd == '/app'
+    assert runner.binding == {'/test': {'bind': '/app', 'mode': 'rw'}}
 
 
 def test_docker_prepare(docker_runner, build_path, tmp_path):
@@ -314,13 +324,22 @@ def test_vagrant_constructor():
     assert runner.timeout == 30
     assert not runner._vm
     assert runner.name == 'vagrant'
+    assert runner.guest_wd == '/vagrant'
 
-    runner = Vagrant(environment='/opt', working_dir='/test', copy_dir='/other', timeout=10, artifacts=['hello.txt'])
+    runner = Vagrant(
+        environment='/opt',
+        working_dir='/test',
+        copy_dir='/other',
+        timeout=10,
+        artifacts=['hello.txt'],
+        parameters={'guestwd': GuestWorkingDirectory('/app')}
+    )
     assert runner.environment == '/opt'
     assert runner.working_directory == '/test'
     assert runner.copy_from_directory == '/other'
     assert runner.timeout == 10
     assert runner.artifacts == ['hello.txt']
+    assert runner.guest_wd == '/app'
 
 
 def test_vagrant_prepare(build_path, tmp_path, vagrant_runner):
@@ -377,6 +396,20 @@ def test_vagrant_execute_not_found(mocker, vagrant_runner):
     vagrant_runner._vm = vagrant.Vagrant()
     with pytest.raises(RuntimeError):
         vagrant_runner.execute(cmd)
+
+
+def test_vagrant_execute_guest_working_directory(vagrant_runner):
+    """Verify the Vagrant command runner execute() method works correctly with guestwd."""
+    cmd = Macro('tar -v -czf hello.tar.gz hello.txt')
+    vm = MagicMock()
+    vagrant_runner._vm = vm
+    vagrant_runner.guest_wd = '/app'
+    status = vagrant_runner.execute(cmd)
+    call_args = vm.mock_calls[0]
+    assert call_args[2] == {'command': 'cd /app; tar -v -czf hello.tar.gz hello.txt'}
+    assert status.stdout
+    assert not status.stderr
+    assert status.exit_code == 0
 
 
 def test_remote_constructor(mock_key):

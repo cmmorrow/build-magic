@@ -11,10 +11,11 @@ from build_magic import actions, output, runner
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import MacroFactory
 from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
-from build_magic.reference import KeyPassword, KeyPath, KeyType
+from build_magic.reference import GuestWorkingDirectory, KeyPassword, KeyPath, KeyType
 
 # Add valid Parameter classes here.
 PARAMETERS = (
+    GuestWorkingDirectory,
     KeyPath,
     KeyType,
     KeyPassword,

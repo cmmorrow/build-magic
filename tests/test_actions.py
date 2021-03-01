@@ -145,10 +145,23 @@ def test_action_vm_up(generic_runner, mocker):
     assert generic_runner.environment == '.'
 
 
+def test_action_vm_up_guest_wd(generic_runner, mocker):
+    """Verify the vm_up() function works correctly when guest_wd is set."""
+    up = mocker.patch('vagrant.Vagrant.up')
+    ssh = mocker.patch('vagrant.Vagrant.ssh')
+    generic_runner.provision = types.MethodType(actions.vm_up, generic_runner)
+    generic_runner.guest_wd = '/app'
+    assert generic_runner.provision()
+    assert up.call_count == 1
+    assert ssh.call_count == 2
+    assert ssh.call_args[1] == {'command': 'sudo cp -R /vagrant/* /app'}
+
+
 def test_action_vm_up_error(capsys, generic_runner, mocker):
     """Test the case where vm_up() encounters a subprocess error."""
     mocker.patch('vagrant.Vagrant.up', side_effect=subprocess.CalledProcessError(1, 'error'))
     generic_runner.provision = types.MethodType(actions.vm_up, generic_runner)
+    generic_runner.teardown = types.MethodType(actions.null, generic_runner)
     assert not generic_runner.provision()
     captured = capsys.readouterr()
     assert captured.out == "Command 'error' returned non-zero exit status 1.\n"
@@ -161,6 +174,17 @@ def test_action_vm_destroy(generic_runner, mocker):
     assert generic_runner.teardown()
     assert destroy.call_count == 0
 
+    # Assign _vm to None.
+    generic_runner._vm = None
+    assert generic_runner.teardown()
+    assert destroy.call_count == 0
+
+    # Assign _vm to a string.
+    generic_runner._vm = 'blah'
+    assert generic_runner.teardown()
+    assert destroy.call_count == 0
+
+    # Assign _vm to a Vagrant object.
     generic_runner._vm = vagrant.Vagrant()
     assert generic_runner.teardown()
     assert destroy.call_count == 1
@@ -185,6 +209,37 @@ def test_action_container_up(generic_runner, mocker):
         'working_dir': '/build_magic',
         'volumes': {
             'dir': {
+                'bind': '/build_magic',
+                'mode': 'rw',
+            }
+        },
+        'name': 'build-magic',
+    }
+    generic_runner.binding = {
+        'dir': {
+            'bind': '/build_magic',
+            'mode': 'rw',
+        }
+    }
+    generic_runner.provision = types.MethodType(actions.container_up, generic_runner)
+    assert generic_runner.provision()
+    assert run.call_count == 1
+    assert run.call_args[0] == ('dummy',)
+    assert run.call_args[1] == ref
+    assert not hasattr(generic_runner, 'guest_wd')
+
+
+def test_action_container_up_guest_wd(generic_runner, mocker):
+    """"""
+    mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    run = mocker.patch('docker.client.DockerClient.containers.run')
+    ref = {
+        'detach': True,
+        'tty': True,
+        'entrypoint': 'sh',
+        'working_dir': '/app',
+        'volumes': {
+            'dir': {
                 'bind': '/app',
                 'mode': 'rw',
             }
@@ -198,9 +253,9 @@ def test_action_container_up(generic_runner, mocker):
         }
     }
     generic_runner.provision = types.MethodType(actions.container_up, generic_runner)
+    generic_runner.guest_wd = '/app'
     assert generic_runner.provision()
     assert run.call_count == 1
-    assert run.call_args[0] == ('dummy',)
     assert run.call_args[1] == ref
 
 

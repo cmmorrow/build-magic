@@ -11,6 +11,8 @@ from docker.errors import ContainerError
 import paramiko
 from scp import SCPClient
 
+from build_magic.reference import GuestWorkingDirectory
+
 
 class Status:
     """The captured output of a command executed by a CommandRunner."""
@@ -260,7 +262,6 @@ class Remote(CommandRunner):
             'KeyPath',
             'KeyType',
             'KeyPassword',
-            'GuestWorkingDirectory',
         )
         # Filter out parameters where the type isn't in param_names.
         if parameters:
@@ -410,9 +411,18 @@ class Remote(CommandRunner):
 class Vagrant(CommandRunner):
     """Manages macros executed executed in a guest virtual machine managed by Vagrant."""
 
-    def __init__(self, environment='.', working_dir='.', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment='.', working_dir='.', copy_dir='', timeout=30, artifacts=None, parameters=None):
         """Instantiates a new Vagrant command runner object."""
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
+        param_names = (
+            'GuestWorkingDirectory',
+        )
+        # Filter out parameters where the type isn't in param_names.
+        if parameters:
+            params = dict(self.filter_parameters(parameters, param_names))
+        else:
+            params = None
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
+        self.guest_wd = self.parameters.get('guestwd', GuestWorkingDirectory('/vagrant')).value
         self._vm = None
 
     def prepare(self):
@@ -429,6 +439,8 @@ class Vagrant(CommandRunner):
         :param Macro macro: The Macro object to execute.
         :return: The Status of the executed Macro.
         """
+        if self.guest_wd != '/vagrant':
+            macro.prefix = f'cd {self.guest_wd};'
         cmd = macro.as_string()
         try:
             out = self._vm.ssh(command=cmd)
@@ -440,12 +452,21 @@ class Vagrant(CommandRunner):
 class Docker(CommandRunner):
     """Manages macros executed in a Docker container."""
 
-    def __init__(self, environment='alpine', working_dir='.', copy_dir='', timeout=30, artifacts=None):
+    def __init__(self, environment='alpine', working_dir='.', copy_dir='', timeout=30, artifacts=None, parameters=None):
         """Instantiates a new Docker command runner object."""
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts)
+        param_names = (
+            'GuestWorkingDirectory',
+        )
+        # Filter out parameters where the type isn't in param_names.
+        if parameters:
+            params = dict(self.filter_parameters(parameters, param_names))
+        else:
+            params = None
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
+        self.guest_wd = self.parameters.get('guestwd', GuestWorkingDirectory()).value
         self.binding = {
             str(Path(self.working_directory).resolve()): {
-                'bind': '/build_magic',
+                'bind': self.guest_wd,
                 'mode': 'rw',
             }
         }

@@ -58,11 +58,11 @@ class Parameter(metaclass=ParameterMeta):
     __slots__ = ['_key', '_value']
 
     def __setattr__(self, key, value):
-        """
+        """Override the default __setattr__ behavior.
 
-        :param key:
-        :param value:
-        :return:
+        :param str key: The parameter key to set.
+        :param str value: The parameter value to set.
+        :return: None
         """
         if key not in ('_key', '_value'):
             raise AttributeError
