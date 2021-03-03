@@ -85,7 +85,7 @@ class Basic(Output):
 
     def start_job(self):
         """Indicates the beginning of a sequence of stages."""
-        message = 'build-magic {} started at {}\n'.format(version, datetime.now().strftime('%c'))
+        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] version {version}'
         self._display(message)
         self.timer = datetime.now()
 
@@ -96,9 +96,9 @@ class Basic(Output):
         """
         if self.timer:
             delta = datetime.now() - self.timer
-            message = 'build-magic finished in {:.3f} seconds'.format(delta.total_seconds())
+            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] finished in {delta.total_seconds():.3f}'
         else:
-            message = 'build-magic finished at {}'.format(datetime.now().isoformat())
+            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] finished'
         self._display(message)
 
     def start_stage(self, stage_number=1, name=None):
@@ -109,9 +109,9 @@ class Basic(Output):
         :return: None
         """
         if name:
-            message = f'Starting Stage {stage_number}: {name}'
+            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}: {name}'
         else:
-            message = f'Starting Stage {stage_number}'
+            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}'
         self._display(message)
 
     def end_stage(self, stage_number=1, status_code=0, name=None):
@@ -126,9 +126,11 @@ class Basic(Output):
         if status_code > 0:
             result = 'FAIL'
         if name:
-            message = f'Stage {stage_number}: {name} - complete with result {result}'
+            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Stage {stage_number}: {name} - ' \
+                      f'complete with result {result}'
         else:
-            message = f'Stage {stage_number} complete with result {result}'
+            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Stage {stage_number} ' \
+                      f'complete with result {result}'
         self._display(message)
 
     def no_job(self):
@@ -151,9 +153,9 @@ class Basic(Output):
         if status_code > 0:
             result = 'FAIL'
         if not command:
-            message = '{} [ {:<6}] {:<8}'.format(datetime.now().isoformat(), result, directive.upper())
+            message = f'{datetime.now().isoformat()} build-magic [ {result:<6}] {directive.upper():<8}'
         else:
-            message = '{} [ {:<6}] {:<8} : {}'.format(datetime.now().isoformat(), result, directive.upper(), command)
+            message = f'{datetime.now().isoformat()} build-magic [ {result:<6}] {directive.upper():<8} : {command}'
         self._display(message)
 
     def error(self, err):
@@ -162,7 +164,7 @@ class Basic(Output):
         :param str err: The error message to display.
         :return: None
         """
-        message = '{} [ ERROR ] {}'.format(datetime.now().isoformat(), err)
+        message = f'{datetime.now().isoformat()} build-magic [ ERROR ] {err}'
         self._display(message)
 
     def info(self, msg):
@@ -171,7 +173,7 @@ class Basic(Output):
         :param str msg: The message to print.
         :return: None
         """
-        message = '{} [ INFO  ] OUTPUT   : {}'.format(datetime.now().isoformat(), msg)
+        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] OUTPUT   : {msg}'
         self._display(message)
 
 
