@@ -26,7 +26,7 @@ class EnumExt(Enum):
         :rtype: tuple[Any]
         :return: A list of available Enum values.
         """
-        return tuple([src.value for src in cls.__members__.values()])
+        return tuple([src.value for src in cls])
 
     @classmethod
     def values(cls):
@@ -313,8 +313,15 @@ class SSHPassword(Parameter):
     ALIAS = 'sshpass'
 
 
-class GuestWorkingDirectory(Parameter):
-    """Defines the guest working directory for Vagrant or Docker runners."""
+class HostWorkingDirectory(Parameter):
+    """Defines the host machine working directory for Vagrant or Docker runners."""
 
-    KEY = 'guestwd'
+    KEY = 'hostwd'
+    DEFAULT = '.'
+
+
+class BindDirectory(Parameter):
+    """Defines the bind directory of a guest container or VM to the host machine."""
+
+    KEY = 'bind'
     DEFAULT = '/build_magic'

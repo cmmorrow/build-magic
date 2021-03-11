@@ -9,8 +9,6 @@ import docker
 from docker.errors import APIError, ImageLoadError
 import vagrant
 
-from build_magic.reference import GuestWorkingDirectory
-
 
 LOCAL = 'local'
 REMOTE = 'remote'
@@ -200,10 +198,6 @@ def null(self):
 
 def vm_up(self):
     """Starts up a VM according to the corresponding Vagrantfile."""
-    if hasattr(self, 'guest_wd'):
-        guest_wd = self.guest_wd
-    else:
-        guest_wd = GuestWorkingDirectory('/vagrant').value
     if self.environment == 'Vagrantfile':
         self.environment = '.'
     if self.environment != '.':
@@ -211,9 +205,6 @@ def vm_up(self):
     self._vm = vagrant.Vagrant()
     try:
         self._vm.up()
-        if guest_wd != '/vagrant':
-            self._vm.ssh(command=f'sudo mkdir {guest_wd}')
-            self._vm.ssh(command=f'sudo cp -R /vagrant/* {guest_wd}')
     except subprocess.CalledProcessError as err:
         print(str(err))
         self.teardown()
@@ -391,10 +382,6 @@ def remote_delete_files(self):
 
 def container_up(self):
     """Starts up a new container based on the image set in self.environment."""
-    if hasattr(self, 'guest_wd'):
-        guest_wd = self.guest_wd
-    else:
-        guest_wd = GuestWorkingDirectory().value
     client = docker.from_env()
     try:
         self.container = client.containers.run(
@@ -402,7 +389,7 @@ def container_up(self):
             detach=True,
             tty=True,
             entrypoint='sh',
-            working_dir=guest_wd,
+            working_dir=self.working_directory,
             volumes=self.binding,
             name='build-magic',
         )

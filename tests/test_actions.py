@@ -145,18 +145,6 @@ def test_action_vm_up(generic_runner, mocker):
     assert generic_runner.environment == '.'
 
 
-def test_action_vm_up_guest_wd(generic_runner, mocker):
-    """Verify the vm_up() function works correctly when guest_wd is set."""
-    up = mocker.patch('vagrant.Vagrant.up')
-    ssh = mocker.patch('vagrant.Vagrant.ssh')
-    generic_runner.provision = types.MethodType(actions.vm_up, generic_runner)
-    generic_runner.guest_wd = '/app'
-    assert generic_runner.provision()
-    assert up.call_count == 1
-    assert ssh.call_count == 2
-    assert ssh.call_args[1] == {'command': 'sudo cp -R /vagrant/* /app'}
-
-
 def test_action_vm_up_error(capsys, generic_runner, mocker):
     """Test the case where vm_up() encounters a subprocess error."""
     mocker.patch('vagrant.Vagrant.up', side_effect=subprocess.CalledProcessError(1, 'error'))
@@ -221,42 +209,13 @@ def test_action_container_up(generic_runner, mocker):
             'mode': 'rw',
         }
     }
+    generic_runner.working_directory = '/build_magic'
     generic_runner.provision = types.MethodType(actions.container_up, generic_runner)
     assert generic_runner.provision()
     assert run.call_count == 1
     assert run.call_args[0] == ('dummy',)
     assert run.call_args[1] == ref
     assert not hasattr(generic_runner, 'guest_wd')
-
-
-def test_action_container_up_guest_wd(generic_runner, mocker):
-    """"""
-    mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
-    run = mocker.patch('docker.client.DockerClient.containers.run')
-    ref = {
-        'detach': True,
-        'tty': True,
-        'entrypoint': 'sh',
-        'working_dir': '/app',
-        'volumes': {
-            'dir': {
-                'bind': '/app',
-                'mode': 'rw',
-            }
-        },
-        'name': 'build-magic',
-    }
-    generic_runner.binding = {
-        'dir': {
-            'bind': '/app',
-            'mode': 'rw',
-        }
-    }
-    generic_runner.provision = types.MethodType(actions.container_up, generic_runner)
-    generic_runner.guest_wd = '/app'
-    assert generic_runner.provision()
-    assert run.call_count == 1
-    assert run.call_args[1] == ref
 
 
 def test_action_container_up_error(generic_runner, mocker):

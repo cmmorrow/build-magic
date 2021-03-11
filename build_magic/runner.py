@@ -11,7 +11,7 @@ from docker.errors import ContainerError
 import paramiko
 from scp import SCPClient
 
-from build_magic.reference import GuestWorkingDirectory
+from build_magic.reference import BindDirectory, HostWorkingDirectory
 
 
 class Status:
@@ -126,6 +126,24 @@ class CommandRunner:
         """
         return filter(lambda p: True if type(p[1]).__name__ in parameter_names else False, parameters.items())
 
+    @staticmethod
+    def cd(directory):
+        """Changes the current working directory.
+
+        :param str|Path directory: The directory to change to.
+        :rtype: bool
+        :return: True if directory is not an empty string or None.
+        """
+        if directory:
+            path = Path(directory)
+            try:
+                os.chdir(path)
+            except (OSError, Exception):
+                return False
+            return True
+        else:
+            return False
+
     def copy(self, src, dst):
         """Copies the CommandRunner object's artifacts from one path to another.
 
@@ -141,22 +159,10 @@ class CommandRunner:
                 if src == '.':
                     src = Path.cwd().resolve()
                 src = Path(src) / artifact
-                shutil.copy(src, dst)
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def cd(directory):
-        """Changes the current working directory.
-
-        :param str|Path directory: The directory to change to.
-        :rtype: bool
-        :return: True if directory is not an empty string or None.
-        """
-        if directory:
-            path = Path(directory)
-            os.chdir(path)
+                try:
+                    shutil.copy(src, dst)
+                except (OSError, Exception):
+                    return False
             return True
         else:
             return False
@@ -411,10 +417,19 @@ class Remote(CommandRunner):
 class Vagrant(CommandRunner):
     """Manages macros executed executed in a guest virtual machine managed by Vagrant."""
 
-    def __init__(self, environment='.', working_dir='.', copy_dir='', timeout=30, artifacts=None, parameters=None):
+    def __init__(
+            self,
+            environment='.',
+            working_dir='/home/vagrant',
+            copy_dir='',
+            timeout=30,
+            artifacts=None,
+            parameters=None,
+    ):
         """Instantiates a new Vagrant command runner object."""
         param_names = (
-            'GuestWorkingDirectory',
+            'BindDirectory',
+            'HostWorkingDirectory',
         )
         # Filter out parameters where the type isn't in param_names.
         if parameters:
@@ -422,16 +437,22 @@ class Vagrant(CommandRunner):
         else:
             params = None
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
-        self.guest_wd = self.parameters.get('guestwd', GuestWorkingDirectory('/vagrant')).value
+        self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
+        self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
         self._vm = None
 
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
         if self.copy_from_directory:
-            self.copy(self.copy_from_directory, Path.cwd().resolve())
-            return True
-        else:
-            return False
+            if self._vm and self.working_directory != self.bind_path and len(self.artifacts) > 0:
+                self.copy(self.copy_from_directory, Path(self.host_wd).resolve())
+                try:
+                    self._vm.ssh(command=f'sudo mkdir {self.working_directory}')
+                    self._vm.ssh(command=f'cp -R {self.bind_path}/* {self.working_directory}')
+                except subprocess.CalledProcessError:
+                    return False
+                return True
+        return False
 
     def execute(self, macro):
         """Executes the Macro in the VM.
@@ -439,8 +460,8 @@ class Vagrant(CommandRunner):
         :param Macro macro: The Macro object to execute.
         :return: The Status of the executed Macro.
         """
-        if self.guest_wd != '/vagrant':
-            macro.prefix = f'cd {self.guest_wd};'
+        if self.working_directory != '/home/vagrant':
+            macro.prefix = f'cd {self.working_directory};'
         cmd = macro.as_string()
         try:
             out = self._vm.ssh(command=cmd)
@@ -452,10 +473,19 @@ class Vagrant(CommandRunner):
 class Docker(CommandRunner):
     """Manages macros executed in a Docker container."""
 
-    def __init__(self, environment='alpine', working_dir='.', copy_dir='', timeout=30, artifacts=None, parameters=None):
+    def __init__(
+            self,
+            environment='alpine',
+            working_dir='/build_magic',
+            copy_dir='',
+            timeout=30,
+            artifacts=None,
+            parameters=None
+    ):
         """Instantiates a new Docker command runner object."""
         param_names = (
-            'GuestWorkingDirectory',
+            'BindDirectory',
+            'HostWorkingDirectory',
         )
         # Filter out parameters where the type isn't in param_names.
         if parameters:
@@ -463,10 +493,11 @@ class Docker(CommandRunner):
         else:
             params = None
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
-        self.guest_wd = self.parameters.get('guestwd', GuestWorkingDirectory()).value
+        self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
+        self.bind_path = self.parameters.get('bind', BindDirectory()).value
         self.binding = {
-            str(Path(self.working_directory).resolve()): {
-                'bind': self.guest_wd,
+            str(Path(self.host_wd).resolve()): {
+                'bind': self.bind_path,
                 'mode': 'rw',
             }
         }
@@ -475,10 +506,17 @@ class Docker(CommandRunner):
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
         if self.copy_from_directory:
-            self.copy(self.copy_from_directory, self.working_directory)
-            return True
-        else:
-            return False
+            if self.working_directory != self.bind_path and len(self.artifacts) > 0:
+                self.copy(self.copy_from_directory, Path(self.host_wd).resolve())
+                if not self.container:
+                    self.provision()
+                try:
+                    self.container.exec_run(cmd=f'mkdir {self.working_directory}', tty=True)
+                    self.container.exec_run(cmd=f'cp -R {self.bind_path}/* {self.working_directory}', tty=True)
+                except ContainerError:
+                    return False
+                return True
+        return False
 
     def execute(self, macro):
         """Executes the Macro in the container.

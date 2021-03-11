@@ -12,8 +12,8 @@ import pytest
 import vagrant
 
 from build_magic.macro import Macro
-from build_magic.reference import GuestWorkingDirectory, KeyPassword, KeyPath, KeyType
-from build_magic.runner import Docker, Local, Remote, Status, Vagrant
+from build_magic.reference import BindDirectory, HostWorkingDirectory, KeyPassword, KeyPath, KeyType
+from build_magic.runner import CommandRunner, Docker, Local, Remote, Status, Vagrant
 
 
 valid_ssh = (
@@ -115,11 +115,18 @@ def mock_key(mocker):
     return mocker.patch('paramiko.RSAKey.from_private_key_file', return_value=paramiko.RSAKey.generate(512))
 
 
+def test_status_representation():
+    """Verify the __repr__ method works correctly."""
+    status = Status(stdout='test', stderr='An error', exit_code=1)
+    assert str(status) == '<stdout=test, stderr=An error, exit_code=1>'
+
+
 def test_status_equal():
     """Verify the Status equality comparison works correctly."""
     status1 = Status(stdout='test', stderr='An error', exit_code=1)
     status2 = Status('test', 'An error', 1)
     status3 = Status(stdout='test')
+    other = 42
 
     # Test equality.
     assert status1 == status2
@@ -130,16 +137,28 @@ def test_status_equal():
     # Test identity.
     assert status1 is not status2
 
+    # Test incomparable
+    with pytest.raises(TypeError):
+        assert status1 == other
+
 
 def test_status_less_than():
     """Verify the Status less than comparison works correctly."""
     status1 = Status(stdout='test')
     status2 = Status(stderr='An error.', exit_code=99)
     status3 = Status(stderr='Another error.', exit_code=99)
+    other = 42
 
     assert status1 < status2
     assert not status2 < status3
     assert status2 <= status3
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        assert status1 < other
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        assert status1 <= other
 
 
 def test_status_greater_than():
@@ -147,10 +166,29 @@ def test_status_greater_than():
     status1 = Status(stdout='test')
     status2 = Status(stderr='An error.', exit_code=99)
     status3 = Status(stderr='Another error.', exit_code=99)
+    other = 42
 
     assert status2 > status1
     assert not status2 > status3
     assert status2 >= status3
+
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        assert status1 > other
+    with pytest.raises(TypeError):
+        # noinspection PyTypeChecker
+        assert status1 >= other
+
+
+def test_base_runner():
+    """Verify that the base CommanRunner object works correctly."""
+    runner = CommandRunner('dummy')
+    assert not runner.provision()
+    assert not runner.teardown()
+    with pytest.raises(NotImplementedError):
+        runner.execute(Macro('dummy'))
+    with pytest.raises(NotImplementedError):
+        runner.prepare()
 
 
 def test_local_constructor():
@@ -231,7 +269,7 @@ def test_docker_constructor():
     """Verify the Docker command runner constructor works correctly."""
     runner = Docker()
     assert runner.environment == 'alpine'
-    assert runner.working_directory == '.'
+    assert runner.working_directory == '/build_magic'
     assert not runner.copy_from_directory
     assert not runner.artifacts
     assert type(runner.artifacts) == list
@@ -239,38 +277,66 @@ def test_docker_constructor():
     assert runner.binding == {str(Path.cwd().resolve()): {'bind': '/build_magic', 'mode': 'rw'}}
     assert not runner.container
     assert runner.name == 'docker'
-    assert runner.guest_wd == '/build_magic'
+    assert runner.host_wd == '.'
+    assert runner.bind_path == '/build_magic'
 
     runner = Docker(
         environment='python:3',
-        working_dir='/test',
+        working_dir='/app',
         copy_dir='/other',
         timeout=10,
         artifacts=['hello.txt'],
-        parameters={'guestwd': GuestWorkingDirectory('/app')}
+        parameters={
+            'hostwd': HostWorkingDirectory('/my_repo'),
+            'bind': BindDirectory('/opt'),
+        }
     )
     assert runner.environment == 'python:3'
-    assert runner.working_directory == '/test'
+    assert runner.working_directory == '/app'
     assert runner.copy_from_directory == '/other'
     assert runner.timeout == 10
     assert runner.artifacts == ['hello.txt']
-    assert runner.guest_wd == '/app'
-    assert runner.binding == {'/test': {'bind': '/app', 'mode': 'rw'}}
+    assert runner.host_wd == '/my_repo'
+    assert runner.bind_path == '/opt'
+    assert runner.binding == {'/my_repo': {'bind': '/opt', 'mode': 'rw'}}
 
 
-def test_docker_prepare(docker_runner, build_path, tmp_path):
+def test_docker_prepare(docker_runner, build_path, mocker, tmp_path):
     """Verify the Docker command runner prepare() method works correctly."""
     os.chdir(str(tmp_path))
+    container = mocker.patch('docker.models.containers.Container')
+    run = mocker.patch('docker.models.containers.Container.exec_run')
+    docker_runner.container = container
+
+    # Nothing to do.
     assert not docker_runner.prepare()
-
     assert len(list(Path.cwd().iterdir())) == 0
+
+    # Set the copy_from_directory.
     docker_runner.copy_from_directory = str(build_path)
-    docker_runner.prepare()
+    assert not docker_runner.prepare()
     assert len(list(Path.cwd().iterdir())) == 0
 
+    # Set at least one artifact.
     docker_runner.artifacts.append('hello.txt')
-    docker_runner.prepare()
+    assert not docker_runner.prepare()
+    assert len(list(Path.cwd().iterdir())) == 0
+
+    # Change the working directory to something other than the bind path.
+    docker_runner.working_directory = '/app'
+    assert docker_runner.prepare()
     assert len(list(Path.cwd().iterdir())) == 1
+    assert run.call_count == 2
+
+    # Prepare to copy but fail because of a container error.
+    run.reset_mock()
+    run.side_effect = ContainerError('test', 1, 'test', 'dummy', 'error')
+    runner = Docker()
+    runner.container = container
+    runner.copy_from_directory = str(build_path)
+    runner.working_directory = '/app'
+    runner.artifacts.append('hello.txt')
+    assert not runner.prepare()
 
 
 def test_docker_execute(docker_runner, mocker):
@@ -317,14 +383,15 @@ def test_vagrant_constructor():
     """Verify the Vagrant command runner constructor works correctly."""
     runner = Vagrant()
     assert runner.environment == '.'
-    assert runner.working_directory == '.'
+    assert runner.working_directory == '/home/vagrant'
     assert not runner.copy_from_directory
     assert not runner.artifacts
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
     assert not runner._vm
     assert runner.name == 'vagrant'
-    assert runner.guest_wd == '/vagrant'
+    assert runner.host_wd == '.'
+    assert runner.bind_path == '/vagrant'
 
     runner = Vagrant(
         environment='/opt',
@@ -332,29 +399,55 @@ def test_vagrant_constructor():
         copy_dir='/other',
         timeout=10,
         artifacts=['hello.txt'],
-        parameters={'guestwd': GuestWorkingDirectory('/app')}
+        parameters={
+            'hostwd': HostWorkingDirectory('/my_repo'),
+            'bind': BindDirectory('/app'),
+        }
     )
     assert runner.environment == '/opt'
     assert runner.working_directory == '/test'
     assert runner.copy_from_directory == '/other'
     assert runner.timeout == 10
     assert runner.artifacts == ['hello.txt']
-    assert runner.guest_wd == '/app'
+    assert runner.host_wd == '/my_repo'
+    assert runner.bind_path == '/app'
 
 
-def test_vagrant_prepare(build_path, tmp_path, vagrant_runner):
+def test_vagrant_prepare(build_path, mocker, tmp_path, vagrant_runner):
     """Verify the Vagrant command runner prepare() method works correctly."""
+    ssh = mocker.patch('vagrant.Vagrant.ssh')
+    vm = vagrant.Vagrant()
     os.chdir(str(tmp_path))
+
+    # Nothing to do.
+    assert not vagrant_runner.prepare()
+    assert len(list(Path.cwd().iterdir())) == 0
+
+    # Set vm and copy_from_directory, but do nothing because there are no artifacts.
+    vagrant_runner._vm = vm
+    vagrant_runner.copy_from_directory = str(build_path)
+    assert not vagrant_runner.prepare()
+    assert len(list(Path.cwd().iterdir())) == 0
+
+    # Copy to the working directory because there's at least one artifact.
+    vagrant_runner.artifacts.append('hello.txt')
+    assert vagrant_runner.prepare()
+    assert len(list(Path.cwd().iterdir())) == 1
+    assert ssh.call_count == 2
+
+    # Do nothing because the working directory is also the bind path.
+    vagrant_runner.working_directory = vagrant_runner.bind_path
     assert not vagrant_runner.prepare()
 
-    assert len(list(Path.cwd().iterdir())) == 0
-    vagrant_runner.copy_from_directory = str(build_path)
-    vagrant_runner.prepare()
-    assert len(list(Path.cwd().iterdir())) == 0
+    ssh.reset_mock()
+    ssh.side_effect = subprocess.CalledProcessError(1, 'test')
 
-    vagrant_runner.artifacts.append('hello.txt')
-    vagrant_runner.prepare()
-    assert len(list(Path.cwd().iterdir())) == 1
+    # Prepare to copy but fail because SSH failed.
+    runner = Vagrant()
+    runner.copy_from_directory = str(build_path)
+    runner.artifacts.append('hello.txt')
+    runner._vm = vm
+    assert not runner.prepare()
 
 
 def test_vagrant_execute(vagrant_runner):
@@ -398,12 +491,12 @@ def test_vagrant_execute_not_found(mocker, vagrant_runner):
         vagrant_runner.execute(cmd)
 
 
-def test_vagrant_execute_guest_working_directory(vagrant_runner):
-    """Verify the Vagrant command runner execute() method works correctly with guestwd."""
+def test_vagrant_execute_working_directory(vagrant_runner):
+    """Verify the Vagrant command runner execute() method works correctly with working directory."""
     cmd = Macro('tar -v -czf hello.tar.gz hello.txt')
     vm = MagicMock()
     vagrant_runner._vm = vm
-    vagrant_runner.guest_wd = '/app'
+    vagrant_runner.working_directory = '/app'
     status = vagrant_runner.execute(cmd)
     call_args = vm.mock_calls[0]
     assert call_args[2] == {'command': 'cd /app; tar -v -czf hello.tar.gz hello.txt'}

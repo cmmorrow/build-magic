@@ -25,14 +25,14 @@ CONFIG = click.File(mode='r', encoding='utf-8', errors='strict', lazy=False)
 USAGE = """Usage: build-magic [OPTIONS] [ARGS]...
 
 build-magic is an un-opinionated build automation tool. Some potential uses include:
-* Building applications across multiple platforms.
-* Conducting installation dry runs.
-* Testing application installs across multiple platforms.
-* Deploying and installing artifacts to remote machines.
+    * Building applications across multiple platforms.
+    * Conducting installation dry runs.
+    * Testing application installs across multiple platforms.
+    * Deploying and installing artifacts to remote machines.
 
 Examples:
 * Archive two files on the local machine.
-    build-magic -- tar -czf myfiles.tar.gz file1.txt file2.txt
+    build-magic tar -czf myfiles.tar.gz file1.txt file2.txt
 
 * Archive two files on the local machine and delete the original files.
     build-magic -c build "tar -czf myfiles.tar.gz file1.txt file2.txt" -c execute "rm file1.txt file2.txt"
