@@ -31,7 +31,7 @@ class MacroFactory:
     def generate(self):
         """Generates Macro objects based on the commands supplied to the MacroFactory.
 
-        :rypte: list[Macro]
+        :rtype: list[Macro]
         :return: A list of generated Macro objects.
         """
         macros = []
@@ -71,11 +71,19 @@ class Macro:
 
     @property
     def command(self):
-        """Provides the command to execute."""
+        """Provides the command to execute.
+
+        :rtype: str
+        :return: The Macro command.
+        """
         return self._command
 
     def as_list(self):
-        """Breaks up a command into a list."""
+        """Breaks up a command into a list.
+
+        :rtype: list[str]
+        :return: The command as a list.
+        """
         def prep(cmd):
             if cmd:
                 cmd = shlex.split(cmd)
@@ -87,7 +95,11 @@ class Macro:
         return command
 
     def as_string(self):
-        """Provides a command as a string."""
+        """Provides a command as a string.
+
+        :rtype: str
+        :return: The command as a string.
+        """
         cmd = self._command
         if self.prefix:
             cmd = self.prefix + ' ' + cmd

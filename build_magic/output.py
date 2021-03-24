@@ -79,6 +79,20 @@ class Output:
         func = getattr(self, method)
         func(*args, **kwargs)
 
+    def print_output(self, message, is_error=False):
+        """High level method for printing a message to stdout.
+
+        :param str|bytes message: The message to print to stdout.
+        :param bool is_error: Prints using the error format if True, otherwise prints using the info format.
+        :return: None
+        """
+        level = OutputMethod.ERROR if is_error else OutputMethod.INFO
+        if isinstance(message, bytes):
+            out = message.decode('utf-8')
+        else:
+            out = str(message)
+        self.log(level, out)
+
 
 class Basic(Output):
     """Prototype output to the commandline used for testing."""

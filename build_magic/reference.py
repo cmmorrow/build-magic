@@ -17,7 +17,7 @@ class EnumExt(Enum):
         :rtype: tuple[str]
         :return: A tuple of Enum names.
         """
-        return tuple([name for name in cls.__members__.keys()])
+        return tuple(cls.__members__)
 
     @classmethod
     def available(cls):
@@ -205,9 +205,9 @@ class Parameter(metaclass=ParameterMeta):
 class OutputTypes(EnumExt):
     """Mapping of valid output type options to the corresponding Output subclass."""
 
-    plain = 'Basic'
-    fancy = 'Tty'
-    quiet = 'Silent'
+    BASIC = 'Basic'
+    TTY = 'Tty'
+    SILENT = 'Silent'
 
 
 @unique

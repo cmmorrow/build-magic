@@ -27,6 +27,27 @@ def test_basic_log_method(capsys):
 
 
 @freeze_time('2021-01-02 01:06:34')
+def test_basic_print_output(capsys):
+    """Verify the print_output() method works as expected."""
+    output = Basic()
+    output.print_output('This is a test', is_error=False)
+    captured = capsys.readouterr()
+    assert captured.out == "2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT   : This is a test\n"
+
+    output.print_output(b'This is a test', is_error=False)
+    captured = capsys.readouterr()
+    assert captured.out == "2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT   : This is a test\n"
+
+    output.print_output('This is a test', is_error=True)
+    captured = capsys.readouterr()
+    assert captured.out == "2021-01-02T01:06:34 build-magic [ ERROR ] This is a test\n"
+
+    output.print_output(b'This is a test', is_error=True)
+    captured = capsys.readouterr()
+    assert captured.out == "2021-01-02T01:06:34 build-magic [ ERROR ] This is a test\n"
+
+
+@freeze_time('2021-01-02 01:06:34')
 def test_basic_end_job(capsys):
     """Verify the basic end_job() method works as expected."""
     output = Output()
@@ -236,7 +257,7 @@ def test_tty_macro_start(capsys):
 
     output.log(OutputMethod.MACRO_START, 'execute')
     captured = capsys.readouterr()
-    assert  captured.out == 'EXECUTE  ..........................................................\n'
+    assert captured.out == 'EXECUTE  ..........................................................\n'
 
 
 def test_tty_macro_status(capsys):
@@ -263,9 +284,9 @@ def test_tty_error(capsys):
 def test_tty_info(capsys):
     """Verify the info() method works correctly."""
     output = Tty()
-    output.log(OutputMethod.INFO, 'test message.')
+    output.log(OutputMethod.INFO, 'test message.\n\n\n')
     captured = capsys.readouterr()
-    assert captured.out == 'OUTPUT  : test message.\n'
+    assert captured.out == 'OUTPUT  : test message.\n\n\n\n'
 
 
 def test_silent_start_job(capsys):

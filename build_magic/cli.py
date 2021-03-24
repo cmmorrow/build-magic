@@ -93,11 +93,11 @@ def build_magic(
 
     # Get the output type.
     if plain:
-        out = reference.OutputTypes.plain.name
+        out = reference.OutputTypes.BASIC
     elif quiet:
-        out = reference.OutputTypes.quiet.name
+        out = reference.OutputTypes.SILENT
     else:
-        out = reference.OutputTypes.fancy.name
+        out = reference.OutputTypes.TTY
 
     stages_ = []
 
@@ -178,7 +178,7 @@ def build_magic(
     stages = []
     for stage in stages_:
         try:
-            stages.append(core.StageFactory.build(**stage))
+            stages.append(core.build_stage(**stage))
         except (NotADirectoryError, ValueError, reference.ValidationError) as err:
             click.secho(str(err), fg='red', err=True)
             sys.exit(reference.ExitCode.INPUT_ERROR)

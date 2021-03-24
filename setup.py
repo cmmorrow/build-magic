@@ -1,8 +1,10 @@
 from setuptools import setup
 
+from build_magic import __version__ as version
+
 setup(
     name='build-magic',
-    version='0.1.0dev1',
+    version=version,
     packages=[
         'build_magic',
     ],

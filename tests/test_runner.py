@@ -579,14 +579,14 @@ def test_remote_key_file_not_found():
         Remote('user@myhost', parameters=params)
 
 
-def test_remote_invalid_parameters_filtered_out(mock_key):
-    """Test the case where invalid parameters are passed to the Remote command runner and filtered out."""
-    params = {
-        'dummy': type('Hello', (), {}),
-        'wrong': type('Other', (), {}),
-    }
-    runner = Remote('user@myhost', parameters=params)
-    assert runner.parameters == {}
+# def test_remote_invalid_parameters_filtered_out(mock_key):
+#     """Test the case where invalid parameters are passed to the Remote command runner and filtered out."""
+#     params = {
+#         'dummy': type('Hello', (), {}),
+#         'wrong': type('Other', (), {}),
+#     }
+#     runner = Remote('user@myhost', parameters=params)
+#     assert runner.parameters == {}
 
 
 def test_remote_prepare(build_path, mock_key, mocker, tmp_path, remote_runner):

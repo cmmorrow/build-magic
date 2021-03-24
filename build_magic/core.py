@@ -27,6 +27,11 @@ mode = OutputMethod
 _output = output.Tty()
 
 
+def build_stage(*args, **kwargs):
+    """Helper function for building stage objects."""
+    return StageFactory.build(*args, **kwargs)
+
+
 def iterate_sequence():
     """Increments the output sequence by one each time it's called.
 
@@ -108,12 +113,12 @@ class Engine:
 
     __slots__ = ['_continue_on_fail', '_stages', '_verbose']
 
-    def __init__(self, stages=None, continue_on_fail=False, output_format='fancy', verbose=False):
+    def __init__(self, stages=None, continue_on_fail=False, output_format=OutputTypes.TTY, verbose=False):
         """Executes stages and reports the results.
 
         :param list[Stage]|None stages: The stage or stages to execute.
         :param bool continue_on_fail: If True, continue command execution even if a command fails or errors.
-        :param str output_format: The output interface to use for displaying messages.
+        :param OutputTypes output_format: The output interface to use for displaying messages.
         :param bool verbose: If True, print the stdout from each Macro status.
         :return: The highest status code reported by a stage.
         """
@@ -121,14 +126,14 @@ class Engine:
         self._verbose = verbose
         self._stages = stages or []
 
+        # TODO: Check to make sure stages is a list.
+
         # Sort stages by sequence.
         if len(stages) > 1:
             self._stages = sorted(stages, key=lambda s: s.sequence)
 
-        if output_format not in OutputTypes.names():
-            raise ValueError('Output must be one of {}'.format(', '.join(OutputTypes.names())))
         global _output
-        _output = getattr(output, OutputTypes[output_format].value)()
+        _output = getattr(output, output_format.value)()
 
     def run(self):
         """Executes stages and reports the results.
@@ -310,7 +315,6 @@ class Stage:
         '_results',
         '_sequence',
         '_name',
-        '_parameters',
     ]
 
     def __init__(self, cmd_runner, macros, directives, sequence, action, name=None):
@@ -321,7 +325,7 @@ class Stage:
         :param CommandRunner cmd_runner: The CommandRunner to use.
         :param list[Macro] macros: The commands to execute.
         :param list[str] directives: The command directives.
-        :param int sequence: The execution order of the macros.
+        :param int|str sequence: The execution order of the macros.
         :param str action: The Action to use.
         :param str|None name: The stage name if provided.
         """
@@ -354,28 +358,27 @@ class Stage:
         """The stage name."""
         return self._name
 
+    def _get_action_function(self, method):
+        """Fetches the mapped action function for the provided command runner method.
+
+        :param str method: The command runner method, i.e. provision or teardown.
+        :rtype: Callable
+        :return: The mapped function.
+        """
+        method_name = self._action.mapping[method].get(self._command_runner.name, actions.DEFAULT_METHOD)
+        method = getattr(actions, method_name)
+        return types.MethodType(method, self._command_runner)
+
     def setup(self):
         """Dynamically set the provision() and teardown() methods for the Command Runner and call it's prepare() method.
 
         :return: None
         """
         # Dynamically bind the action's provision function to the command runner object.
-        provision_name = (
-            self._action
-                .mapping[actions.SETUP_METHOD]
-                .get(self._command_runner.name, actions.DEFAULT_METHOD)
-        )
-        provision = getattr(actions, provision_name)
-        self._command_runner.provision = types.MethodType(provision, self._command_runner)
+        self._command_runner.provision = self._get_action_function(actions.SETUP_METHOD)
 
         # Dynamically bind the action's teardown function to the command runner object.
-        teardown_name = (
-            self._action
-                .mapping[actions.TEARDOWN_METHOD]
-                .get(self._command_runner.name, actions.DEFAULT_METHOD)
-        )
-        teardown = getattr(actions, teardown_name)
-        self._command_runner.teardown = types.MethodType(teardown, self._command_runner)
+        self._command_runner.teardown = self._get_action_function(actions.TEARDOWN_METHOD)
 
         # Call the command runner's prepare function first.
         self._command_runner.prepare()
@@ -424,17 +427,9 @@ class Stage:
             self._results.append(status)
             if verbose:
                 if status.stdout:
-                    if isinstance(status.stdout, bytes):
-                        out = status.stdout.decode('utf-8')
-                    else:
-                        out = str(status.stdout)
-                    _output.log(mode.INFO, out)
+                    _output.print_output(status.stdout)
             if status.exit_code > 0 and not continue_on_fail:
-                if isinstance(status.stderr, bytes):
-                    err = status.stderr.decode('utf-8')
-                else:
-                    err = str(status.stderr)
-                _output.log(mode.ERROR, err)
+                _output.print_output(status.stderr, is_error=True)
                 break
 
         # Call the teardown method.

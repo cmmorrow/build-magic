@@ -17,6 +17,8 @@ from build_magic.reference import BindDirectory, HostWorkingDirectory
 class Status:
     """The captured output of a command executed by a CommandRunner."""
 
+    __slots__ = ['_stdout', '_stderr', '_exit_code']
+
     def __init__(self, stdout='', stderr='', exit_code=0):
         """Instantiates a new Status object.
 
@@ -24,9 +26,46 @@ class Status:
         :param bytes|str stderr: The stderr captured by a CommandRunner.
         :param num exit_code: The exit code captured by a CommandRunner.
         """
-        self.stdout = stdout
-        self.stderr = stderr
-        self.exit_code = exit_code
+        self._stdout = stdout
+        self._stderr = stderr
+        self._exit_code = exit_code
+
+    @property
+    def stdout(self):
+        """Provides the captured stdout.
+
+        :rtype: str
+        :return: The captured stdout.
+        """
+        return self._stdout
+
+    @property
+    def stderr(self):
+        """Provides the captured stderr.
+
+        :rtype: str
+        :return: The captured stderr.
+        """
+        return self._stderr
+
+    @property
+    def exit_code(self):
+        """The captured exit code.
+
+        :rtype: int
+        :return: The captured exit code.
+        """
+        return self._exit_code
+
+    @staticmethod
+    def _validate(other):
+        """Raise an exception if other isn't a Status object.
+
+        :param Any other: The object to validate.
+        :return: None
+        """
+        if not isinstance(other, Status):
+            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
 
     def __repr__(self):
         """Overrides the default string representation to display stdout, stderr, and exit_code.
@@ -39,58 +78,53 @@ class Status:
     def __eq__(self, other):
         """Compare two Status object to see if they are equal.
 
-        :param Status other: The Status object to compare against.
+        :param Any other: The Status object to compare against.
         :rtype: bool
         :return: True if the Status objects are equal, otherwise False.
         """
-        if not isinstance(other, Status):
-            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        self._validate(other)
         return self.stdout == other.stdout and self.stderr == other.stderr and self.exit_code == other.exit_code
 
     def __lt__(self, other):
         """Compare if the exit code of the current Status object is less than the exit code of another Status object.
 
-        :param Status other: The Status object to compare against.
+        :param Any other: The Status object to compare against.
         :rtype: bool
         :return: True if the exit code is less than the exit code of other, else False.
         """
-        if not isinstance(other, Status):
-            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        self._validate(other)
         return self.exit_code < other.exit_code
 
     def __le__(self, other):
         """Compare if the exit code of the current Status object is less than or equal to the exit code of another
         Status object.
 
-        :param Status other: The Status object to compare against.
+        :param Any other: The Status object to compare against.
         :rtype: bool
         :return: True if the exit code is less than or equal to the exit code of other, else False.
         """
-        if not isinstance(other, Status):
-            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        self._validate(other)
         return self.exit_code <= other.exit_code
 
     def __gt__(self, other):
         """Compare if the exit code of the current Status object is greater than the exit code of another Status object.
 
-        :param Status other: The Status object to compare against.
+        :param Any other: The Status object to compare against.
         :rtype: bool
         :return: True if the exit code is greater than the exit code of other, else False.
         """
-        if not isinstance(other, Status):
-            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        self._validate(other)
         return self.exit_code > other.exit_code
 
     def __ge__(self, other):
         """Check if the exit code of the Status object is greater than or equal to the exit code of another Status
         object.
 
-        :param Status other: The Status object to compare against.
+        :param Any other: The Status object to compare against.
         :rtype: bool
         :return: True if the exit code is greater than or equal to the exit code of other, else False.
         """
-        if not isinstance(other, Status):
-            raise TypeError(f'Cannot compare object of type Status with object of type {type(other)}')
+        self._validate(other)
         return self.exit_code >= other.exit_code
 
 
@@ -115,16 +149,18 @@ class CommandRunner:
         self.artifacts = [] if not artifacts else artifacts
         self.parameters = {} if not parameters else parameters
 
-    @staticmethod
-    def filter_parameters(parameters, parameter_names):
-        """Filter parameters for those with a key in parameter_names.
+        # TODO: Need to validate the types for artifacts and parameters.
 
-        :param dict[str, build_magic.reference.Parameter]   parameters: The parameters to filter.
-        :param tuple[str] parameter_names: A list of parameter names to filter by.
-        :rtype: dict[str, build_magic.reference.Parameter]
-        :return: The remaining parameters with the non-matching parameters filtered out.
-        """
-        return filter(lambda p: True if type(p[1]).__name__ in parameter_names else False, parameters.items())
+    # @staticmethod
+    # def _filter_parameters(parameters, parameter_names):
+    #     """Filter parameters for those with a key in parameter_names.
+    #
+    #     :param dict[str, build_magic.reference.Parameter]   parameters: The parameters to filter.
+    #     :param tuple[str] parameter_names: A list of parameter names to filter by.
+    #     :rtype: dict[str, build_magic.reference.Parameter]
+    #     :return: The remaining parameters with the non-matching parameters filtered out.
+    #     """
+    #     return filter(lambda p: True if type(p[1]).__name__ in parameter_names else False, parameters.items())
 
     @staticmethod
     def cd(directory):
@@ -264,18 +300,18 @@ class Remote(CommandRunner):
         if working_dir == '.':
             working_dir = ''
 
-        param_names = (
-            'KeyPath',
-            'KeyType',
-            'KeyPassword',
-        )
-        # Filter out parameters where the type isn't in param_names.
-        if parameters:
-            params = dict(self.filter_parameters(parameters, param_names))
-        else:
-            params = None
+        # param_names = (
+        #     'KeyPath',
+        #     'KeyType',
+        #     'KeyPassword',
+        # )
+        # # Filter out parameters where the type isn't in param_names.
+        # if parameters:
+        #     params = dict(self._filter_parameters(parameters, param_names))
+        # else:
+        #     params = None
 
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
 
         self.user = None
         self.host = None
@@ -427,16 +463,16 @@ class Vagrant(CommandRunner):
             parameters=None,
     ):
         """Instantiates a new Vagrant command runner object."""
-        param_names = (
-            'BindDirectory',
-            'HostWorkingDirectory',
-        )
-        # Filter out parameters where the type isn't in param_names.
-        if parameters:
-            params = dict(self.filter_parameters(parameters, param_names))
-        else:
-            params = None
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
+        # param_names = (
+        #     'BindDirectory',
+        #     'HostWorkingDirectory',
+        # )
+        # # Filter out parameters where the type isn't in param_names.
+        # if parameters:
+        #     params = dict(self._filter_parameters(parameters, param_names))
+        # else:
+        #     params = None
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
         self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
         self._vm = None
@@ -483,16 +519,16 @@ class Docker(CommandRunner):
             parameters=None
     ):
         """Instantiates a new Docker command runner object."""
-        param_names = (
-            'BindDirectory',
-            'HostWorkingDirectory',
-        )
-        # Filter out parameters where the type isn't in param_names.
-        if parameters:
-            params = dict(self.filter_parameters(parameters, param_names))
-        else:
-            params = None
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, params)
+        # param_names = (
+        #     'BindDirectory',
+        #     'HostWorkingDirectory',
+        # )
+        # # Filter out parameters where the type isn't in param_names.
+        # if parameters:
+        #     params = dict(self._filter_parameters(parameters, param_names))
+        # else:
+        #     params = None
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
         self.bind_path = self.parameters.get('bind', BindDirectory()).value
         self.binding = {
