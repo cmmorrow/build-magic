@@ -3,6 +3,7 @@
 import hashlib
 import os
 import pathlib
+import shutil
 import subprocess
 
 import docker
@@ -17,6 +18,9 @@ DOCKER = 'docker'
 
 SETUP_METHOD = 'provision'
 TEARDOWN_METHOD = 'teardown'
+
+BACKUP_PATH = '.build_magic'
+TEMP_PATH = '.temp_backup'
 
 DEFAULT_METHOD = 'null'
 
@@ -78,6 +82,22 @@ def _parse_files(file_list):
     return [(file.strip(), None) for file in file_list if file]
 
 
+# def _clear_directory(directory):
+#     """
+#
+#     :param pathlib.Path directory:
+#     :return:
+#     """
+#     for file in directory.iterdir():
+#         if file.is_dir():
+#             if len(list(file.iterdir())) > 0:
+#                 _clear_directory(directory)
+#             else:
+#                 file.rmdir()
+#         else:
+#             file.unlink()
+
+
 class Action:
     """An Action is used to dynamically define the setup and teardown process for a CommandRunner.
     At a minimum, a Default action is called to specify and dynamically bind the setup and teardown methods.
@@ -137,7 +157,7 @@ class Default(Action):
             REMOTE: DEFAULT_METHOD,
             DOCKER: 'container_destroy',
             VAGRANT: 'vm_destroy',
-        }
+        },
     }
 
     add_prefix = {
@@ -160,12 +180,33 @@ class Cleanup(Action):
             REMOTE: 'remote_delete_files',
             DOCKER: 'delete_new_files',
             VAGRANT: 'vm_destroy',
-        }
+        },
     }
 
     add_prefix = {
         VAGRANT: 'cd /vagrant;',
     }
+
+
+# class Restore(Action):
+#     """Action for restoring the working directory after executing a Stage."""
+#
+#     mapping = {
+#         SETUP_METHOD: {
+#             LOCAL: 'backup_dir',
+#             DOCKER: 'backup_dir',
+#             VAGRANT: 'vm_up',
+#         },
+#         TEARDOWN_METHOD: {
+#             LOCAL: 'restore_from_backup',
+#             DOCKER: 'restore_from_backup',
+#             VAGRANT: 'vm_destroy',
+#         },
+#     }
+#
+#     add_prefix = {
+#         VAGRANT: 'cd /vagrant;',
+#     }
 
 
 class Persist(Action):
@@ -183,7 +224,7 @@ class Persist(Action):
             REMOTE: DEFAULT_METHOD,
             DOCKER: DEFAULT_METHOD,
             VAGRANT: DEFAULT_METHOD,
-        }
+        },
     }
 
     add_prefix = {
@@ -254,6 +295,80 @@ def delete_new_files(self):
         return True
     else:
         return False
+
+
+def backup_dir(self):
+    """Creates a backup of the working directory."""
+    wd = pathlib.Path(self.working_directory).resolve()
+    backup = wd / BACKUP_PATH
+    try:
+        if backup.exists():
+            shutil.rmtree(backup)
+        shutil.copytree(wd, backup)
+    except (PermissionError, Exception):
+        return False
+    return True
+
+
+def restore_from_backup(self):
+    """Restore from the backup directory and delete it."""
+    wd = pathlib.Path(self.working_directory).resolve()
+    backup = wd / BACKUP_PATH
+    if backup.exists():
+        try:
+            temp = wd.parent / TEMP_PATH
+            shutil.move(wd, temp)
+            shutil.copytree(temp / BACKUP_PATH, wd)
+            shutil.rmtree(temp)
+            return True
+        except (PermissionError, Exception):
+            return False
+    else:
+        return False
+
+
+# def remote_backup_dir(self):
+#     """Create a backup directory on a remote file system."""
+#     wd = pathlib.Path(self.working_directory).resolve()
+#     backup = wd / BACKUP_PATH
+#     client = self.connect()
+#     cmd = 'uname'
+#     # Try to get the OS of the remote system.
+#     stdin, stdout, stderr = client.exec_command(cmd)
+#     if stdout.channel.recv_exit_status() == 0:
+#         stdin, stdout, stderr = client.exec_command(f'cd {str(wd)}')
+#         if stdout.readlines()[0] in ('Linux', 'Darwin'):
+#             stdin, stdout, stderr = client.exec_command(f'ls {str(backup)}')
+#             if stdout.channel.recv_exit_status() != 0:
+#                 stdin, stdout, stderr = client.exec_command(f'rm -R -f {str(backup)}')
+#             stdin, stdout, stderr = client.exec_command(f'mkdir {str(backup)}')
+#             stdin, stdout, stderr = client.exec_command(f'cp -R * {str(backup)}')
+#         elif stdout.readlines()[0].startswith('Windows'):
+#             stdin, stdout, stderr = client.exec_command(f'ls {str(backup)}')
+#             if stdout.channel.recv_exit_status() != 0:
+#                 stdin, stdout, stderr = client.exec_command(f'del /q {str(backup)}')
+#             stdin, stdout, stderr = client.exec_command(f'mkdir {str(backup)}')
+#             stdin, stdout, stderr = client.exec_command(f'xcopy /y * {str(backup)}')
+#         else:
+#             return False
+#     else:
+#         # Check if we're connecting to Windows.
+#         cmd = '%OS%'
+#         stdin, stdout, stderr = client.exec_command(cmd)
+#         if stdout.readlines()[0] == 'Windows_NT':
+#             stdin, stdout, stderr = client.exec_command(f'cd {str(wd)}')
+#             stdin, stdout, stderr = client.exec_command(f'ls {str(backup)}')
+#             if stdout.channel.recv_exit_status() != 0:
+#                 stdin, stdout, stderr = client.exec_command(f'del /q {str(backup)}')
+#             stdin, stdout, stderr = client.exec_command(f'mkdir {str(backup)}')
+#             stdin, stdout, stderr = client.exec_command(f'xcopy /y * {str(backup)}')
+#         else:
+#             return False
+#     return True
+
+
+def remote_restore_from_backup(self):
+    """Restore from a backup directory on a remote file system."""
 
 
 def remote_capture_dir(self):
@@ -389,7 +504,7 @@ def container_up(self):
             detach=True,
             tty=True,
             entrypoint='sh',
-            working_dir=self.working_directory,
+            working_dir=str(pathlib.Path(self.working_directory).resolve()),
             volumes=self.binding,
             name='build-magic',
         )

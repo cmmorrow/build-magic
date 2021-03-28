@@ -1,0 +1,18 @@
+stages:
+  - stage:
+      name: Run Tests
+      commands:
+        - test: pytest --cov=build_magic --cov-report term-missing
+#  - stage:
+#      name: Build Documentation
+#      commands:
+#        - build:
+  - stage:
+      name: Deploy to PyPI
+      commands:
+        - build: python setup.py sdist bdist_wheel --universal
+#        - release: twine upload dist/*
+#  - stage:
+#      name: Cleanup
+#      commands:
+#        - execute: rm dist/*

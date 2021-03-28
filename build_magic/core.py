@@ -267,6 +267,7 @@ class StageFactory:
             raise NoJobs
 
         for directive in directives:
+            directive = directive.lower()
             if directive not in Directive.available():
                 raise ValueError(
                     'Directive must be one of {}'.format(', '.join(Directive.available()))

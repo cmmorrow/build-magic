@@ -16,7 +16,7 @@ setup(
     python_requires='>=3.6',
     entry_points={
         'console_scripts': [
-            'build-magic=build_magic:main',
+            'build-magic=build_magic.cli:build_magic',
         ],
     },
     install_requires=[

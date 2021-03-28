@@ -36,6 +36,17 @@ def empty_path(tmp_path_factory):
 
 
 @pytest.fixture
+def backup_path(build_path):
+    """Provides a build-magic backup path for a working directory."""
+    backup = build_path / actions.BACKUP_PATH
+    backup.mkdir()
+    file1 = backup / 'file1.txt'
+    file2 = backup / 'file2.txt'
+    file1.write_text('hello')
+    file2.write_text('world')
+
+
+@pytest.fixture
 def build_hashes():
     """Provides the hashes for files in build_path."""
     return (
@@ -348,6 +359,102 @@ def test_action_delete_new_files_no_existing(generic_runner):
     assert not generic_runner.teardown()
 
     generic_runner._existing_files = None
+    assert not generic_runner.teardown()
+
+
+def test_action_backup_dir(build_path, generic_runner):
+    """Verify the backup_dir() function works correctly."""
+    os.chdir(str(build_path))
+    generic_runner.provision = types.MethodType(actions.backup_dir, generic_runner)
+    assert generic_runner.provision()
+    assert build_path.joinpath(actions.BACKUP_PATH).exists()
+    assert build_path.joinpath(actions.BACKUP_PATH).is_dir()
+    assert len(list(build_path.joinpath(actions.BACKUP_PATH).iterdir())) == 2
+
+
+def test_action_backup_dir_empty_directory(empty_path, generic_runner):
+    """Test the case where backup_dir() is called on an empty directory."""
+    os.chdir(str(empty_path))
+    generic_runner.provision = types.MethodType(actions.backup_dir, generic_runner)
+    assert generic_runner.provision()
+    assert empty_path.joinpath(actions.BACKUP_PATH).exists()
+    assert empty_path.joinpath(actions.BACKUP_PATH).is_dir()
+    assert len(list(empty_path.joinpath(actions.BACKUP_PATH).iterdir())) == 0
+
+
+def test_action_backup_dir_error(build_path, generic_runner, mocker):
+    """Test the case where backup_dir() raises an error."""
+    mocker.patch('shutil.copytree', side_effect=PermissionError)
+    os.chdir(str(build_path))
+    generic_runner.provision = types.MethodType(actions.backup_dir, generic_runner)
+    assert not generic_runner.provision()
+
+
+def test_action_backup_dir_backup_exists(build_path, generic_runner):
+    """Test the case where a backup directory already exists when backup_dir() is called."""
+    os.chdir(str(build_path))
+    generic_runner.provision = types.MethodType(actions.backup_dir, generic_runner)
+    backup = build_path.joinpath(actions.BACKUP_PATH)
+    backup.mkdir()
+    file = backup / 'file1.txt'
+    file.write_text('test')
+
+    assert generic_runner.provision()
+    assert build_path.joinpath(actions.BACKUP_PATH).exists()
+    assert build_path.joinpath(actions.BACKUP_PATH).is_dir()
+    assert len(list(build_path.joinpath(actions.BACKUP_PATH).iterdir())) == 2
+
+
+def test_action_restore_from_backup(backup_path, build_path, generic_runner):
+    """Verify the restore_from_backup() function works correctly."""
+    os.chdir(str(build_path))
+    generic_runner.teardown = types.MethodType(actions.restore_from_backup, generic_runner)
+
+    # Modify a file and make sure the modified file isn't kept.
+    build_path.joinpath('file1.txt').write_text('temp')
+
+    assert generic_runner.teardown()
+    for file in build_path.iterdir():
+        assert file.read_text() in ('hello', 'world')
+    assert not build_path.parent.joinpath(actions.TEMP_PATH).exists()
+
+
+def test_action_restore_from_backup_no_backup(build_path, generic_runner):
+    """Test the case where restore_from_backup() does nothing because the backup path doesn't exist."""
+    os.chdir(str(build_path))
+    generic_runner.teardown = types.MethodType(actions.restore_from_backup, generic_runner)
+    assert not generic_runner.teardown()
+
+
+def test_action_restore_from_backup_from_empty_directory(build_path, generic_runner):
+    """Test the case where the backup of the working directory is clean."""
+    os.chdir(str(build_path))
+    generic_runner.teardown = types.MethodType(actions.restore_from_backup, generic_runner)
+    backup = build_path / actions.BACKUP_PATH
+    backup.mkdir()
+
+    assert len([file for file in build_path.iterdir() if file.is_file()]) == 2
+    assert generic_runner.teardown()
+    assert len(list(build_path.iterdir())) == 0
+
+
+def test_action_restore_from_backup_to_empty_directory(backup_path, build_path, generic_runner):
+    """Test the case where the backup restores to a clean working directory."""
+    os.chdir(str(build_path))
+    generic_runner.teardown = types.MethodType(actions.restore_from_backup, generic_runner)
+    build_path.joinpath('file1.txt').unlink()
+    build_path.joinpath('file2.txt').unlink()
+
+    assert len([file for file in build_path.iterdir() if file.is_file()]) == 0
+    assert generic_runner.teardown()
+    assert len(list(build_path.iterdir())) == 2
+
+
+def test_action_restore_from_backup_error(backup_path, build_path, generic_runner, mocker):
+    """Test the case where an error occurs when restoring from a backup."""
+    os.chdir(str(build_path))
+    mocker.patch('shutil.move', side_effect=PermissionError)
+    generic_runner.teardown = types.MethodType(actions.restore_from_backup, generic_runner)
     assert not generic_runner.teardown()
 
 

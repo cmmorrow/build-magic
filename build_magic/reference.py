@@ -229,6 +229,7 @@ class Directive(EnumExt):
     DEPLOY = 'deploy'
     EXECUTE = 'execute'
     INSTALL = 'install'
+    RELEASE = 'release'
 
 
 @unique

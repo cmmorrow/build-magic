@@ -2,3 +2,6 @@
 build_magic/__pycache__
 .vagrant
 /.coverage
+/dist/
+/build_magic.egg-info/
+/build/

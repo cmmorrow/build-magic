@@ -18,7 +18,7 @@ def test_basic_log_method(capsys):
     output = Basic()
     output.log(OutputMethod.JOB_START)
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] version 0.0.0rc1\n'
+    assert captured.out == f'2021-01-02T01:06:34 build-magic [ INFO  ] version {version}\n'
 
     log_output = captured.out
     output.start_job()
