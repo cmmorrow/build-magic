@@ -268,20 +268,30 @@ def capture_dir(self):
     try:
         pwd = pathlib.Path.cwd().resolve()
         self._existing_files = []
+        self._existing_dirs = []
         for file in sorted(pwd.rglob('*')):
-            self._existing_files.append((str(file), hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
-    except (IsADirectoryError, Exception):
+            try:
+                self._existing_files.append((str(file), hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
+            except IsADirectoryError:
+                self._existing_dirs.append(str(file))
+    except:
         return False
     return True
 
 
 def delete_new_files(self):
     """Deletes all files not previously captured."""
+    result = False
     if hasattr(self, '_existing_files') and isinstance(self._existing_files, list):
         if len(self._existing_files) > 0:
             files, hashes = zip(*self._existing_files)
             pwd = pathlib.Path.cwd().resolve()
-            current = [(file, hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()) for file in pwd.iterdir()]
+            current = []
+            for file in sorted(pwd.rglob('*')):
+                try:
+                    current.append((file, hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
+                except IsADirectoryError:
+                    continue
             _, new_hashes = zip(*current)
             for file, hash_ in current:
                 # Remove any new files.
@@ -292,9 +302,17 @@ def delete_new_files(self):
                 elif hash_ in hashes and (str(file), hash_) not in self._existing_files and new_hashes.count(hash_) > 1:
                     os.remove(file)
                     continue
-        return True
-    else:
-        return False
+            result = True
+    if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
+        pwd = pathlib.Path.cwd().resolve()
+        for file in sorted(pwd.rglob('*'), reverse=True):
+            if file.is_dir() and file not in self._existing_dirs:
+                try:
+                    os.rmdir(file)
+                except OSError:
+                    continue
+        result = True
+    return result
 
 
 def backup_dir(self):

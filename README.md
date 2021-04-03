@@ -1,5 +1,6 @@
 # build-magic :hammer::sparkles:
 
+![PyPI](https://img.shields.io/pypi/v/build-magic)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/cmmorrow/build-magic/Python%20application)
 ![Codecov](https://img.shields.io/codecov/c/github/cmmorrow/build-magic)
 

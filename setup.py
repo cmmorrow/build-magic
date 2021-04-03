@@ -2,6 +2,9 @@ from setuptools import setup
 
 from build_magic import __version__ as version
 
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
 setup(
     name='build-magic',
     version=version,
@@ -13,7 +16,12 @@ setup(
     author='Chris Morrow',
     author_email='cmmorrow@gmail.com',
     description='A general purpose build/install/deploy tool.',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     python_requires='>=3.6',
+    project_urls={
+        "Bug Tracker": 'https://github.com/cmmorrow/build-magic/issues',
+    },
     entry_points={
         'console_scripts': [
             'build-magic=build_magic.cli:build_magic',

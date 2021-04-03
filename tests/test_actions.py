@@ -297,47 +297,47 @@ def test_action_delete_new_files(build_hashes, build_path, generic_runner):
     """Verify the delete_new_files() function works correctly."""
     os.chdir(str(build_path))
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
-    files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
     generic_runner.execute(Macro('tar -czf myfiles.tar.gz file1.txt file2.txt'))
     assert generic_runner.teardown()
-    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(files)
+    assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
 
 def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner):
     """Verify the delete_new_files() function works correctly with copies of existing files."""
     os.chdir(str(build_path))
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
-    files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     existing = []
     for file in files:
         existing.append((file, hashlib.sha1(Path(file).read_bytes()).hexdigest()))
     generic_runner._existing_files = existing
     generic_runner.execute(Macro('cp file2.txt temp.txt'))
     assert generic_runner.teardown()
-    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(files)
+    assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
 
 def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path, generic_runner):
     """Verify that a renamed file isn't deleted by delete_new_files()."""
     os.chdir(str(build_path))
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
-    files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
     generic_runner.execute(Macro('mv file2.txt temp.txt'))
     ref_files = [str(file) for file in Path.cwd().resolve().iterdir()]
     assert generic_runner.teardown()
-    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(ref_files)
+    assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(ref_files)
 
 
 def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path, generic_runner):
     """Verify that a modified file isn't deleted by delete_new_files()."""
     os.chdir(str(build_path))
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
-    files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
     generic_runner.execute(Macro('mv file1.txt file2.txt'))
-    ref_files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    ref_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert generic_runner.teardown()
     assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(ref_files)
 
@@ -346,11 +346,11 @@ def test_action_delete_new_files_empty_directory(empty_path, generic_runner):
     """Verify the delete_new_files() function works correctly with an empty directory."""
     os.chdir(str(empty_path))
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
-    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro('echo hello'))
-    assert generic_runner.teardown()
-    assert len([str(file) for file in Path.cwd().resolve().iterdir()]) == 0
+    assert not generic_runner.teardown()
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
 
 def test_action_delete_new_files_no_existing(generic_runner):
@@ -360,6 +360,30 @@ def test_action_delete_new_files_no_existing(generic_runner):
 
     generic_runner._existing_files = None
     assert not generic_runner.teardown()
+
+
+def test_action_delete_nested_directories(build_hashes, build_path, generic_runner):
+    """Test the case where there are several new nested directories added that need to be removed."""
+    os.chdir(str(build_path))
+    generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, build_hashes))
+    dirs = []
+    generic_runner._existing_dirs = dirs
+    generic_runner.execute(Macro('mkdir dir1'))
+    generic_runner.execute(Macro('mkdir dir2'))
+    generic_runner.execute(Macro('mkdir dir1/dir3'))
+    generic_runner.execute(Macro('mkdir dir1/dir4'))
+    generic_runner.execute(Macro('mkdir dir1/dir3/dir5'))
+    generic_runner.execute(Macro('touch dir1/dir3/dir5/file1'))
+    generic_runner.execute(Macro('touch dir1/dir3/dir5/file2'))
+    generic_runner.execute(Macro('touch dir1/dir3/file3'))
+    generic_runner.execute(Macro('touch dir1/dir4/file4'))
+    generic_runner.execute(Macro('touch dir2/file5'))
+    generic_runner.execute(Macro('touch dir2/file6'))
+    generic_runner.execute(Macro('touch dir1/file7'))
+    assert generic_runner.teardown()
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 2
 
 
 def test_action_backup_dir(build_path, generic_runner):
