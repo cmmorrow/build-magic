@@ -343,8 +343,9 @@ def test_docker_execute(docker_runner, mocker):
     """Verify the Docker command runner execute() method works correctly."""
     ref = {
         'cmd': [
-            'echo',
-            'hello',
+            '/bin/sh',
+            '-c',
+            'echo hello',
         ],
         'stdout': True,
         'stderr': True,
@@ -577,16 +578,6 @@ def test_remote_key_file_not_found():
     }
     with pytest.raises(ValueError):
         Remote('user@myhost', parameters=params)
-
-
-# def test_remote_invalid_parameters_filtered_out(mock_key):
-#     """Test the case where invalid parameters are passed to the Remote command runner and filtered out."""
-#     params = {
-#         'dummy': type('Hello', (), {}),
-#         'wrong': type('Other', (), {}),
-#     }
-#     runner = Remote('user@myhost', parameters=params)
-#     assert runner.parameters == {}
 
 
 def test_remote_prepare(build_path, mock_key, mocker, tmp_path, remote_runner):

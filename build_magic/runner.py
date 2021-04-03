@@ -151,17 +151,6 @@ class CommandRunner:
 
         # TODO: Need to validate the types for artifacts and parameters.
 
-    # @staticmethod
-    # def _filter_parameters(parameters, parameter_names):
-    #     """Filter parameters for those with a key in parameter_names.
-    #
-    #     :param dict[str, build_magic.reference.Parameter]   parameters: The parameters to filter.
-    #     :param tuple[str] parameter_names: A list of parameter names to filter by.
-    #     :rtype: dict[str, build_magic.reference.Parameter]
-    #     :return: The remaining parameters with the non-matching parameters filtered out.
-    #     """
-    #     return filter(lambda p: True if type(p[1]).__name__ in parameter_names else False, parameters.items())
-
     @staticmethod
     def cd(directory):
         """Changes the current working directory.
@@ -299,17 +288,6 @@ class Remote(CommandRunner):
         """Instantiates a new Remote command runner object."""
         if working_dir == '.':
             working_dir = ''
-
-        # param_names = (
-        #     'KeyPath',
-        #     'KeyType',
-        #     'KeyPassword',
-        # )
-        # # Filter out parameters where the type isn't in param_names.
-        # if parameters:
-        #     params = dict(self._filter_parameters(parameters, param_names))
-        # else:
-        #     params = None
 
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
 
@@ -463,15 +441,6 @@ class Vagrant(CommandRunner):
             parameters=None,
     ):
         """Instantiates a new Vagrant command runner object."""
-        # param_names = (
-        #     'BindDirectory',
-        #     'HostWorkingDirectory',
-        # )
-        # # Filter out parameters where the type isn't in param_names.
-        # if parameters:
-        #     params = dict(self._filter_parameters(parameters, param_names))
-        # else:
-        #     params = None
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
         self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
@@ -519,15 +488,6 @@ class Docker(CommandRunner):
             parameters=None
     ):
         """Instantiates a new Docker command runner object."""
-        # param_names = (
-        #     'BindDirectory',
-        #     'HostWorkingDirectory',
-        # )
-        # # Filter out parameters where the type isn't in param_names.
-        # if parameters:
-        #     params = dict(self._filter_parameters(parameters, param_names))
-        # else:
-        #     params = None
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
         self.bind_path = self.parameters.get('bind', BindDirectory()).value
@@ -537,6 +497,7 @@ class Docker(CommandRunner):
                 'mode': 'rw',
             }
         }
+        self.client = None
         self.container = None
 
     def prepare(self):
@@ -561,7 +522,7 @@ class Docker(CommandRunner):
         :return: The Status of the executed Macro.
         """
         if macro:
-            command = macro.as_list()
+            command = ['/bin/sh', '-c', macro.as_string()]
         else:
             command = None
 

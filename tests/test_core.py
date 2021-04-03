@@ -262,7 +262,7 @@ def test_engine_constructor():
 def test_config_parser():
     """Verify the config parser works correctly."""
     config = {
-        'stages': [
+        'build-magic': [
             {
                 'stage': {
                     'name': 'stage 1',
@@ -277,7 +277,7 @@ def test_config_parser():
                     ],
                     'commands': [
                         {'build': 'tar -czf myfiles.tar.gz file1.txt file2.txt'},
-                        {'execute': 'rm file1.txt file2.txt'}
+                        {'execute': 'rm file1.txt file2.txt'},
                     ]
                 }
             },
@@ -290,6 +290,7 @@ def test_config_parser():
                         {'install': 'tar -xzf myfiles.tar.gz'},
                         {'execute': 'rm myfiles.tar.gz'},
                         {'deploy': 'cat file1.txt file2.txt'},
+                        {'release': 'git push origin main'},
                     ]
                 }
             }
@@ -328,11 +329,13 @@ def test_config_parser():
                 'tar -xzf myfiles.tar.gz',
                 'rm myfiles.tar.gz',
                 'cat file1.txt file2.txt',
+                'git push origin main',
             ],
             'directives': [
                 'install',
                 'execute',
                 'deploy',
+                'release',
             ],
             'parameters': [],
         }
@@ -344,7 +347,7 @@ def test_config_parser():
 def test_config_parser_with_parameters():
     """Verify the config parser handles parameters correctly."""
     config = {
-        'stages': [
+        'build-magic': [
             {
                 'stage': {
                     'runner': 'remote',
@@ -355,7 +358,7 @@ def test_config_parser_with_parameters():
                         {'keypass': '"1234"'},
                     ],
                     'commands': [
-                        {'execute': 'ls'},
+                        {'test': 'ls'},
                     ]
                 }
             }
@@ -375,7 +378,7 @@ def test_config_parser_with_parameters():
                 'ls',
             ],
             'directives': [
-                'execute',
+                'test',
             ],
             'parameters': [
                 ('keytype', 'ecdsa'),
@@ -391,7 +394,7 @@ def test_config_parser_with_parameters():
 def test_config_parser_with_parameters_validation_fail():
     """Test the case where an invalid parameter value is provided."""
     config = {
-        'stages': [
+        'build-magic': [
             {
                 'stage': {
                     'runner': 'remote',

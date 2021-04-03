@@ -104,7 +104,7 @@ Options:
 
   --plain / --fancy               Enable basic output. Ideal for automation.
   --quiet                         Suppress all output from build-magic.
-  -v, --verbose                   Verbose output -- stdout from executed
+  --verbose                       Verbose output -- stdout from executed
                                   commands will be printed.
 
   --version                       Display the build-magic version.

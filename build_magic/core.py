@@ -64,8 +64,8 @@ def config_parser(config):
 
     # Build the stages.
     stages = []
-    for data in config['stages']:
-        data = data['stage']
+    for data in config.get('build-magic', []):
+        data = data.get('stage', {})
         stage = dict()
         stage['name'] = data.get('name', '')
         stage['runner_type'] = data.get('runner', Runners.LOCAL.value)

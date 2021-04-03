@@ -1,0 +1,19 @@
+build-magic:
+  - stage:
+      name: Setup
+      commands:
+        - execute: echo hello > file1.txt
+        - execute: echo world > file2.txt
+  - stage:
+      name: Archive
+      commands:
+        - build: tar -czf myfiles.tar.gz file1.txt file2.txt
+        - execute: rm file1.txt file2.txt
+  - stage:
+      name: Un-Archive
+      commands:
+        - install: tar -xzf myfiles.tar.gz
+  - stage:
+      name: Result
+      commands:
+        - test: cat file1.txt file2.txt

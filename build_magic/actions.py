@@ -497,9 +497,9 @@ def remote_delete_files(self):
 
 def container_up(self):
     """Starts up a new container based on the image set in self.environment."""
-    client = docker.from_env()
+    self.client = docker.from_env()
     try:
-        self.container = client.containers.run(
+        self.container = self.client.containers.run(
             self.environment,
             detach=True,
             tty=True,
