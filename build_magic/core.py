@@ -2,6 +2,7 @@
 
 
 from pathlib import Path
+from pkg_resources import resource_filename
 import types
 
 import json
@@ -52,7 +53,7 @@ def config_parser(config):
     :return: A list of stage parameters.
     """
     # Read the config schema.
-    schema = Path(__file__).resolve().parent / 'static' / 'config_schema.json'
+    schema = Path(resource_filename('build_magic', 'core.py')).parent / 'static' / 'config_schema.json'
     with open(schema, 'r') as file:
         schema = json.load(file)
 

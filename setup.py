@@ -27,6 +27,11 @@ setup(
             'build-magic=build_magic.cli:build_magic',
         ],
     },
+    package_data={
+        'build_magic': [
+            'static/config_schema.json',
+        ],
+    },
     install_requires=[
         'blessings',
         'click',
@@ -42,9 +47,6 @@ setup(
         'pytest',
         'freezegun',
     ],
-    # extras_require={
-    #     'tests': ['tests'],
-    # },
     classifers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
@@ -58,6 +60,9 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Topic :: Software Development',
         'Topic :: Software Development :: Build Tools',

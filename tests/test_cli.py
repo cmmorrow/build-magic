@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from pkg_resources import resource_filename
 from unittest.mock import MagicMock
 
 from click.testing import CliRunner
@@ -311,7 +312,7 @@ def test_cli_parameters_invalid_parameter_value(cli):
 
 def test_cli_config(cli):
     """Verify the --config option works correctly."""
-    file = Path(__file__).resolve().parent / 'files' / 'config.yaml'
+    file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'config.yaml'
     res = cli.invoke(build_magic, ['--config', str(file)])
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
@@ -323,8 +324,8 @@ def test_cli_config(cli):
 
 def test_cli_config_multi(cli):
     """Verify assigning multiple config files works correctly."""
-    file1 = Path(__file__).resolve().parent / 'files' / 'config.yaml'
-    file2 = Path(__file__).resolve().parent / 'files' / 'multi.yaml'
+    file1 = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'config.yaml'
+    file2 = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'multi.yaml'
     res = cli.invoke(build_magic, ['--config', str(file1), '--config', str(file2)])
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
@@ -348,7 +349,7 @@ def test_cli_config_parameters(cli, mocker):
         )
     )
     mocker.patch('paramiko.SSHClient.close')
-    config = Path(__file__).resolve().parent / 'files' / 'parameters.yaml'
+    config = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'parameters.yaml'
     res = cli.invoke(build_magic, ['--config', str(config)])
     assert res.exit_code == ExitCode.PASSED
     assert "Starting Stage 1" in res.output
