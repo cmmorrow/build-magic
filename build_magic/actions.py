@@ -25,6 +25,17 @@ TEMP_PATH = '.temp_backup'
 DEFAULT_METHOD = 'null'
 
 
+def _execute_command(client, cmd):
+    """Helper function for executing remote commands.
+
+    :param paramiko.SSHClient client: The SSHClient object to use for executing the command.
+    :param str cmd: The shell command to execute.
+    :rtype: tuple
+    :return: A tuple of paramiko.channel.ChannelFile object representing stdin, stdout, and stderr.
+    """
+    return client.exec_command(cmd)
+
+
 def _get_files_and_hashes(client, directory=''):
     """Helper function for getting file names and their corresponding SHA1 hashes from a unix-like file system.
 
@@ -33,11 +44,9 @@ def _get_files_and_hashes(client, directory=''):
     :rtype: paramiko.channel.ChannelFile
     :return: The resulting stdout object from the executed command.
     """
-    if directory:
-        cmd = f'find {directory} -type f | xargs shasum {directory}/*'
-    else:
-        cmd = 'find $PWD -type f | xargs shasum $PWD/*'
-    stdin, stdout, stderr = client.exec_command(cmd)
+    path = directory or '$PWD'
+    cmd = f'find {path} -type f | xargs shasum {path}/*'
+    stdin, stdout, stderr = _execute_command(client, cmd)
     return stdout
 
 
@@ -49,11 +58,9 @@ def _get_files_unix(client, working_directory=''):
     :rtype: paramiko.channel.ChannelFile
     :return: The resulting stdout object from the executed command.
     """
-    if working_directory:
-        cmd = f'find {working_directory} -type f'
-    else:
-        cmd = 'find $PWD -type f'
-    stdin, stdout, stderr = client.exec_command(cmd)
+    path = working_directory or '$PWD'
+    cmd = f'find {path} -type f'
+    stdin, stdout, stderr = _execute_command(client, cmd)
     return stdout
 
 
@@ -65,11 +72,37 @@ def _get_files_windows(client, working_directory=''):
     :rtype: paramiko.channel.ChannelFile
     :return: The resulting stdout object from the executed command.
     """
-    if working_directory:
-        cmd = f'dir {working_directory} /a-D /S /B'
-    else:
-        cmd = 'dir /a-D /S /B'
-    stdin, stdout, stderr = client.exec_command(cmd)
+    path = working_directory + ' ' if working_directory else working_directory
+    cmd = f'dir {path}/a-D /S /B'
+    stdin, stdout, stderr = _execute_command(client, cmd)
+    return stdout
+
+
+def _get_directories_unix(client, working_directory=''):
+    """Helper function for getting a list of directories on a remote unix-like file system.
+
+    :param paramiko.SSHClient client: The SSHClient object to use for executing the command.
+    :param str working_directory: The directory to recursively fetch directory names from.
+    :rtype: paramiko.channel.ChannelFile
+    :return: The resulting stdout object from the executed command.
+    """
+    path = working_directory or '$PWD'
+    cmd = f'find {path} -type d'
+    stdin, stdout, stderr = _execute_command(client, cmd)
+    return stdout
+
+
+def _get_directories_windows(client, working_directory=''):
+    """Helper function for getting a list of directories on a remote Windows file system.
+
+    :param paramiko.SSHClient client: The SSHClient object to use for executing the command.
+    :param str working_directory: The directory to recursively fetch directory names from.
+    :rtype: paramiko.channel.ChannelFile
+    :return: The resulting stdout object from the executed command.
+    """
+    path = working_directory + ' ' if working_directory else working_directory
+    cmd = f'dir {path}/AD /B /ON /S'
+    stdin, stdout, stderr = _execute_command(client, cmd)
     return stdout
 
 
@@ -80,6 +113,15 @@ def _parse_files(file_list):
     :return: A list of tuples where the first value is the file name and the second value is None.
     """
     return [(file.strip(), None) for file in file_list if file]
+
+
+def _parse_directories(dir_list):
+    """Helper function for parsing and cleaning a list of directories for analysis.
+
+    :param list[str] dir_list: A list of directories to parse.
+    :return: The cleaned up list of directories.
+    """
+    return [line for line in dir_list if line is not None]
 
 
 # def _clear_directory(directory):
@@ -392,9 +434,8 @@ def remote_restore_from_backup(self):
 def remote_capture_dir(self):
     """Capture a list of all the files in a directory on a remote system."""
     client = self.connect()
-    cmd = 'uname'
     # Try to get the OS of the remote system.
-    stdin, stdout, stderr = client.exec_command(cmd)
+    stdin, stdout, stderr = _execute_command(client, 'uname')
     if stdout.channel.recv_exit_status() == 0:
         if stdout.readlines()[0] in ('Linux', 'Darwin'):
             # Try to get the filename and SHA1 hashes of the remote working directory.
@@ -413,6 +454,10 @@ def remote_capture_dir(self):
             else:
                 stdout = _get_files_unix(client, self.working_directory)
                 self._existing_files = _parse_files(stdout.readlines())
+
+            # Try to get the sub-directories of the remote working directory.
+            stdout = _get_directories_unix(client, self.working_directory)
+            self._existing_dirs = _parse_directories(stdout.readlines())
         elif stdout.readlines()[0].startswith('Windows'):
             stdout = _get_files_windows(client, self.working_directory)
 
@@ -420,13 +465,14 @@ def remote_capture_dir(self):
                 self._existing_files = _parse_files(stdout.readlines())
             else:
                 return False
+            stdout = _get_directories_windows(client, self.working_directory)
+            self._existing_dirs = _parse_directories(stdout.readlines())
         else:
             # OS type isn't supported yet.
             return False
     else:
         # Check if we're connecting to Windows.
-        cmd = '%OS%'
-        stdin, stdout, stderr = client.exec_command(cmd)
+        stdin, stdout, stderr = _execute_command(client, '%OS%')
         if stdout.readlines()[0] == 'Windows_NT':
             stdout = _get_files_windows(client, self.working_directory)
 
@@ -434,6 +480,8 @@ def remote_capture_dir(self):
                 self._existing_files = _parse_files(stdout.readlines())
             else:
                 return False
+            stdout = _get_directories_windows(client, self.working_directory)
+            self._existing_dirs = _parse_directories(stdout.readlines())
         else:
             return False
     return True
@@ -441,13 +489,13 @@ def remote_capture_dir(self):
 
 def remote_delete_files(self):
     """Deletes all files not previously captured on a remote system."""
+    result = False
     if hasattr(self, '_existing_files') and isinstance(self._existing_files, list):
         if len(self._existing_files) > 0:
             current_files = []
             client = self.connect()
-            cmd = 'uname'
             # Try to get the OS of the remote system.
-            stdin, stdout, stderr = client.exec_command(cmd)
+            stdin, stdout, stderr = _execute_command(client, 'uname')
             if stdout.channel.recv_exit_status() == 0:
                 if stdout.readlines()[0] in ('Linux', 'Darwin'):
                     # Try to get the filename and SHA1 hashes of the remote working directory.
@@ -479,8 +527,7 @@ def remote_delete_files(self):
                     return False
             else:
                 # Check if we're connecting to Windows.
-                cmd = '%OS%'
-                stdin, stdout, stderr = client.exec_command(cmd)
+                stdin, stdout, stderr = _execute_command(client, '%OS%')
                 if stdout.readlines()[0] == 'Windows_NT':
                     stdout = _get_files_windows(client, self.working_directory)
                     if stdout.channel.recv_exit_status() == 0:
@@ -507,10 +554,11 @@ def remote_delete_files(self):
                     to_delete.append(f'"{file}"')
                     continue
             if to_delete:
-                client.exec_command(f'rm {" ".join(to_delete)}')
-        return True
-    else:
-        return False
+                _execute_command(client, f'rm {" ".join(to_delete)}')
+        result = True
+    # if hasattr(self, '_existing_dirs'):
+
+    return result
 
 
 def container_up(self):

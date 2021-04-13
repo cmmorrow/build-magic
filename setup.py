@@ -33,7 +33,6 @@ setup(
         ],
     },
     install_requires=[
-        'blessings==1.7',
         'click==7.1.2',
         'colorama==0.4.4',
         'jsonschema==3.2.0',

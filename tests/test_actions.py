@@ -506,18 +506,27 @@ def test_action_remote_capture_dir(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('find $PWD -type f | xargs shasum $PWD/*',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find $PWD -type d',)
     assert generic_runner._existing_files == [
         ('/build-magic/file1.txt', '7c211433f02071597741e6ff5a8ea34789abbf43'),
         ('/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_with_working_directory(generic_runner, mocker):
@@ -544,6 +553,14 @@ def test_action_remote_capture_dir_with_working_directory(generic_runner, mocker
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
@@ -551,12 +568,13 @@ def test_action_remote_capture_dir_with_working_directory(generic_runner, mocker
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     generic_runner.working_directory = '/my/working/directory'
     assert generic_runner.provision()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('find /my/working/directory -type f | xargs shasum /my/working/directory/*',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find /my/working/directory -type d',)
     assert generic_runner._existing_files == [
         ('/my/working/directory/file1.txt', '7c211433f02071597741e6ff5a8ea34789abbf43'),
         ('/my/working/directory/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_no_shasum(generic_runner, mocker):
@@ -593,18 +611,27 @@ def test_action_remote_capture_dir_no_shasum(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('find $PWD -type f',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('find $PWD -type d',)
     assert generic_runner._existing_files == [
         ('/build-magic/file1.txt', None),
         ('/build-magic/file2.txt', None),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_windows_uname(generic_runner, mocker):
@@ -631,18 +658,27 @@ def test_action_remote_capture_dir_windows_uname(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('dir /a-D /S /B',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('dir /AD /B /ON /S',)
     assert generic_runner._existing_files == [
         ('C:\\Users\\user\\build-magic\\file1.txt', None),
         ('C:\\Users\\user\\build-magic\\file2.txt', None),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_windows_uname_working_directory(generic_runner, mocker):
@@ -669,6 +705,14 @@ def test_action_remote_capture_dir_windows_uname_working_directory(generic_runne
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
@@ -676,12 +720,13 @@ def test_action_remote_capture_dir_windows_uname_working_directory(generic_runne
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     generic_runner.working_directory = 'C:\\Users\\user\\my\\project'
     assert generic_runner.provision()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('dir C:\\Users\\user\\my\\project /a-D /S /B',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('dir C:\\Users\\user\\my\\project /AD /B /ON /S',)
     assert generic_runner._existing_files == [
         ('C:\\Users\\user\\my\\project\\file1.txt', None),
         ('C:\\Users\\user\\my\\project\\file2.txt', None),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_windows_uname_fail(generic_runner, mocker):
@@ -714,6 +759,7 @@ def test_action_remote_capture_dir_windows_uname_fail(generic_runner, mocker):
     assert exek.call_count == 2
     assert exek.call_args[0] == ('dir /a-D /S /B',)
     assert not hasattr(generic_runner, '_existing_files')
+    assert not hasattr(generic_runner, '_existing_dirs')
 
 
 def test_action_remote_capture_dir_windows_os(generic_runner, mocker):
@@ -748,18 +794,27 @@ def test_action_remote_capture_dir_windows_os(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('dir /a-D /S /B',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('dir /AD /B /ON /S',)
     assert generic_runner._existing_files == [
         ('C:\\Users\\user\\build-magic\\file1.txt', None),
         ('C:\\Users\\user\\build-magic\\file2.txt', None),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_windows_os_working_directory(generic_runner, mocker):
@@ -794,6 +849,14 @@ def test_action_remote_capture_dir_windows_os_working_directory(generic_runner, 
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
@@ -801,12 +864,13 @@ def test_action_remote_capture_dir_windows_os_working_directory(generic_runner, 
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     generic_runner.working_directory = 'C:\\Users\\user\\my\\project'
     assert generic_runner.provision()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('dir C:\\Users\\user\\my\\project /a-D /S /B',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('dir C:\\Users\\user\\my\\project /AD /B /ON /S',)
     assert generic_runner._existing_files == [
         ('C:\\Users\\user\\my\\project\\file1.txt', None),
         ('C:\\Users\\user\\my\\project\\file2.txt', None),
     ]
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_windows_os_fail(generic_runner, mocker):
@@ -847,6 +911,7 @@ def test_action_remote_capture_dir_windows_os_fail(generic_runner, mocker):
     assert exek.call_count == 3
     assert exek.call_args[0] == ('dir /a-D /S /B',)
     assert not hasattr(generic_runner, '_existing_files')
+    assert not hasattr(generic_runner, '_existing_dirs')
 
 
 def test_action_remote_capture_dir_empty(generic_runner, mocker):
@@ -870,15 +935,24 @@ def test_action_remote_capture_dir_empty(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('find $PWD -type f | xargs shasum $PWD/*',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find $PWD -type d',)
     assert generic_runner._existing_files == []
+    assert generic_runner._existing_dirs == ['']
 
 
 def test_action_remote_capture_dir_empty_windows(generic_runner, mocker):
@@ -902,15 +976,76 @@ def test_action_remote_capture_dir_empty_windows(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
     assert generic_runner.provision()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('dir /a-D /S /B',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('dir /AD /B /ON /S',)
     assert generic_runner._existing_files == []
+    assert generic_runner._existing_dirs == ['']
+
+
+def test_action_remote_capture_dir_nested_directories(generic_runner, mocker):
+    """Verify the remote_capture_dir() function works correctly with new nested directories."""
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Linux'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '7c211433f02071597741e6ff5a8ea34789abbf43  /build-magic/file1.txt',
+                        'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  /build-magic/file2.txt',
+                        '03de6c570bfe24bfc328ccd7ca46b76eadaf4334  /build-magic/test/file3.txt',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '/build-magic/test',
+
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
+    generic_runner.provision = types.MethodType(actions.remote_capture_dir, generic_runner)
+    assert generic_runner.provision()
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find $PWD -type d',)
+    assert generic_runner._existing_files == [
+        ('/build-magic/file1.txt', '7c211433f02071597741e6ff5a8ea34789abbf43'),
+        ('/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
+        ('/build-magic/test/file3.txt', '03de6c570bfe24bfc328ccd7ca46b76eadaf4334'),
+    ]
+    assert generic_runner._existing_dirs == ['/build-magic/test']
 
 
 def test_action_remote_delete_files(generic_runner, mocker):
