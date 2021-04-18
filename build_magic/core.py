@@ -76,15 +76,8 @@ def config_parser(config):
         stage['copy'] = data.get('copy from directory', '')
         stage['artifacts'] = data.get('artifacts', [])
 
-        # Set the actions.
-        cleanup = data.get(Actions.CLEANUP.value, False)
-        persist = data.get(Actions.PERSIST.value, False)
-        if cleanup:
-            stage['action'] = Actions.CLEANUP.value
-        elif persist:
-            stage['action'] = Actions.PERSIST.value
-        else:
-            stage['action'] = Actions.DEFAULT.value
+        # Set the action.
+        stage['action'] = data.get('action', Actions.DEFAULT.value)
 
         # Set the command and directives.
         macros = data.get('commands', [])

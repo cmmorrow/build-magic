@@ -9,7 +9,7 @@ build-magic:
 #        - build:
   - stage:
       name: Deploy to PyPI
-      cleanup: true
+      action: cleanup
       commands:
         - build: python setup.py sdist bdist_wheel --universal
         - release: twine upload dist/*

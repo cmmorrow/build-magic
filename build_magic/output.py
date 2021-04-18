@@ -198,7 +198,6 @@ class Tty(Output):
         """Instantiates a new Tty class."""
         super().__init__()
         init()
-        # self._term = Terminal()
 
     @staticmethod
     def get_width():
@@ -208,10 +207,6 @@ class Tty(Output):
             return term.columns
         except OSError:
             return 80
-        # if self._term.does_styling:
-        #     return self._term.width
-        # else:
-        #     return 80
 
     @staticmethod
     def get_height():
@@ -221,15 +216,9 @@ class Tty(Output):
             return term.lines
         except OSError:
             return 20
-        # if self._term.does_styling:
-        #     return self._term.height
-        # else:
-        #     return 20
 
     def start_job(self):
         """Indicates the beginning of a sequence of stages."""
-        # message = self._term.cyan + self._term.bold + 'build-magic {}\n'.format(version) + self._term.normal
-        # message += self._term.cyan + 'Start time {}\n'.format(datetime.now().strftime('%c')) + self._term.normal
         message = Fore.CYAN + Style.BRIGHT + 'build-magic {}\n'.format(version) + Style.RESET_ALL
         message += Fore.CYAN + 'Start time {}\n'.format(datetime.now().strftime('%c')) + Style.RESET_ALL
         self._display(message)
@@ -255,10 +244,8 @@ class Tty(Output):
         :return: None
         """
         if name:
-            # message = self._term.underline + f'Starting Stage {stage_number}: {name}' + self._term.normal
             message = f'Starting Stage {stage_number}: {name}'
         else:
-            # message = self._term.underline + f'Starting Stage {stage_number}' + self._term.normal
             message = f'Starting Stage {stage_number}'
         self._display(message)
 
@@ -270,25 +257,20 @@ class Tty(Output):
         :param str|None name: The stage name if given.
         :return: None
         """
-        # color = self._term.bold_green
         color = Fore.GREEN + Style.BRIGHT
         result = 'COMPLETE'
         if status_code > 0:
-            # color = self._term.bold_red
             color = Fore.RED + Style.BRIGHT
             result = 'FAILED'
         if name:
             message = f'Stage {stage_name}: {name} - finished with result {color}{result}{Style.RESET_ALL}\n'
-            # message = f'Stage {stage_name}: {name} - finished with result {color}{result}{self._term.normal}\n'
         else:
             message = f'Stage {stage_name} finished with result {color}{result}{Style.RESET_ALL}\n'
-            # message = f'Stage {stage_name} finished with result {color}{result}{self._term.normal}\n'
         self._display(message)
 
     def no_job(self):
         """Indicates there are no commands to execute."""
         self._display(Fore.YELLOW + 'No commands to run. Use --help for usage. Exiting...')
-        # self._display(self._term.yellow + 'No commands to run. Use --help for usage. Exiting...')
 
     def macro_start(self, directive, command=''):
         """Indicates the start of a command.
@@ -299,7 +281,6 @@ class Tty(Output):
         """
         width = self.get_width()
         status = Fore.YELLOW + Style.BRIGHT + 'RUNNING' + Style.RESET_ALL
-        # status = self._term.bold_yellow + 'RUNNING' + self._term.normal
         spacing = width - 22 - len(command)
         if len(command) + 11 > width - 11:
             command = command[:width - 23] + '....'
@@ -322,13 +303,9 @@ class Tty(Output):
         height = self.get_height() - 1
         if status_code > 0:
             result = Fore.RED + Style.BRIGHT + '{:<8}'.format('FAILED') + Style.RESET_ALL
-            # result = self._term.bold_red + '{:<8}'.format('FAILED') + self._term.normal
         else:
             result = Fore.GREEN + Style.BRIGHT + '{:<8}'.format('COMPLETE') + Style.RESET_ALL
-            # result = self._term.bold_green + '{:<8}'.format('COMPLETE') + self._term.normal
         self._display(Cursor.POS(position, height) + result)
-        # with self._term.location(position, height):
-        #     self._display(result)
 
     def error(self, err):
         """Communicates an error message.
@@ -340,12 +317,8 @@ class Tty(Output):
         position = width - 10
         height = self.get_height() - 1
         result = Fore.RED + Style.BRIGHT + '{:<8}'.format('ERROR') + Style.RESET_ALL
-        # result = self._term.bold_red + '{:<8}'.format('ERROR') + self._term.normal
-        # with self._term.location(position, height):
-        #     self._display(result)
         self._display(Cursor.POS(position, height) + result)
         self._display(Fore.RED + str(err) + Style.RESET_ALL, err=True)
-        # self._display(self._term.red + str(err) + self._term.normal, err=True)
 
     def info(self, msg):
         """Communicates a general information message.

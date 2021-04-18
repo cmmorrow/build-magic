@@ -266,7 +266,7 @@ def test_config_parser():
             {
                 'stage': {
                     'name': 'stage 1',
-                    'persist': True,
+                    'action': 'persist',
                     'continue on fail': True,
                     'runner': 'docker',
                     'environment': 'alpine:latest',
@@ -284,7 +284,7 @@ def test_config_parser():
             {
                 'stage': {
                     'name': 'stage 2',
-                    'cleanup': True,
+                    'action': 'cleanup',
                     'working directory': '/src',
                     'commands': [
                         {'install': 'tar -xzf myfiles.tar.gz'},

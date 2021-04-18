@@ -7,6 +7,7 @@ import shutil
 import socket
 import subprocess
 
+from docker.types import Mount
 from docker.errors import ContainerError
 import paramiko
 from scp import SCPClient
@@ -489,14 +490,15 @@ class Docker(CommandRunner):
     ):
         """Instantiates a new Docker command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
+        if self.working_directory == '.':
+            self.working_directory = '/build_magic'
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
         self.bind_path = self.parameters.get('bind', BindDirectory()).value
-        self.binding = {
-            str(Path(self.host_wd).resolve()): {
-                'bind': self.bind_path,
-                'mode': 'rw',
-            }
-        }
+        self.binding = Mount(
+            target=self.bind_path,
+            source=str(Path(self.host_wd).resolve()),
+            type='bind',
+        )
         self.client = None
         self.container = None
 

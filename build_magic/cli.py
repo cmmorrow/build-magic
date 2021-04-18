@@ -14,6 +14,10 @@ from build_magic import reference
 RUNNERS = click.Choice(reference.Runners.available(), case_sensitive=False)
 
 
+# Get a list of available actions.
+ACTIONS = click.Choice(reference.Actions.available(), case_sensitive=False)
+
+
 # Defines the type for the working directory parameter.
 WORKINGDIR = click.Path(exists=False, file_okay=False, dir_okay=True, resolve_path=False, allow_dash=False)
 
@@ -57,15 +61,13 @@ Use --help for detailed usage of each option.
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
-@click.option('--persist', help="Skips environment teardown when finished.", is_flag=True)
-@click.option('--cleanup', help='Run commands and delete any created files if True.', is_flag=True)
+@click.option('--action', help='Setup and teardown action to perform.', type=ACTIONS)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
 @click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
 @click.option('--verbose', help='Verbose output -- stdout from executed commands will be printed.', is_flag=True)
 @click.option('--version', help='Display the build-magic version.', is_flag=True)
 @click.argument('args', nargs=-1)
 def build_magic(
-        cleanup,
         command,
         config,
         copy,
@@ -73,7 +75,7 @@ def build_magic(
         environment,
         args,
         parameter,
-        persist,
+        action,
         runner,
         name,
         wd,
@@ -161,10 +163,8 @@ def build_magic(
 
     # Override values in the config file with options set at the command line.
     for stage in stages_:
-        if cleanup:
-            stage.update(dict(action=reference.Actions.CLEANUP.value))
-        elif persist:
-            stage.update(dict(action=reference.Actions.PERSIST.value))
+        if action:
+            stage.update(dict(action=action))
         if environment:
             stage.update(dict(environment=environment))
         if copy:

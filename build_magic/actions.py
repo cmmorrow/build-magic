@@ -570,8 +570,8 @@ def container_up(self):
             detach=True,
             tty=True,
             entrypoint='sh',
-            working_dir=str(pathlib.Path(self.working_directory).resolve()),
-            volumes=self.binding,
+            working_dir=self.working_directory,
+            mounts=[self.binding],
             name='build-magic',
         )
     except (APIError, AttributeError, ImageLoadError):

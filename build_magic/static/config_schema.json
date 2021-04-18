@@ -169,19 +169,22 @@
                                           "user@hostname"
                                         ]
                                     },
-                                    "cleanup": {
-                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/cleanup",
-                                        "type": "boolean",
-                                        "title": "The cleanup schema",
+                                    "action": {
+                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/action",
+                                        "type": "string",
+                                        "title": "The action schema",
                                         "description": "",
-                                        "default": false
-                                    },
-                                    "persist": {
-                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/persist",
-                                        "type": "boolean",
-                                        "title": "The persist schema",
-                                        "description": "",
-                                        "default": false
+                                        "additionalItems": false,
+                                        "default": "default",
+                                        "enum": [
+                                            "default",
+                                            "cleanup",
+                                            "persist"
+                                        ],
+                                        "examples": [
+                                            "cleanup",
+                                            "persist"
+                                        ]
                                     },
                                     "continue on fail": {
                                         "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/continue%20on%20fail",
