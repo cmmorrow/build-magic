@@ -274,7 +274,13 @@ def test_docker_constructor():
     assert not runner.artifacts
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
-    assert runner.binding == {str(Path.cwd().resolve()): {'bind': '/build_magic', 'mode': 'rw'}}
+    print(runner.binding)
+    assert runner.binding == {
+        'ReadOnly': False,
+        'Source': str(Path.cwd().resolve()),
+        'Target': '/build_magic',
+        'Type': 'bind',
+    }
     assert not runner.container
     assert runner.name == 'docker'
     assert runner.host_wd == '.'
@@ -298,7 +304,7 @@ def test_docker_constructor():
     assert runner.artifacts == ['hello.txt']
     assert runner.host_wd == '/my_repo'
     assert runner.bind_path == '/opt'
-    assert runner.binding == {'/my_repo': {'bind': '/opt', 'mode': 'rw'}}
+    assert runner.binding == {'ReadOnly': False, 'Source': '/my_repo', 'Target': '/opt', 'Type': 'bind'}
 
 
 def test_docker_prepare(docker_runner, build_path, mocker, tmp_path):

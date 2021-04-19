@@ -19,9 +19,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Temporary credential check
-      run: |
-        env
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:

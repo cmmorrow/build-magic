@@ -206,12 +206,14 @@ def test_action_container_up(generic_runner, mocker):
         'tty': True,
         'entrypoint': 'sh',
         'working_dir': '/build_magic',
-        'volumes': {
-            'dir': {
-                'bind': '/build_magic',
-                'mode': 'rw',
-            }
-        },
+        'mounts': [
+            {
+                'dir': {
+                    'bind': '/build_magic',
+                    'mode': 'rw',
+                },
+            },
+        ],
         'name': 'build-magic',
     }
     generic_runner.binding = {
