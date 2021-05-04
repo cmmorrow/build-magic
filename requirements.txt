@@ -34,7 +34,7 @@ packaging==20.4
 paramiko==2.7.2
 pkginfo==1.7.0
 pluggy==0.13.1
-py==1.9.0
+py>=1.10.0
 pycparser==2.20
 Pygments==2.8.1
 pyinstaller==4.2
