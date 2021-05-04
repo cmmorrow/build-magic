@@ -1,0 +1,31 @@
+site_name: build-magic
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - User Guide:
+    - Basic Concepts: user_guide/basic_concepts.md
+    - Using the CLI: user_guide/cli_usage.md
+    - Defining Config Files: user_guide/config_usage.md
+    - Using Command Runners:
+      - Using the Local Runner: user_guide/runners/local_usage.md
+      - Using the Docker Runner: user_guide/runners/docker_usage.md
+      - Using the Vagrant Runner: user_guide/runners/vagrant_usage.md
+      - Using the Remote Runner: user_guide/runners/remote_usage.md
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid-experimental
+          format: !!python/name:pymdownx.superfences.fence_code_format
+theme:
+  # name: readthedocs
+  name: material
+  palette:
+    primary: teal
+  # highlightjs: true
+  # hljs_languages:
+  #   - yaml
+  #   - bash

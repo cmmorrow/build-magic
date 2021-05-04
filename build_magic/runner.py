@@ -510,8 +510,8 @@ class Docker(CommandRunner):
                 if not self.container:
                     self.provision()
                 try:
-                    self.container.exec_run(cmd=f'mkdir {self.working_directory}', tty=True)
-                    self.container.exec_run(cmd=f'cp -R {self.bind_path}/* {self.working_directory}', tty=True)
+                    self.container.exec_run(cmd=f'mkdir {self.working_directory}')
+                    self.container.exec_run(cmd=f'/bin/sh -c "cp -R {self.bind_path}/* {self.working_directory}"')
                 except ContainerError:
                     return False
                 return True

@@ -166,15 +166,14 @@ class StageFactory:
     """Validates and generates Stage objects."""
 
     @classmethod
-    def _build_macros(cls, commands, artifacts):
+    def _build_macros(cls, commands):
         """Build Macro objects from provided commands.
 
         :param list[str] commands: The commands to use for building the Macro objects.
-        :param list[str] artifacts: The artifacts to use for building the Macro objects.
         :rtype: list[Macro]
         :return: A list of Macro objects.
         """
-        factory = MacroFactory(commands, suffixes=artifacts)
+        factory = MacroFactory(commands)
         return factory.generate()
 
     @classmethod
@@ -280,7 +279,7 @@ class StageFactory:
             artifacts = []
 
         # Build the macros.
-        macros = cls._build_macros(commands=commands, artifacts=artifacts)
+        macros = cls._build_macros(commands=commands)
         if not macros:
             raise ValueError('There are no commands to execute.')
 
@@ -375,8 +374,6 @@ class Stage:
         # Dynamically bind the action's teardown function to the command runner object.
         self._command_runner.teardown = self._get_action_function(actions.TEARDOWN_METHOD)
 
-        # Call the command runner's prepare function first.
-        self._command_runner.prepare()
         self._is_setup = True
 
     def run(self, continue_on_fail=False, verbose=False):
@@ -398,6 +395,9 @@ class Stage:
         if not result:
             # TODO: Execute teardown in the case of Vagrant.
             raise SetupError
+
+        # Call the command runner's prepare function.
+        self._command_runner.prepare()
 
         for mac in self._macros:
             directive = self._directives[mac.sequence]
