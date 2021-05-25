@@ -48,6 +48,8 @@ Examples:
     build-magic -r docker -e Ubuntu:latest -c build "make all"
 
 Use --help for detailed usage of each option.
+
+Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
 """
 
 
@@ -65,7 +67,7 @@ Use --help for detailed usage of each option.
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
 @click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
 @click.option('--verbose', help='Verbose output -- stdout from executed commands will be printed.', is_flag=True)
-@click.option('--version', help='Display the build-magic version.', is_flag=True)
+@click.version_option(message=ver)
 @click.argument('args', nargs=-1)
 def build_magic(
         command,
@@ -82,17 +84,14 @@ def build_magic(
         plain,
         quiet,
         verbose,
-        version,
 ):
     """An un-opinionated build automation tool.
 
     ARGS - Files as arguments to copy from the copy path to the working directory.
     Alternatively, ARGS can be a single command to execute if the --command option isn't used.
-    """
-    if version:
-        click.echo(ver)
-        sys.exit(0)
 
+    Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
+    """
     # Get the output type.
     if plain:
         out = reference.OutputTypes.BASIC

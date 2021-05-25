@@ -184,9 +184,9 @@ class CommandRunner:
             for artifact in self.artifacts:
                 if src == '.':
                     src = Path.cwd().resolve()
-                src = Path(src) / artifact
+                source = Path(src) / artifact
                 try:
-                    shutil.copy(src, dst)
+                    shutil.copy(source, dst)
                 except (OSError, Exception):
                     return False
             return True
@@ -265,7 +265,7 @@ class Local(CommandRunner):
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            timeout=self.timeout,
+            # timeout=self.timeout,
             shell=True,
         )
         return Status(result.stdout, result.stderr, result.returncode)
@@ -443,21 +443,31 @@ class Vagrant(CommandRunner):
     ):
         """Instantiates a new Vagrant command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
-        self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
-        self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
         self._vm = None
+        if self.environment == 'Vagrantfile':
+            self.environment = '.'
+        if self.environment != '.':
+            if 'Vagrantfile' in self.environment:
+                self.environment = self.environment.split('Vagrantfile')[0]
+            os.environ.pop('VAGRANT_CWD', '')
+            os.environ['VAGRANT_CWD'] = str(Path(self.environment).resolve())
+        self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory(self.environment)).value
+        self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
 
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
-        if self.copy_from_directory:
-            if self._vm and self.working_directory != self.bind_path and len(self.artifacts) > 0:
-                self.copy(self.copy_from_directory, Path(self.host_wd).resolve())
-                try:
-                    self._vm.ssh(command=f'sudo mkdir {self.working_directory}')
-                    self._vm.ssh(command=f'cp -R {self.bind_path}/* {self.working_directory}')
-                except subprocess.CalledProcessError:
-                    return False
-                return True
+        if self._vm and self.working_directory != self.bind_path:
+            try:
+                self._vm.ssh(command=f'sudo mkdir {self.working_directory}')
+            except subprocess.CalledProcessError:
+                return False
+        if self.copy_from_directory and len(self.artifacts) > 0:
+            self.copy(Path(self.copy_from_directory).resolve(), Path(self.host_wd).resolve())
+            try:
+                self._vm.ssh(command=f'sudo cp -R {self.bind_path}/* {self.working_directory}')
+            except subprocess.CalledProcessError:
+                return False
+            return True
         return False
 
     def execute(self, macro):

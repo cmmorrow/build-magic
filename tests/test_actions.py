@@ -97,13 +97,13 @@ def test_cleanup_action():
         'provision': {
             'local': 'capture_dir',
             'remote': 'remote_capture_dir',
-            'docker': 'capture_dir',
+            'docker': 'docker_capture_dir',
             'vagrant': 'vm_up',
         },
         'teardown': {
             'local': 'delete_new_files',
             'remote': 'remote_delete_files',
-            'docker': 'delete_new_files',
+            'docker': 'docker_delete_new_files',
             'vagrant': 'vm_destroy',
         }
     }
@@ -147,13 +147,6 @@ def test_action_vm_up(generic_runner, mocker):
     generic_runner.provision = types.MethodType(actions.vm_up, generic_runner)
     assert generic_runner.provision()
     assert up.call_count == 1
-    assert os.environ.get('VAGRANT_CWD')
-    assert os.environ['VAGRANT_CWD'] == 'dummy'  # Environment set in generic_runner constructor.
-
-    generic_runner.environment = 'Vagrantfile'
-    assert generic_runner.environment == 'Vagrantfile'
-    assert generic_runner.provision()
-    assert generic_runner.environment == '.'
 
 
 def test_action_vm_up_error(capsys, generic_runner, mocker):
@@ -264,24 +257,43 @@ def test_action_container_destroy_error(generic_runner):
     assert not generic_runner.teardown()
 
 
-def test_action_capture_dir(build_hashes, build_path, generic_runner):
+def test_action_capture_dir(build_hashes, build_path, generic_runner, mocker):
     """Verify the capture_dir() function works correctly."""
     os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_up', return_value=True)
+    # Local capture
     generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().iterdir()]
     ref = []
     for file in files:
         ref.append((file, hashlib.sha1(Path(file).read_bytes()).hexdigest()))
     assert generic_runner.provision()
-    print(sorted(ref))
-    print(sorted(generic_runner._existing_files))
+    assert sorted(generic_runner._existing_files) == sorted(ref)
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.provision = types.MethodType(actions.docker_capture_dir, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    ref = []
+    for file in files:
+        ref.append((file, hashlib.sha1(Path(file).read_bytes()).hexdigest()))
+    assert generic_runner.provision()
     assert sorted(generic_runner._existing_files) == sorted(ref)
 
 
-def test_action_capture_dir_empty(empty_path, generic_runner):
+def test_action_capture_dir_empty(empty_path, generic_runner, mocker):
     """Verify the capture_dir() function works with an empty directory."""
     os.chdir(str(empty_path))
+    mocker.patch('build_magic.actions.container_up', return_value=True)
+    # Local capture
     generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
+    assert generic_runner.provision()
+    assert hasattr(generic_runner, '_existing_files')
+    assert len(generic_runner._existing_files) == 0
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.provision = types.MethodType(actions.docker_capture_dir, generic_runner)
     assert generic_runner.provision()
     assert hasattr(generic_runner, '_existing_files')
     assert len(generic_runner._existing_files) == 0
@@ -290,14 +302,23 @@ def test_action_capture_dir_empty(empty_path, generic_runner):
 def test_action_capture_dir_error(build_path, generic_runner, mocker):
     """Test the case where capture_dir() raises an error."""
     os.chdir(str(build_path))
-    mocker.patch('pathlib.Path.cwd', side_effect=IsADirectoryError)
+    mocker.patch('build_magic.actions.container_up', return_value=True)
+    # Local capture
+    mocker.patch('pathlib.Path.resolve', side_effect=IsADirectoryError)
     generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
     assert not generic_runner.provision()
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.provision = types.MethodType(actions.docker_capture_dir, generic_runner)
+    assert not generic_runner.provision()
 
-def test_action_delete_new_files(build_hashes, build_path, generic_runner):
+
+def test_action_delete_new_files(build_hashes, build_path, generic_runner, mocker):
     """Verify the delete_new_files() function works correctly."""
     os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
@@ -305,10 +326,21 @@ def test_action_delete_new_files(build_hashes, build_path, generic_runner):
     assert generic_runner.teardown()
     assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, build_hashes))
+    generic_runner.execute(Macro('tar -czf myfiles.tar.gz file1.txt file2.txt'))
+    assert generic_runner.teardown()
+    assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
-def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner):
+
+def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner, mocker):
     """Verify the delete_new_files() function works correctly with copies of existing files."""
     os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     existing = []
@@ -319,10 +351,24 @@ def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner):
     assert generic_runner.teardown()
     assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    existing = []
+    for file in files:
+        existing.append((file, hashlib.sha1(Path(file).read_bytes()).hexdigest()))
+    generic_runner._existing_files = existing
+    generic_runner.execute(Macro('cp file2.txt temp.txt'))
+    assert generic_runner.teardown()
+    assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
-def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path, generic_runner):
+
+def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path, generic_runner, mocker):
     """Verify that a renamed file isn't deleted by delete_new_files()."""
     os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
@@ -331,10 +377,22 @@ def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path,
     assert generic_runner.teardown()
     assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(ref_files)
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, build_hashes))
+    generic_runner.execute(Macro('mv file2.txt temp.txt'))
+    ref_files = [str(file) for file in Path.cwd().resolve().iterdir()]
+    assert generic_runner.teardown()
+    assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(ref_files)
 
-def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path, generic_runner):
+
+def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path, generic_runner, mocker):
     """Verify that a modified file isn't deleted by delete_new_files()."""
     os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
@@ -343,10 +401,22 @@ def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path
     assert generic_runner.teardown()
     assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(ref_files)
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, build_hashes))
+    generic_runner.execute(Macro('mv file1.txt file2.txt'))
+    ref_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    assert generic_runner.teardown()
+    assert sorted([str(file) for file in Path.cwd().resolve().iterdir()]) == sorted(ref_files)
 
-def test_action_delete_new_files_empty_directory(empty_path, generic_runner):
+
+def test_action_delete_new_files_empty_directory(empty_path, generic_runner, mocker):
     """Verify the delete_new_files() function works correctly with an empty directory."""
     os.chdir(str(empty_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
@@ -354,20 +424,63 @@ def test_action_delete_new_files_empty_directory(empty_path, generic_runner):
     assert not generic_runner.teardown()
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    assert len(generic_runner._existing_files) == 0
+    generic_runner.execute(Macro('echo hello'))
+    assert not generic_runner.teardown()
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
-def test_action_delete_new_files_no_existing(generic_runner):
+
+def test_action_delete_new_files_no_existing(generic_runner, mocker):
     """Test the case where the _existing_files attribute isn't set."""
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     assert not generic_runner.teardown()
 
     generic_runner._existing_files = None
     assert not generic_runner.teardown()
 
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    assert not generic_runner.teardown()
 
-def test_action_delete_nested_directories(build_hashes, build_path, generic_runner):
+    generic_runner._existing_files = None
+    assert not generic_runner.teardown()
+
+
+def test_action_delete_nested_directories(build_hashes, build_path, generic_runner, mocker):
     """Test the case where there are several new nested directories added that need to be removed."""
     os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, build_hashes))
+    dirs = []
+    generic_runner._existing_dirs = dirs
+    generic_runner.execute(Macro('mkdir dir1'))
+    generic_runner.execute(Macro('mkdir dir2'))
+    generic_runner.execute(Macro('mkdir dir1/dir3'))
+    generic_runner.execute(Macro('mkdir dir1/dir4'))
+    generic_runner.execute(Macro('mkdir dir1/dir3/dir5'))
+    generic_runner.execute(Macro('touch dir1/dir3/dir5/file1'))
+    generic_runner.execute(Macro('touch dir1/dir3/dir5/file2'))
+    generic_runner.execute(Macro('touch dir1/dir3/file3'))
+    generic_runner.execute(Macro('touch dir1/dir4/file4'))
+    generic_runner.execute(Macro('touch dir2/file5'))
+    generic_runner.execute(Macro('touch dir2/file6'))
+    generic_runner.execute(Macro('touch dir1/file7'))
+    assert generic_runner.teardown()
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 2
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     generic_runner._existing_files = list(zip(files, build_hashes))
     dirs = []
@@ -1078,6 +1191,12 @@ def test_action_remote_delete_files(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1094,8 +1213,8 @@ def test_action_remote_delete_files(generic_runner, mocker):
         ('/home/user/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('rm "/home/user/build-magic/myfiles.tar.gz" "/home/user/build-magic/other_file.txt"',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm /home/user/build-magic/myfiles.tar.gz /home/user/build-magic/other_file.txt',)
 
 
 def test_action_remote_delete_files_no_shasum(generic_runner, mocker):
@@ -1135,6 +1254,12 @@ def test_action_remote_delete_files_no_shasum(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1151,8 +1276,8 @@ def test_action_remote_delete_files_no_shasum(generic_runner, mocker):
         ('/home/user/build-magic/file2.txt', None),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 4
-    assert exek.call_args[0] == ('rm "/home/user/build-magic/myfiles.tar.gz" "/home/user/build-magic/other_file.txt"',)
+    assert exek.call_count == 5
+    assert exek.call_args[0] == ('rm /home/user/build-magic/myfiles.tar.gz /home/user/build-magic/other_file.txt',)
 
 
 def test_action_remote_delete_files_windows_uname(generic_runner, mocker):
@@ -1183,6 +1308,12 @@ def test_action_remote_delete_files_windows_uname(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1199,8 +1330,8 @@ def test_action_remote_delete_files_windows_uname(generic_runner, mocker):
         ('C:\\build-magic\\file2.txt', None),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('rm "C:\\build-magic\\myfiles.tar.gz" "C:\\build-magic\\other_file.txt"',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
 
 
 def test_action_remote_delete_files_windows_os(generic_runner, mocker):
@@ -1240,6 +1371,12 @@ def test_action_remote_delete_files_windows_os(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1256,8 +1393,8 @@ def test_action_remote_delete_files_windows_os(generic_runner, mocker):
         ('C:\\build-magic\\file2.txt', None),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 4
-    assert exek.call_args[0] == ('rm "C:\\build-magic\\myfiles.tar.gz" "C:\\build-magic\\other_file.txt"',)
+    assert exek.call_count == 5
+    assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
 
 
 def test_action_remote_delete_files_unix_fail(generic_runner, mocker):
@@ -1454,8 +1591,42 @@ def test_action_remote_delete_files_windows_os_filename_fail(generic_runner, moc
     assert exek.call_args[0] == ('dir /a-D /S /B',)
 
 
-def test_action_remote_delete_files_no_existing_files(generic_runner):
+def test_action_remote_delete_files_no_existing_files(generic_runner, mocker):
     """Test the case where _existing_files isn't set."""
+    mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Darwin'],
+                    channel=MagicMock(recv_exit_status=lambda: 1),
+                ),
+                MagicMock(readlines=lambda: ['Command not found.']),
+            ),
+            # shasum call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 1),
+                ),
+                MagicMock(readlines=lambda: ['Command not found.']),
+            ),
+            # Current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 1),
+                ),
+                MagicMock(readlines=lambda: ['Command not found.']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
     assert not generic_runner.teardown()
 
@@ -1486,6 +1657,12 @@ def test_action_remote_delete_files_no_change(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
@@ -1496,19 +1673,47 @@ def test_action_remote_delete_files_no_change(generic_runner, mocker):
         ('/home/user/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('find $PWD -type f | xargs shasum $PWD/*',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find $PWD -type d',)
 
 
 def test_action_remote_delete_files_empty_directory(generic_runner, mocker):
     """Test the case where no files are in the working directory."""
-    exek = mocker.patch('paramiko.SSHClient.exec_command')
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Linux'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
     mocker.patch('paramiko.SSHClient.close')
     generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
     generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
     generic_runner._existing_files = []
     assert generic_runner.teardown()
-    assert exek.call_count == 0
+    assert exek.call_count == 3
 
 
 def test_action_remote_delete_files_copies_by_hash(generic_runner, mocker):
@@ -1539,6 +1744,12 @@ def test_action_remote_delete_files_copies_by_hash(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1555,8 +1766,8 @@ def test_action_remote_delete_files_copies_by_hash(generic_runner, mocker):
         ('/home/user/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('rm "/home/user/build-magic/myfiles.tar.gz" "/home/user/build-magic/other_file.txt"',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm /home/user/build-magic/myfiles.tar.gz /home/user/build-magic/other_file.txt',)
 
 
 def test_action_remote_delete_files_copies_by_filename(generic_runner, mocker):
@@ -1587,6 +1798,12 @@ def test_action_remote_delete_files_copies_by_filename(generic_runner, mocker):
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1603,8 +1820,8 @@ def test_action_remote_delete_files_copies_by_filename(generic_runner, mocker):
         ('C:\\build-magic\\file2.txt', None),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('rm "C:\\build-magic\\myfiles.tar.gz" "C:\\build-magic\\other_file.txt"',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
 
 
 def test_action_remote_delete_files_preserve_renamed_files_by_hash(generic_runner, mocker):
@@ -1633,6 +1850,12 @@ def test_action_remote_delete_files_preserve_renamed_files_by_hash(generic_runne
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
@@ -1643,8 +1866,8 @@ def test_action_remote_delete_files_preserve_renamed_files_by_hash(generic_runne
         ('/home/user/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('find $PWD -type f | xargs shasum $PWD/*',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find $PWD -type d',)
 
 
 def test_action_remote_delete_files_preserve_modified_files_by_hash(generic_runner, mocker):
@@ -1673,6 +1896,12 @@ def test_action_remote_delete_files_preserve_modified_files_by_hash(generic_runn
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
         ),
     )
     mocker.patch('paramiko.SSHClient.close')
@@ -1683,8 +1912,8 @@ def test_action_remote_delete_files_preserve_modified_files_by_hash(generic_runn
         ('/home/user/build-magic/file2.txt', 'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d'),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 2
-    assert exek.call_args[0] == ('find $PWD -type f | xargs shasum $PWD/*',)
+    assert exek.call_count == 3
+    assert exek.call_args[0] == ('find $PWD -type d',)
 
 
 def test_action_remote_delete_files_preserve_renamed_files_by_name(generic_runner, mocker):
@@ -1713,6 +1942,12 @@ def test_action_remote_delete_files_preserve_renamed_files_by_name(generic_runne
                 ),
                 MagicMock(readlines=lambda: ['']),
             ),
+            # Get directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
             # rm call.
             (
                 None,
@@ -1729,5 +1964,72 @@ def test_action_remote_delete_files_preserve_renamed_files_by_name(generic_runne
         ('C:\\build-magic\\file2.txt', None),
     ]
     assert generic_runner.teardown()
-    assert exek.call_count == 3
-    assert exek.call_args[0] == ('rm "C:\\build-magic\\copy1.txt"',)
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm C:\\build-magic\\copy1.txt',)
+
+
+def test_action_remote_delete_files_remove_directories(generic_runner, mocker):
+    """Verify remote directories are correctly identified for removal."""
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Linux'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        'da39a3ee5e6b4b0d3255bfef95601890afd80709  /home/user/build-magic/dir1/dir3/dir5/file1',
+                        'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  /home/user/build-magic/dir1/dir3/dir5/file2',
+                        '7c4a8d09ca3762af61e59520943dc26494f8941b  /home/user/build-magic/dir1/dir3/file3',
+                        'c7839accb3e7c2ccffa0174006bd0b446f3336fc  /home/user/build-magic/dir1/dir4/file4',
+                        '25a32bfc3309d1fea5cc59a1a0c42f2ab0ea05b6  /home/user/build-magic/dir2/file5',
+                        'cac55f635b3717f481eb15db3e85f5d2c770c90a  /home/user/build-magic/dir2/file6',
+                        'd9507fb92bced1be0813817769628091573e5e75  /home/user/build-magic/dir1/file7',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # Get directories.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '/home/user/build-magic/dir1',
+                        '/home/user/build-magic/dir2',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # rm call.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # rm directories.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
+    generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
+    generic_runner._existing_files = []
+    generic_runner._existing_dirs = ['/home/user/build-magic']
+    assert generic_runner.teardown()
+    assert exek.call_count == 5
+    assert exek.call_args[0] == ('rm -rf /home/user/build-magic/dir2 /home/user/build-magic/dir1',)

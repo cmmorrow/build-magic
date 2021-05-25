@@ -274,7 +274,6 @@ def test_docker_constructor():
     assert not runner.artifacts
     assert type(runner.artifacts) == list
     assert runner.timeout == 30
-    print(runner.binding)
     assert runner.binding == {
         'ReadOnly': False,
         'Source': str(Path.cwd().resolve()),
@@ -399,6 +398,7 @@ def test_vagrant_constructor():
     assert runner.name == 'vagrant'
     assert runner.host_wd == '.'
     assert runner.bind_path == '/vagrant'
+    assert os.environ.get('VAGRANT_CWD') is None
 
     runner = Vagrant(
         environment='/opt',
@@ -418,6 +418,20 @@ def test_vagrant_constructor():
     assert runner.artifacts == ['hello.txt']
     assert runner.host_wd == '/my_repo'
     assert runner.bind_path == '/app'
+    assert os.environ.get('VAGRANT_CWD') == '/opt'
+
+    os.environ.pop('VAGRANT_CWD', '')
+    runner = Vagrant(
+        environment='Vagrantfile',
+    )
+    assert not os.environ.get('VAGRANT_CWD')
+    assert runner.environment == '.'
+
+    runner = Vagrant(
+        environment='/opt/Vagrantfile'
+    )
+    assert os.environ.get('VAGRANT_CWD') == '/opt'
+    assert runner.environment == '/opt/'
 
 
 def test_vagrant_prepare(build_path, mocker, tmp_path, vagrant_runner):
@@ -435,6 +449,9 @@ def test_vagrant_prepare(build_path, mocker, tmp_path, vagrant_runner):
     vagrant_runner.copy_from_directory = str(build_path)
     assert not vagrant_runner.prepare()
     assert len(list(Path.cwd().iterdir())) == 0
+    assert ssh.call_count == 1
+
+    ssh.reset_mock()
 
     # Copy to the working directory because there's at least one artifact.
     vagrant_runner.artifacts.append('hello.txt')
@@ -444,6 +461,7 @@ def test_vagrant_prepare(build_path, mocker, tmp_path, vagrant_runner):
 
     # Do nothing because the working directory is also the bind path.
     vagrant_runner.working_directory = vagrant_runner.bind_path
+    vagrant_runner.artifacts = []
     assert not vagrant_runner.prepare()
 
     ssh.reset_mock()
@@ -670,3 +688,40 @@ def test_remote_execute_fail(mock_key, mocker, remote_runner):
     assert status.stderr == 'An error message'
     assert status.stdout == ''
     assert status.exit_code == 1
+
+
+def test_copy_to_working_directory(tmp_path_factory, local_runner):
+    """Verify the file copy behavior works correctly when calling the runner's copy() method."""
+    dir1 = tmp_path_factory.mktemp('dir1')
+    dir2 = tmp_path_factory.mktemp('dir2')
+    main = dir1 / 'main.cpp'
+    audio = dir1 / 'audio.cpp'
+    plugins = dir1 / 'plugins.cpp'
+    main.touch()
+    audio.touch()
+    plugins.touch()
+
+    local_runner.copy_from_directory = dir1
+    local_runner.working_directory = dir2
+    local_runner.artifacts = ['main.cpp', 'audio.cpp', 'plugins.cpp']
+    assert local_runner.prepare()
+    assert dir2.joinpath('main.cpp').exists()
+    assert dir2.joinpath('audio.cpp').exists()
+    assert dir2.joinpath('plugins.cpp').exists()
+
+
+def test_copy_to_working_directory_fail(tmp_path_factory, local_runner):
+    """Test the case where not all files are copied from the copy directory because they don't exist."""
+    dir1 = tmp_path_factory.mktemp('dir1')
+    dir2 = tmp_path_factory.mktemp('dir2')
+    main = dir1 / 'main.cpp'
+    main.touch()
+
+    local_runner.copy_from_directory = dir1
+    local_runner.working_directory = dir2
+    local_runner.artifacts = ['main.cpp', 'audio.cpp', 'plugins.cpp']
+    assert local_runner.prepare()
+    assert dir2.joinpath('main.cpp').exists()
+    assert not dir2.joinpath('audio.cpp').exists()
+    assert not dir2.joinpath('plugins.cpp').exists()
+

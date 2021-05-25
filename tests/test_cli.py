@@ -72,6 +72,8 @@ Examples:
 
 Use --help for detailed usage of each option.
 
+Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
+
 """
     res = cli.invoke(build_magic)
     assert res.exit_code == ExitCode.NO_TESTS
@@ -87,6 +89,9 @@ def test_cli_help(cli):
   ARGS - Files as arguments to copy from the copy path to the working
   directory. Alternatively, ARGS can be a single command to execute if the
   --command option isn't used.
+
+  Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a
+  detailed usage description.
 
 Options:
   -c, --command <TEXT TEXT>...    A directive, command pair to execute.
@@ -106,7 +111,7 @@ Options:
   --verbose                       Verbose output -- stdout from executed
                                   commands will be printed.
 
-  --version                       Display the build-magic version.
+  --version                       Show the version and exit.
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])

@@ -2,11 +2,13 @@ build-magic:
   - stage:
       name: Run Tests
       commands:
-        - test: pytest --cov=build_magic --cov-report term-missing
-#  - stage:
-#      name: Build Documentation
-#      commands:
-#        - build:
+        - test: pytest tests/test* --cov=build_magic --cov-report term-missing
+  - stage:
+      name: Build Documentation
+      action: cleanup
+      commands:
+        - build: mkdocs build
+        - deploy: mkdocs gh-deploy
   - stage:
       name: Deploy to PyPI
       action: cleanup

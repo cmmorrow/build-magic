@@ -1,6 +1,7 @@
-# build-magic :hammer::sparkles:
+# build-magic &#x1F528;&#x2728;
 
 ![PyPI](https://img.shields.io/pypi/v/build-magic)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/build-magic)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/cmmorrow/build-magic/Python%20application)
 ![Codecov](https://img.shields.io/codecov/c/github/cmmorrow/build-magic)
 
@@ -94,3 +95,5 @@ build-magic:
         commands:
           - test: cat file1.txt file2.txt
 ```
+
+You can view the documentation at [https://cmmorrow.github.io/build-magic/](https://cmmorrow.github.io/build-magic/).

@@ -2,6 +2,9 @@
 
 The *remote* Command Runner executes commands on a remote machine. To execute commands remotely, SSH needs to be installed on the host machine and configured using a public/private key pair. This way, build-magic can execute commands without prompting the user for a password.
 
+!!! Note
+    To connect to or from a Windows 10 machine, OpenSSH needs to be installed on the Windows machine. Build-magic isn't compatible with other Windows SSH implementations or PuTTY **.ppk** files. You can find instructions on installing OpenSSH for Windows 10 [here](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse).
+
 To connect to a remote machine, the **--environment** option should include the user and hostname of the machine to connect to, for example:
 
 ```text
@@ -55,11 +58,25 @@ The Working Directory can be changed to any path the user has permission to read
 > build-magic --runner remote --environment user@myhost --wd ~/myproject make
 ```
 
+## Copying Files To The Remote Machine
+
+Individual files can be copied to the remote machine from a directory specified with the **--copy** option. If using the **--copy** option, the files to copy should be specified as arguments.
+
+```text
+> build-magic \
+--runner remote \
+--environment user@myhost \
+--copy /home/myproject \
+--command execute ./configure \
+--command build 'make' \
+main.cpp plugins.cpp audio.cpp
+```
+
 ## Cleaning Up New Files
 
-Compiling software into executables can often produce extra files that need to be manually deleted. Build-magic can clean up these newly created files with the *cleanup* Action.
+Compiling software into executables can often produce extra files that need to be manually deleted. Build-magic can clean up these newly created files on the remote machine with the *cleanup* Action.
 
-The *cleanup* Action will take a snapshot of every file and directory in the working directory before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.
+The *cleanup* Action will take a snapshot of every file and directory in the working directory on the remote machine before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.
 
 If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.
 
@@ -72,6 +89,8 @@ The *cleanup* Action can be executed with the `--action` option.
 -c build 'python setup.py sdist bdist_wheel --universal' \
 -c release 'twine upload dist/*'
 ```
+
+If using the **--copy** option to copy files to the working directory on the remote machine, these files are deleted along with any new files created during the Stage.
 
 ## Working with Public/Private Keypairs
 

@@ -1,0 +1,8 @@
+build-magic:
+  - stage:
+      name: Run Integration Tests
+      commands:
+        - test: pytest -v tests/integration/test_local.py
+        - test: pytest -v tests/integration/test_remote.py
+        - test: pytest -v tests/integration/test_docker.py
+        - test: pytest -v tests/integration/test_vagrant.py
