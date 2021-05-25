@@ -67,7 +67,7 @@ Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detaile
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
 @click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
 @click.option('--verbose', help='Verbose output -- stdout from executed commands will be printed.', is_flag=True)
-@click.version_option(message=ver)
+@click.option('--version', help='Show the version and exit.', is_flag=True)
 @click.argument('args', nargs=-1)
 def build_magic(
         command,
@@ -84,6 +84,7 @@ def build_magic(
         plain,
         quiet,
         verbose,
+        version,
 ):
     """An un-opinionated build automation tool.
 
@@ -92,6 +93,10 @@ def build_magic(
 
     Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
     """
+    if version:
+        click.echo(ver)
+        sys.exit(0)
+
     # Get the output type.
     if plain:
         out = reference.OutputTypes.BASIC
