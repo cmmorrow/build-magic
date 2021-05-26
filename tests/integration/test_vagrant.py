@@ -48,7 +48,6 @@ def test_isolation(cli, tmp_path_factory):
         "python -m build_magic --verbose --plain "
         "--runner vagrant "
         f"--environment {target.resolve()}/Vagrantfile "
-        f"--parameter hostwd {target} "
         f"--copy {source} "
         "--wd /app "
         "-c execute 'pwd' "
@@ -68,3 +67,26 @@ def test_isolation(cli, tmp_path_factory):
     assert 'main.cpp' in output
     assert 'plugins.cpp' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
+
+
+@pytest.mark.skip
+def test_cleanup(cli, tmp_path):
+    """Verify cleanup is working correctly."""
+    # TODO: As of 0.1, cleanup isn't implemented for the Vagrant runner.
+    path = Path(__file__).parent
+    res = subprocess.run(
+        "python -m build_magic --verbose --plain "
+        "--runner vagrant "
+        f"--environment {path.parent}/files/Vagrantfile "
+        "--action cleanup "
+        "--wd /vagrant "
+        "-c execute 'touch file1.txt file2.txt' "
+        "-c execute 'ls'",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    print(output)
+    assert False
+    

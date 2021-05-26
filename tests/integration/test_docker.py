@@ -205,6 +205,49 @@ def test_cleanup(cli, tmp_path):
 
 
 @pytest.mark.docker
+def test_copy_cleanup(cli, tmp_path):
+    """Verify the cleanup action works correctly to delete new files and copied files."""
+    main = tmp_path / 'main.cpp'
+    plugins = tmp_path / 'plugins.cpp'
+    audio = tmp_path / 'audio.cpp'
+    main.touch()
+    plugins.touch()
+    audio.touch()
+    res = subprocess.run(
+        "python -m build_magic --verbose --plain "
+        "--runner docker "
+        "--environment alpine:latest "
+        "--action cleanup "
+        f"--copy {tmp_path} "
+        "--wd /app "
+        "-c execute 'touch test1.txt test2.txt' "
+        "-c execute 'ls' "
+        "main.cpp audio.cpp plugins.cpp",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert '[ DONE  ] EXECUTE  : touch test1.txt test2.txt' in output
+    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert 'test1.txt' in output
+    assert 'test2.txt' in output
+    assert 'audio.cpp' in output
+    assert 'main.cpp' in output
+    assert 'plugins.cpp' in output
+
+    current = Path(__file__).parent.resolve()
+    assert current.joinpath('test1.txt').exists() is False
+    assert current.joinpath('test2.txt').exists() is False
+    assert current.joinpath('audio.cpp').exists() is False
+    assert current.joinpath('main.cpp').exists() is False
+    assert current.joinpath('plugins.cpp').exists() is False
+
+
+
+@pytest.mark.docker
 def test_persist(cli):
     """Verify the persist action works correctly."""
     res = subprocess.run(

@@ -82,7 +82,7 @@ Compiling software into executables can often produce extra files that need to b
 
 The *cleanup* Action will take a snapshot of every file and directory in the Host Working Directory before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.
 
-If the Working Directory is different from the Bind Directory, all files will be lost when the build-magic container is destroyed when build-magic exits. However, if the Working Directory is the also the Bind Directory, any newly created files in the Host Working Directory will be deleted.
+If the Working Directory is different from the Bind Directory, all files will be lost when the build-magic container is destroyed when build-magic exits. However, if the Working Directory is also the Bind Directory, any newly created files in the Host Working Directory will be deleted.
 
 The exception is for files that are copied to the Host Working Directory from a directory specified with the **--copy** option. Since these files are copied before the Stage starts executing Commands, they will not be cleaned up when the Stage ends.
 
