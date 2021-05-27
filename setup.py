@@ -18,7 +18,7 @@ setup(
     description='A general purpose build/install/deploy tool.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires='!=2.*, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.4.*, >=3.6',
+    python_requires='!=2.*, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, >=3.6',
     project_urls={
         "Documentation": 'https://cmmorrow.github.io/build-magic/',
         "Source": 'https://github.com/cmmorrow/build-magic',
@@ -49,7 +49,7 @@ setup(
         'freezegun',
     ],
     classifers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Environment :: Console :: Curses',
         'Intended Audience :: Developers',
