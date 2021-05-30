@@ -7,7 +7,7 @@ import click
 import yaml
 
 # Need this to disable logging in the vagrant package when Vagrant isn't installed.
-logging.disable()
+logging.disable(logging.WARNING)
 
 from build_magic import __version__ as ver
 from build_magic import core
