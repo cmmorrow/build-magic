@@ -1,9 +1,13 @@
 """Click CLI for running build-magic."""
 
+import logging
 import sys
 
 import click
 import yaml
+
+# Need this to disable logging in the vagrant package when Vagrant isn't installed.
+logging.disable()
 
 from build_magic import __version__ as ver
 from build_magic import core
