@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 from pkg_resources import resource_filename
+import sys
 from unittest.mock import MagicMock
 
 from click.testing import CliRunner
@@ -283,7 +284,7 @@ def test_cli_continue_on_fail(cli):
 def test_cli_stop_on_fail(cli):
     """Verify the --stop option works correctly."""
     res = cli.invoke(build_magic, ['--verbose', '--stop', '-c', 'execute', 'cp', '-c', 'execute', 'echo hello'])
-    if os.sys.platform == 'linux':
+    if sys.platform == 'linux':
         assert 'cp: missing file operand' in res.output
     else:
         assert 'usage: cp' in res.output
@@ -358,6 +359,3 @@ def test_cli_config_parameters(cli, mocker):
     assert "Starting Stage 1" in res.output
     assert "EXECUTE : echo hello ................................................ RUNNING" in res.output
     assert "Stage 1 finished with result COMPLETE" in res.output
-
-
-# TODO: Add action tests

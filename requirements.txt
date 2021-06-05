@@ -51,7 +51,7 @@ python-vagrant==0.5.15
 PyYAML>=5.4
 readme-renderer==29.0
 regex==2021.4.4
-requests==2.24.0
+requests==2.25.1
 requests-toolbelt==0.9.1
 rfc3986==1.4.0
 scp==0.13.3
@@ -60,7 +60,7 @@ toml==0.10.1
 tornado==6.1
 tqdm==4.59.0
 twine==3.4.1
-urllib3==1.25.10
+urllib3==1.26.5
 webencodings==0.5.1
 websocket-client==0.57.0
 zipp==3.3.1

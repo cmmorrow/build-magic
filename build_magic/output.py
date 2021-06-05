@@ -219,8 +219,8 @@ class Tty(Output):
 
     def start_job(self):
         """Indicates the beginning of a sequence of stages."""
-        # Create the hammer and sparkle glyphs only if using a TTY and on Mac or Linux.
-        emoji = '\U0001f528' + '\U00002727' if sys.stdout.isatty() and sys.platform != 'win32' else ''
+        # Create the hammer glyph only if using a TTY and on Mac or Linux.
+        emoji = '\U0001f528' if sys.stdout.isatty() and sys.platform != 'win32' else ''
         message = Fore.CYAN + Style.BRIGHT + 'build-magic{} {}\n'.format(emoji, version) + Style.RESET_ALL
         message += Fore.CYAN + 'Start time {}\n'.format(datetime.now().strftime('%c')) + Style.RESET_ALL
         self._display(message)

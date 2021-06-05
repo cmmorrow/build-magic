@@ -393,7 +393,6 @@ class Stage:
         except Exception as err:
             raise SetupError(exception=err)
         if not result:
-            # TODO: Execute teardown in the case of Vagrant.
             raise SetupError
 
         # Call the command runner's prepare function.
