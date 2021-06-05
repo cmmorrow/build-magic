@@ -1,0 +1,591 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.2">
+    
+    
+      
+        <title>Using the CLI - build-magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f955dcd.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#009485">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#using-the-build-magic-command-line-interface" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="build-magic" class="md-header__button md-logo" aria-label="build-magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            build-magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Using the CLI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="build-magic" class="md-nav__button md-logo" aria-label="build-magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    build-magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      <label class="md-nav__link" for="__nav_3">
+        User Guide
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basic_concepts/" class="md-nav__link">
+        Basic Concepts
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Using the CLI
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Using the CLI
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config_usage/" class="md-nav__link">
+        Defining Config Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_4" type="checkbox" id="__nav_3_4" >
+      
+      <label class="md-nav__link" for="__nav_3_4">
+        Using Command Runners
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Using Command Runners" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          Using Command Runners
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/local_usage/" class="md-nav__link">
+        Using the Local Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/docker_usage/" class="md-nav__link">
+        Using the Docker Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/vagrant_usage/" class="md-nav__link">
+        Using the Vagrant Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/remote_usage/" class="md-nav__link">
+        Using the Remote Runner
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    Usage
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="using-the-build-magic-command-line-interface">Using the build-magic Command-line Interface</h1>
+<h2 id="synopsis">Synopsis</h2>
+<div class="highlight"><pre><span></span><code>build-magic [--help | --version]
+
+build-magic [-r | --runner (local | remote | vagrant | docker)] 
+    [-e | --environment &lt;env&gt;] [--name &lt;stage&gt;] [--wd &lt;working-directory&gt;] 
+    [-p | --parameter &lt;p-name p-value&gt;]... 
+    [--action (default | cleanup | persist)] 
+    [--fancy | --plain | --quiet] [--verbose] &lt;command&gt;
+
+build-magic [-r | --runner (local | remote | vagrant | docker)] 
+    [-e | --environment &lt;env&gt;] [--name &lt;stage&gt;] [--wd &lt;working-directory&gt;] 
+    [-p | --parameter &lt;p-name p-value&gt;]... 
+    [--action (default | cleanup | persist)] 
+    [--fancy | --plain | --quiet] [--verbose] [--copy &lt;copy-from&gt;] 
+    [--continue | --stop] [-c | --command &lt;directive command&gt;]... 
+    [&lt;artifact&gt;...]
+
+build-magic [--fancy | --plain | --quiet] [--verbose] 
+[-C | --config &lt;config-file&gt;]
+</code></pre></div>
+<h2 id="usage">Usage</h2>
+<p>There are three ways to use build-magic from the command-line.</p>
+<ol>
+<li>Execute a single command where any arguments provided after valid options are interpreted as part of <strong>&lt;command></strong>. For example: <code>build-magic --verbose echo hello world</code>.</li>
+<li>Execute a single stage with multiple commands. This form must use one or more <strong>[-c | --command &lt;directive command>]</strong> options to specify the commands. In this form, any arguments provided after valid options are interpreted as one or more <strong>&lt;artifact></strong>. Artifact arguments are ignored unless the <strong>--copy</strong> option is used. The artifacts must exist in <strong>&lt;copy-from></strong> to be copied to the working directory.</li>
+<li>Execute multiple stages with multiple commands using a config file.</li>
+</ol>
+<h2 id="description">Description</h2>
+<p><strong>--help</strong> - Prints build-magic's help text.</p>
+<p><strong>--version</strong> - Prints the build-magic version.</p>
+<p><strong>-r</strong>, <strong>--runner</strong> - The command runner to use for executing commands. Must be one of <em>local</em>, <em>remote</em>, <em>vagrant</em> or <em>docker</em>. The default command runner is <em>local</em>.</p>
+<p><strong>-e</strong>, <strong>--environment</strong> - The environment to use for the specified command runner. The context of the environment depends on the command runner.</p>
+<ul>
+<li><em>local</em> - The <strong>environment</strong> option is ignored.</li>
+<li><em>remote</em> - The host machine to connect to in the form <code>user@host:port</code>. If port isn't provided, it will default to 22.</li>
+<li><em>vagrant</em> - The path to the Vagrantfile to use for provisioning the Vagrant virtual machine.</li>
+<li><em>docker</em> - The name of the container to use. Optionally, the container tag can be specified in the form <code>container:tag</code>.</li>
+</ul>
+<p>If <strong>--runner</strong> is defined and not equal to <em>local</em>, <strong>--environment</strong> is required.</p>
+<p><strong>--name</strong> - Optional name <strong>&lt;stage></strong> to give the executing stage. If <strong>--name</strong> isn't provided, the default stage name is 1.</p>
+<p><strong>--wd</strong> - The working directory build-magic will operate from. If not specified, the default working directory is the current directory. In the case of the <em>local</em> and <em>remote</em> command runners, the working directory is on the host machine. For <em>vagrant</em> and <em>docker</em> command runners, the working directory is on the guest machine, i.e. inside the virtual machine or running container. If the <strong>copy</strong> option is provided along with <strong>&lt;artifacts></strong>, the <strong>&lt;artifacts></strong> are copied from <strong>&lt;copy-from></strong> to <strong>&lt;working-directory></strong>.</p>
+<p><strong>-p</strong>, <strong>--parameter</strong> - Key/value pairs <strong>&lt;p-name p-value></strong> of optional command runner specific configurations. Can be provided multiple times.</p>
+<p><strong>--action</strong> - Runs the specified setup and teardown action.</p>
+<ul>
+<li><em>default</em> - Performs container and vm setup and teardown for the <em>docker</em> and <em>vagrant</em> command runners.</li>
+<li><em>cleanup</em> - Deletes any new files or newly created copies of existing files after the last command is executed and before build-magic exits.</li>
+<li><em>persist</em> - Only used by the <em>vagrant</em> and <em>docker</em> command runners. If specified, the virtual machine or container won't be destroyed after build-magic exits.</li>
+</ul>
+<p>The <em>default</em> action is set by default.</p>
+<p><strong>--fancy</strong> - This option is the default unless <strong>--plain</strong> or <strong>--quiet</strong> is used. If specified, build-magic will check to see if it's being executed in a TTY, and if so, use colored text, cursor repositioning, and format stdout to fit the terminal size. Otherwise, build-magic will assume an output width of 80 characters.</p>
+<p><strong>--plain</strong> - If specified, build-magic will write it's output to stdout in a log-like format ideal for non-interactive use.</p>
+<p><strong>--quiet</strong> - If specified, build-magic will suppress it's output to stdout.</p>
+<p><strong>--verbose</strong> - If specified, the stdout output of each command will be captured and printed after the execution of the corresponding command.</p>
+<p><strong>--copy</strong> - Copy <strong>&lt;artifacts></strong> from <strong>&lt;copy-from></strong> to <strong>&lt;working-directory></strong>.</p>
+<p><strong>--continue</strong>, <strong>--stop</strong> - Default setting is <strong>--stop</strong>. If <strong>--stop</strong> is set, build-magic will exit if a command fails (returns a non-zero exit code). If <strong>--continue</strong> is set, build-magic will try to continue execution even if a command fails.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Depending on the commands being executed, using <strong>--continue</strong> can lead to unstable behavior as failures can cascade to subsequent commands.</p>
+</div>
+<p><strong>-c</strong>, <strong>--command</strong> - A <strong>&lt;directive command></strong> pair to execute. The command must be wrapped in quotes for build-magic to parse it correctly. For example: <code>--command execute "echo 'hello world'"</code>. Can be provided multiple times.</p>
+<p><strong>-C</strong>, <strong>--config</strong> - Executes the stages in <strong>&lt;config-file></strong>.</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../basic_concepts/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Basic Concepts
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../config_usage/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Defining Config Files
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../assets/javascripts/workers/search.fe42c31b.min.js", "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.4ea5477f.min.js"></script>
+      
+    
+  </body>
+</html>

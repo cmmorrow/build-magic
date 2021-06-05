@@ -1,0 +1,638 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.2">
+    
+    
+      
+        <title>Using the Remote Runner - build-magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.6f955dcd.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#009485">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+  
+    
+    <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#using-the-remote-command-runner" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="build-magic" class="md-header__button md-logo" aria-label="build-magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            build-magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Using the Remote Runner
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="build-magic" class="md-nav__button md-logo" aria-label="build-magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    build-magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting_started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      <label class="md-nav__link" for="__nav_3">
+        User Guide
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../basic_concepts/" class="md-nav__link">
+        Basic Concepts
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli_usage/" class="md-nav__link">
+        Using the CLI
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../config_usage/" class="md-nav__link">
+        Defining Config Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_4" type="checkbox" id="__nav_3_4" checked>
+      
+      <label class="md-nav__link" for="__nav_3_4">
+        Using Command Runners
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Using Command Runners" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          Using Command Runners
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../local_usage/" class="md-nav__link">
+        Using the Local Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker_usage/" class="md-nav__link">
+        Using the Docker Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vagrant_usage/" class="md-nav__link">
+        Using the Vagrant Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Using the Remote Runner
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Using the Remote Runner
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-shell-commands" class="md-nav__link">
+    Running Shell Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-the-working-directory" class="md-nav__link">
+    Setting the Working Directory
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copying-files-to-the-remote-machine" class="md-nav__link">
+    Copying Files To The Remote Machine
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleaning-up-new-files" class="md-nav__link">
+    Cleaning Up New Files
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-with-publicprivate-keypairs" class="md-nav__link">
+    Working with Public/Private Keypairs
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-shell-commands" class="md-nav__link">
+    Running Shell Commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-the-working-directory" class="md-nav__link">
+    Setting the Working Directory
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#copying-files-to-the-remote-machine" class="md-nav__link">
+    Copying Files To The Remote Machine
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleaning-up-new-files" class="md-nav__link">
+    Cleaning Up New Files
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#working-with-publicprivate-keypairs" class="md-nav__link">
+    Working with Public/Private Keypairs
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="using-the-remote-command-runner">Using the Remote Command Runner</h1>
+<p>The <em>remote</em> Command Runner executes commands on a remote machine. To execute commands remotely, SSH needs to be installed on the host machine and configured using a public/private key pair. This way, build-magic can execute commands without prompting the user for a password.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To connect to or from a Windows 10 machine, OpenSSH needs to be installed on the Windows machine. Build-magic isn't compatible with other Windows SSH implementations or PuTTY <strong>.ppk</strong> files. You can find instructions on installing OpenSSH for Windows 10 <a href="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse">here</a>.</p>
+</div>
+<p>To connect to a remote machine, the <strong>--environment</strong> option should include the user and hostname of the machine to connect to, for example:</p>
+<div class="highlight"><pre><span></span><code>build-magic --verbose \
+--runner remote \
+--environment user@myhost \
+&quot;echo hello world&quot;
+</code></pre></div>
+<p>Optionally, the port can also be given. By default, the port SSH will use is 22.</p>
+<div class="highlight"><pre><span></span><code>build-magic --verbose \
+--runner remote \
+--environment user@myhost:2222 \
+&quot;echo hello world&quot;
+</code></pre></div>
+<h2 id="running-shell-commands">Running Shell Commands</h2>
+<p>The <em>remote</em> Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
+--runner remote \
+--environment user@myhost \
+-c execute &#39;echo &quot;hello world&quot; &gt; hello.txt&#39; \
+-c execute &#39;cat hello.txt&#39;
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
+--runner remote \
+--environment user@myhost \
+&#39;ps -ef | grep python&#39;
+</code></pre></div>
+<p>Environment variables can be included in commands by wrapping the command in single quotes:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --runner remote --environment user@myhost &#39;echo $SHELL&#39;
+</code></pre></div>
+<h2 id="setting-the-working-directory">Setting the Working Directory</h2>
+<p>The Working Directory is the path that build-magic operates from. By default, the Working Directory is the home directory of user used for logging into the remote machine.</p>
+<p>The Working Directory can be changed to any path the user has permission to read from with the <code>--wd</code> option.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --runner remote --environment user@myhost --wd ~/myproject make
+</code></pre></div>
+<h2 id="copying-files-to-the-remote-machine">Copying Files To The Remote Machine</h2>
+<p>Individual files can be copied to the remote machine from a directory specified with the <strong>--copy</strong> option. If using the <strong>--copy</strong> option, the files to copy should be specified as arguments.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic \
+--runner remote \
+--environment user@myhost \
+--copy /home/myproject \
+--command execute ./configure \
+--command build &#39;make&#39; \
+main.cpp plugins.cpp audio.cpp
+</code></pre></div>
+<h2 id="cleaning-up-new-files">Cleaning Up New Files</h2>
+<p>Compiling software into executables can often produce extra files that need to be manually deleted. Build-magic can clean up these newly created files on the remote machine with the <em>cleanup</em> Action.</p>
+<p>The <em>cleanup</em> Action will take a snapshot of every file and directory in the working directory on the remote machine before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.</p>
+<p>If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.</p>
+<p>The <em>cleanup</em> Action can be executed with the <code>--action</code> option.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup \
+--runner remote \
+--environment user@myhost \
+-c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
+-c release &#39;twine upload dist/*&#39;
+</code></pre></div>
+<p>If using the <strong>--copy</strong> option to copy files to the working directory on the remote machine, these files are deleted along with any new files created during the Stage.</p>
+<h2 id="working-with-publicprivate-keypairs">Working with Public/Private Keypairs</h2>
+<p>The <em>remote</em> Command Runner uses SSH public/private keypairs to connect to remote machines and execute commands. By default, build-magic looks for the private key at <code>~/.ssh/id_rsa</code>. The path to the private key can be specified with <strong>--parameter keypath</strong>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
+--runner remote \
+--environment user@myhost \
+--parameter keypath ~/ssh/keys/id_rsa \
+--command execute &#39;echo hello world&#39;
+</code></pre></div>
+<p>Build-magic supports several different SSH key types:</p>
+<ul>
+<li><em>rsa</em></li>
+<li><em>dsa</em></li>
+<li><em>ecdsa</em></li>
+<li><em>ed25519</em></li>
+</ul>
+<p>The SSH key type can be specified with <strong>--parameter keytype</strong>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
+--runner remote \
+--environment user@myhost \
+--parameter keytype ecdsa \
+--parameter keypath ~/.ssh/id_ecdsa \
+--command execute &#39;echo hello world&#39;
+</code></pre></div>
+<p>To use a private key protected by a passphrase, use <strong>--parameter keypass</strong>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
+--runner remote \
+--environment user@myhost \
+--parameter keytype ecdsa \
+--parameter keypath ~/.ssh/id_ecdsa \
+--parameter keypass secret \
+--command execute &#39;echo hello world&#39;
+</code></pre></div>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../vagrant_usage/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Using the Vagrant Runner
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../../assets/javascripts/workers/search.fe42c31b.min.js", "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.4ea5477f.min.js"></script>
+      
+    
+  </body>
+</html>
