@@ -46,4 +46,3 @@ A command-line automation tool for running commands locally, remotely, in a cont
 Another CI/CD tool. There are plenty of great CI/CD tools out there. Build-magic isn't a replacement for Jenkins or GitHub Actions. In addition to build automation, these tools bake in notifications, post webhooks for source control events, and are generally cloud based. Build-magic is instead focused on build automation you can control locally.
 
 CI/CD tools are extremely useful, and both Jenkins and GitHub Actions can use build-magic to minimize differences between production builds in the cloud and development builds on your laptop.
-
