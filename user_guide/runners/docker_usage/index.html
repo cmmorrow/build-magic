@@ -544,6 +544,10 @@ main.cpp plugins.cpp audio.cpp
 -c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
 -c release &#39;twine upload dist/*&#39;
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>
+</div>
 <h2 id="debugging-the-build-magic-container">Debugging the build-magic Container</h2>
 <p>If a command fails in the container for an unknown reason, the <em>persist</em> Action can be used for troubleshooting. The <em>persist</em> Action will keep the container running in the background after build-magic has exited.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --runner docker \

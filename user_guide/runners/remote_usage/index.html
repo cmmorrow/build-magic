@@ -541,6 +541,10 @@ main.cpp plugins.cpp audio.cpp
 -c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
 -c release &#39;twine upload dist/*&#39;
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>
+</div>
 <p>If using the <strong>--copy</strong> option to copy files to the working directory on the remote machine, these files are deleted along with any new files created during the Stage.</p>
 <h2 id="working-with-publicprivate-keypairs">Working with Public/Private Keypairs</h2>
 <p>The <em>remote</em> Command Runner uses SSH public/private keypairs to connect to remote machines and execute commands. By default, build-magic looks for the private key at <code>~/.ssh/id_rsa</code>. The path to the private key can be specified with <strong>--parameter keypath</strong>:</p>

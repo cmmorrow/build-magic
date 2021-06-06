@@ -480,6 +480,10 @@
 -c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
 -c release &#39;twine upload dist/*&#39;
 </code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>
+</div>
                 
               
               
