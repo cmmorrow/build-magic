@@ -221,8 +221,8 @@ class Tty(Output):
         """Indicates the beginning of a sequence of stages."""
         # Create the hammer glyph only if using a TTY and on Mac or Linux.
         emoji = '\U0001f528' if sys.stdout.isatty() and sys.platform != 'win32' else ''
-        message = Fore.CYAN + Style.BRIGHT + 'build-magic{} {}\n'.format(emoji, version) + Style.RESET_ALL
-        message += Fore.CYAN + 'Start time {}\n'.format(datetime.now().strftime('%c')) + Style.RESET_ALL
+        message = Fore.CYAN + Style.BRIGHT + f'build-magic{emoji} {version}\n' + Style.RESET_ALL
+        message += Fore.CYAN + f'Start time {datetime.now().strftime("%c")}\n' + Style.RESET_ALL
         self._display(message)
         self.timer = datetime.now()
 
@@ -231,11 +231,13 @@ class Tty(Output):
 
         :return: None
         """
+        # Create the sparkle glyph only if using a TTY and on Mac or Linux.
+        emoji = '\u2728' if sys.stdout.isatty() and sys.platform != 'win32' else ''
         if self.timer:
             delta = datetime.now() - self.timer
-            message = 'build-magic finished in {:.3f} seconds'.format(delta.total_seconds())
+            message = f'build-magic{emoji} finished in {delta.total_seconds():.3f} seconds'
         else:
-            message = 'build-magic finished at {}'.format(datetime.now().strftime('%c'))
+            message = f'build-magic{emoji} finished at {datetime.now().strftime("%c")}'
         self._display(message)
 
     def start_stage(self, stage_number=1, name=None):
