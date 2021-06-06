@@ -90,6 +90,9 @@ The *cleanup* Action can be executed with the `--action` option.
 -c release 'twine upload dist/*'
 ```
 
+!!! Note
+    There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.
+
 If using the **--copy** option to copy files to the working directory on the remote machine, these files are deleted along with any new files created during the Stage.
 
 ## Working with Public/Private Keypairs
