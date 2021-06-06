@@ -247,10 +247,9 @@ class Tty(Output):
         :param str|None name: The stage name if given.
         :return: None
         """
+        message = f'Starting Stage {stage_number}'
         if name:
-            message = f'Starting Stage {stage_number}: {name}'
-        else:
-            message = f'Starting Stage {stage_number}'
+            message += f': {name}'
         self._display(message)
 
     def end_stage(self, stage_name=1, status_code=0, name=None):
@@ -289,9 +288,9 @@ class Tty(Output):
         if len(command) + 11 > width - 11:
             command = command[:width - 23] + '....'
         if not command:
-            message = '{} {} {}'.format(directive.upper(), command, '.' * spacing, status)
+            message = f'{directive.upper()} {command} {"." * spacing}'
         else:
-            message = '{:<8}: {} {} {}'.format(directive.upper(), command, '.' * spacing, status)
+            message = f'{directive.upper():<8}: {command} {"." * spacing} {status}'
         self._display(message)
 
     def macro_status(self, directive='', command='', status_code=0):
@@ -302,14 +301,16 @@ class Tty(Output):
         :param status_code: The macro's exit code.
         :return: None
         """
+        def format_(color, status):
+            return color + Style.BRIGHT + f'{status:<8}' + Style.RESET_ALL
+
         width = self.get_width()
         position = width - 10
-        height = self.get_height() - 1
         if status_code > 0:
-            result = Fore.RED + Style.BRIGHT + '{:<8}'.format('FAILED') + Style.RESET_ALL
+            result = format_(Fore.RED, 'FAILED')
         else:
-            result = Fore.GREEN + Style.BRIGHT + '{:<8}'.format('COMPLETE') + Style.RESET_ALL
-        self._display(Cursor.POS(position, height) + result)
+            result = format_(Fore.GREEN, 'COMPLETE')
+        self._display(Cursor.UP(1) + Cursor.FORWARD(position) + result)
 
     def error(self, err):
         """Communicates an error message.
@@ -319,9 +320,8 @@ class Tty(Output):
         """
         width = self.get_width()
         position = width - 10
-        height = self.get_height() - 1
         result = Fore.RED + Style.BRIGHT + '{:<8}'.format('ERROR') + Style.RESET_ALL
-        self._display(Cursor.POS(position, height) + result)
+        self._display(Cursor.UP(1) + Cursor.FORWARD(position) + result)
         self._display(Fore.RED + str(err) + Style.RESET_ALL, err=True)
 
     def info(self, msg):
