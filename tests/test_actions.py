@@ -47,6 +47,23 @@ def backup_path(build_path):
 
 
 @pytest.fixture
+def git_path(build_path):
+    """Provides a working directory with a .git directory."""
+    git = build_path / '.git'
+    git.mkdir()
+    head = git / 'HEAD'
+    config = git / 'config'
+    refs = git / 'refs'
+    refs.mkdir()
+    head.touch()
+    config.touch()
+    test1 = refs / 'test1'
+    test2 = refs / 'test2'
+    test1.write_text(hashlib.sha1(b'1234').hexdigest())
+    test2.write_text(hashlib.sha1(b'abcd').hexdigest())
+
+
+@pytest.fixture
 def build_hashes():
     """Provides the hashes for files in build_path."""
     return (
@@ -499,6 +516,32 @@ def test_action_delete_nested_directories(build_hashes, build_path, generic_runn
     generic_runner.execute(Macro('touch dir1/file7'))
     assert generic_runner.teardown()
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 2
+
+
+def test_action_delete_dir_ignore_git(build_path, git_path, generic_runner, mocker):
+    """Test the case where the a new file added to a .git directory isn't deleted."""
+    os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
+    generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, [None] * len(files)))
+    generic_runner.execute(Macro('touch .git/refs/file3'))
+    generic_runner.execute(Macro('touch file3.txt'))
+    assert generic_runner.teardown()
+    assert Path().cwd().joinpath('.git/refs/file3').exists() is True
+    assert Path().cwd().joinpath('file3.txt').exists() is False
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_files = list(zip(files, [None] * len(files)))
+    generic_runner.execute(Macro('touch .git/refs/file3'))
+    generic_runner.execute(Macro('touch file3.txt'))
+    assert generic_runner.teardown()
+    assert Path().cwd().joinpath('.git/refs/file3').exists() is True
+    assert Path().cwd().joinpath('file3.txt').exists() is False
 
 
 def test_action_backup_dir(build_path, generic_runner):
@@ -1217,6 +1260,65 @@ def test_action_remote_delete_files(generic_runner, mocker):
     assert exek.call_args[0] == ('rm /home/user/build-magic/myfiles.tar.gz /home/user/build-magic/other_file.txt',)
 
 
+def test_action_remote_delete_files_ignore_git(generic_runner, mocker):
+    """Verify the remote_delete_files() function works correctly and doesn't touch the .git directory."""
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Linux'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '7c211433f02071597741e6ff5a8ea34789abbf43  /home/user/build-magic/file1.txt',
+                        '3a19a60069b50fc489030d9e8c872f03d63c9278  /home/user/build-magic/.git/HEAD',
+                        'aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d  /home/user/build-magic/file2.txt',
+                        'da39a3ee5e6b4b0d3255bfef95601890afd80709  /home/user/build-magic/.git/refs/test1',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # Get directories.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '/home/user/build-magic/.git',
+                        '/home/user/build-magic/.git/refs',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # rm call.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
+    generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
+    generic_runner._existing_files = [
+        ('/home/user/build-magic/file1.txt', '7c211433f02071597741e6ff5a8ea34789abbf43'),
+    ]
+    assert generic_runner.teardown()
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm /home/user/build-magic/file2.txt',)
+
+
 def test_action_remote_delete_files_no_shasum(generic_runner, mocker):
     """Verify the remote_delete_files() function works correctly when there's no shasum command."""
     exek = mocker.patch(
@@ -1280,6 +1382,74 @@ def test_action_remote_delete_files_no_shasum(generic_runner, mocker):
     assert exek.call_args[0] == ('rm /home/user/build-magic/myfiles.tar.gz /home/user/build-magic/other_file.txt',)
 
 
+def test_action_remote_delete_files_not_shasum_ignore_git(generic_runner, mocker):
+    """Verify files are deleted correctly when there's no shasum command and the .git directory is untouched."""
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Linux'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # shasum call fails.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 1),
+                ),
+                MagicMock(readlines=lambda: ['Command failed.']),
+            ),
+            # current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '/home/user/build-magic/file1.txt',
+                        '/home/user/build-magic/.git/HEAD',
+                        '/home/user/build-magic/file2.txt',
+                        '/home/user/build-magic/.git/refs/test1',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # Get directories.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        '/home/user/build-magic/.git',
+                        '/home/user/build-magic/.git/refs',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # rm call.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
+    generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
+    generic_runner._existing_files = [
+        ('/home/user/build-magic/file1.txt', None),
+    ]
+    assert generic_runner.teardown()
+    assert exek.call_count == 5
+    assert exek.call_args[0] == ('rm /home/user/build-magic/file2.txt',)
+
+
 def test_action_remote_delete_files_windows_uname(generic_runner, mocker):
     """Verify the remote_delete_files() function works correctly for windows."""
     exek = mocker.patch(
@@ -1332,6 +1502,65 @@ def test_action_remote_delete_files_windows_uname(generic_runner, mocker):
     assert generic_runner.teardown()
     assert exek.call_count == 4
     assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
+
+
+def test_action_remote_delete_files_windows_uname_ignore_git(generic_runner, mocker):
+    """Verify Windows files via uname are deleted correctly and the .git directory is untouched."""
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Windows_NT'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        'C:\\build-magic\\file1.txt',
+                        'C:\\build-magic\\.git\\HEAD',
+                        'C:\\build-magic\\file2.txt',
+                        'C:\\build-magic\\.git\\refs\\test1',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # Get directories.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        'C:\\build-magic\\.git',
+                        'C:\\build-magic\\.git\\refs',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # rm call.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
+    generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
+    generic_runner._existing_files = [
+        ('C:\\build-magic\\file1.txt', None),
+    ]
+    assert generic_runner.teardown()
+    assert exek.call_count == 4
+    assert exek.call_args[0] == ('rm C:\\build-magic\\file2.txt',)
 
 
 def test_action_remote_delete_files_windows_os(generic_runner, mocker):
@@ -1395,6 +1624,74 @@ def test_action_remote_delete_files_windows_os(generic_runner, mocker):
     assert generic_runner.teardown()
     assert exek.call_count == 5
     assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
+
+
+def test_action_remote_delete_files_windows_os_ignore_git(generic_runner, mocker):
+    """Verify Windows files via OS call are deleted correctly and the .git directory is untouched."""
+    exek = mocker.patch(
+        'paramiko.SSHClient.exec_command',
+        side_effect=(
+            # uname call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [''],
+                    channel=MagicMock(recv_exit_status=lambda: 1),
+                ),
+                MagicMock(readlines=lambda: ['Command not found.']),
+            ),
+            # OS call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: ['Windows_NT'],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # current files call.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        'C:\\build-magic\\file1.txt',
+                        'C:\\build-magic\\.git\\HEAD',
+                        'C:\\build-magic\\file2.txt',
+                        'C:\\build-magic\\.git\\refs\\test1',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # Get directories.
+            (
+                None,
+                MagicMock(
+                    readlines=lambda: [
+                        'C:\\build-magic\\.git',
+                        'C:\\build-magic\\.git\\refs',
+                    ],
+                    channel=MagicMock(recv_exit_status=lambda: 0),
+                ),
+                MagicMock(readlines=lambda: ['']),
+            ),
+            # rm call.
+            (
+                None,
+                MagicMock(readlines=lambda: ['']),
+                MagicMock(readlines=lambda: ['']),
+            ),
+        ),
+    )
+    mocker.patch('paramiko.SSHClient.close')
+    generic_runner.connect = types.MethodType(lambda _: paramiko.SSHClient(), generic_runner)
+    generic_runner.teardown = types.MethodType(actions.remote_delete_files, generic_runner)
+    generic_runner._existing_files = [
+        ('C:\\build-magic\\file1.txt', None),
+    ]
+    assert generic_runner.teardown()
+    assert exek.call_count == 5
+    assert exek.call_args[0] == ('rm C:\\build-magic\\file2.txt',)
 
 
 def test_action_remote_delete_files_unix_fail(generic_runner, mocker):

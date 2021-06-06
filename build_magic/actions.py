@@ -3,6 +3,7 @@
 import hashlib
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 
@@ -138,6 +139,7 @@ def _parse_files(file_list):
     """Helper function to parse a list of files into a tuple for storage.
 
     :param list[str] file_list: A list of file names to parse and format.
+    :rtype: list[str]
     :return: A list of tuples where the first value is the file name and the second value is None.
     """
     return [(file.strip(), None) for file in file_list if file]
@@ -147,6 +149,7 @@ def _parse_directories(dir_list):
     """Helper function for parsing and cleaning a list of directories for analysis.
 
     :param list[str] dir_list: A list of directories to parse.
+    :rtype: list[str]
     :return: The cleaned up list of directories.
     """
     return [line for line in dir_list if line is not None]
@@ -372,6 +375,9 @@ def delete_new_files(self):
                     continue
             _, new_hashes = zip(*current)
             for file, hash_ in current:
+                # Don't delete anything in the .git directory.
+                if re.search(r'\.git', str(file)):
+                    continue
                 # Remove any new files.
                 if str(file) not in files and hash_ not in hashes:
                     os.remove(file)
@@ -384,6 +390,9 @@ def delete_new_files(self):
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.working_directory).resolve()
         for file in sorted(pwd.rglob('*'), reverse=True):
+            # Don't delete anything in the .git directory.
+            if re.search(r'\.git', str(file)):
+                continue
             if file.is_dir() and file not in self._existing_dirs:
                 try:
                     os.rmdir(file)
@@ -419,6 +428,9 @@ def docker_delete_new_files(self):
                     continue
             _, new_hashes = zip(*current)
             for file, hash_ in current:
+                # Don't delete anything in the .git directory.
+                if re.search(r'\.git', str(file)):
+                    continue
                 # Remove any new files.
                 if str(file) not in files and hash_ not in hashes:
                     os.remove(file)
@@ -431,6 +443,9 @@ def docker_delete_new_files(self):
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.host_wd).resolve()
         for file in sorted(pwd.rglob('*'), reverse=True):
+            # Don't delete anything in the .git directory.
+            if re.search(r'\.git', str(file)):
+                continue
             if file.is_dir() and file not in self._existing_dirs:
                 try:
                     os.rmdir(file)
@@ -608,6 +623,9 @@ def remote_delete_files(self):
         else:
             files, hashes = [], []
         for file, hash_ in current_files:
+            # Don't delete anything in the .git directory.
+            if re.search(r'\.git', str(file)):
+                continue
             if str(file) not in files and hash_ not in hashes:
                 if self.working_directory:
                     file = pathlib.Path(self.working_directory) / file
@@ -625,6 +643,9 @@ def remote_delete_files(self):
         if current_dirs:
             if hasattr(self, '_existing_dirs') and len(self._existing_dirs) > 0:
                 for directory in sorted(current_dirs, reverse=True):
+                    # Don't delete anything in the .git directory.
+                    if re.search(r'\.git', str(directory)):
+                        continue
                     if directory not in self._existing_dirs:
                         to_delete.append(directory.strip('\n'))
             if to_delete:
