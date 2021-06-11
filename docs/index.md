@@ -6,6 +6,8 @@ Build-magic is a command-line application for automating build, test, install, p
 
 ---
 
+![build-magic](build-magic.gif)
+
 Using build-magic is as simple as:
 
 ```text

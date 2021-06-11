@@ -7,6 +7,8 @@
 
 An un-opinionated build automation tool.
 
+![build-magic](docs/build-magic.gif)
+
 ## Introduction
 
 Build-magic is a command-line application for automating build/test/install/package/deploy tasks. It aims to provide a common means for automating build tasks for developers and DevOps. Build-magic does this by abstracting away how and where the build tasks are executed. Developing a C++ application for a Linux container on Windows? Build-magic can build your project in a Linux container or virtual machine. Have a dedicated build server? Build-magic can SSH into the remote server and start the build.
