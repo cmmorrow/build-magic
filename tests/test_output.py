@@ -1,4 +1,6 @@
 """This module hosts unit tests for the Output classes."""
+import os
+from unittest.mock import MagicMock
 
 from freezegun import freeze_time
 import pytest
@@ -221,6 +223,18 @@ def test_basic_info(capsys):
     output.log(OutputMethod.INFO, 'This is a test.\n\n\n')
     captured = capsys.readouterr()
     assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT: This is a test.\n'
+
+
+def test_tty_get_width_and_height(mocker):
+    """Verify the TTY get_width and get_height methods work correctly."""
+    output = Tty()
+    # Try the default case when not using a TTY.
+    assert output.get_width() == 80
+    assert output.get_height() == 20
+    # Fake a TTY to verify the size.
+    mocker.patch('os.get_terminal_size', return_value=MagicMock(columns=185, lines=35, spec=os.terminal_size))
+    assert output.get_width() == 185
+    assert output.get_height() == 35
 
 
 @freeze_time('2021-01-02 01:06:34')
