@@ -103,6 +103,7 @@ Options:
   -r, --runner [local|remote|vagrant|docker]
                                   The command runner to use.
   --name TEXT                     The stage name to use.
+  -t, --target TEXT               Run a particular stage by name.
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   -p, --parameter <TEXT TEXT>...  Key/value used for runner specific settings.
@@ -117,6 +118,7 @@ Options:
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])
+    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert res.output == ref
 
