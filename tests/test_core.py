@@ -150,7 +150,7 @@ def test_stage_run_verbose(capsys):
     assert len(stage._results) == 1
     assert stage.is_setup is True
     captured = capsys.readouterr()
-    assert '\nOUTPUT  : hello\n' in captured.out
+    assert '\nOUTPUT: hello\n' in captured.out
 
 
 def test_stagefactory_build():
