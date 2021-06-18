@@ -23,8 +23,8 @@ def test_single_command(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -45,9 +45,9 @@ def test_redirection(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo "hello world" > hello.txt' in output
-    assert '[ DONE  ] EXECUTE  : cat hello.txt' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo "hello world" > hello.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : cat hello.txt' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
     assert ref_file.exists()
 
@@ -67,9 +67,9 @@ def test_redirection_working_directory(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo "hello world" > hello.txt' in output
-    assert '[ DONE  ] EXECUTE  : cat hello.txt' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo "hello world" > hello.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : cat hello.txt' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -88,8 +88,8 @@ def test_env(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo $TERM' in output
-    assert '[ INFO  ] OUTPUT   : xterm' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo $TERM' in output
+    assert '[ INFO  ] OUTPUT: xterm' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -118,9 +118,9 @@ def test_bind_path(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : pwd' in output
-    assert '[ INFO  ] OUTPUT   : /app' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : pwd' in output
+    assert '[ INFO  ] OUTPUT: /app' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert 'audio.cpp' in output
     assert 'main.cpp' in output
     assert 'plugins.cpp' in output
@@ -152,9 +152,9 @@ def test_copy_files(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : pwd' in output
-    assert '[ INFO  ] OUTPUT   : /app' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : pwd' in output
+    assert '[ INFO  ] OUTPUT: /app' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert 'audio.cpp' in output
     assert 'main.cpp' in output
     assert 'plugins.cpp' in output
@@ -189,8 +189,8 @@ def test_cleanup(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : touch test1.txt test2.txt' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : touch test1.txt test2.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert 'audio.cpp' in output
     assert 'main.cpp' in output
     assert 'plugins.cpp' in output
@@ -230,8 +230,8 @@ def test_copy_cleanup(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : touch test1.txt test2.txt' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : touch test1.txt test2.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert 'test1.txt' in output
     assert 'test2.txt' in output
     assert 'audio.cpp' in output
@@ -244,7 +244,6 @@ def test_copy_cleanup(cli, tmp_path):
     assert current.joinpath('audio.cpp').exists() is False
     assert current.joinpath('main.cpp').exists() is False
     assert current.joinpath('plugins.cpp').exists() is False
-
 
 
 @pytest.mark.docker
@@ -263,8 +262,8 @@ def test_persist(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
     res = subprocess.run(

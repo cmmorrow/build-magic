@@ -35,7 +35,7 @@ class MacroFactory:
         :return: A list of generated Macro objects.
         """
         macros = []
-        i = 0
+        i = 1
         for prefix, cmd, suffix, in self._commands:
             if not cmd:
                 continue

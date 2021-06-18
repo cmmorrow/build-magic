@@ -399,7 +399,7 @@ class Stage:
         self._command_runner.prepare()
 
         for mac in self._macros:
-            directive = self._directives[mac.sequence]
+            directive = self._directives[mac.sequence - 1]
 
             # Add the prefix to the macro.
             if self._action.add_prefix.get(self._command_runner.name):
@@ -411,13 +411,26 @@ class Stage:
 
             # Run the macro.
             try:
-                _output.log(mode.MACRO_START, directive, mac.command)
+                _output.log(
+                    mode.MACRO_START,
+                    directive=directive,
+                    command=mac.command,
+                    sequence=mac.sequence,
+                    total=len(self._macros),
+                )
                 status = self._command_runner.execute(mac)
             except Exception as err:
                 raise ExecutionError(exception=err)
 
             # Handle the result.
-            _output.log(mode.MACRO_STATUS, directive, mac.command, status.exit_code)
+            _output.log(
+                mode.MACRO_STATUS,
+                directive=directive,
+                command=mac.command,
+                status_code=status.exit_code,
+                sequence=mac.sequence,
+                total=len(self._macros),
+            )
             self._results.append(status)
             if verbose:
                 if status.stdout:

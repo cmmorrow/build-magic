@@ -32,11 +32,11 @@ def test_basic_print_output(capsys):
     output = Basic()
     output.print_output('This is a test', is_error=False)
     captured = capsys.readouterr()
-    assert captured.out == "2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT   : This is a test\n"
+    assert captured.out == "2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT: This is a test\n"
 
     output.print_output(b'This is a test', is_error=False)
     captured = capsys.readouterr()
-    assert captured.out == "2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT   : This is a test\n"
+    assert captured.out == "2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT: This is a test\n"
 
     output.print_output('This is a test', is_error=True)
     captured = capsys.readouterr()
@@ -57,7 +57,7 @@ def test_basic_end_job(capsys):
     output = Basic()
     output.log(OutputMethod.JOB_END)
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] finished\n'
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] Finished\n'
 
 
 @freeze_time('2021-01-02 01:06:34')
@@ -149,22 +149,52 @@ def test_basic_macro_status(capsys):
     # Only the directive.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD')
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] BUILD   \n'
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] ( 1/1 ) BUILD   \n'
 
     # Default status code.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD', 'tar -czf hello.tar.gz')
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] BUILD    : tar -czf hello.tar.gz\n'
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] ( 1/1 ) BUILD    : tar -czf hello.tar.gz\n'
 
     # No command but failing status code.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD', status_code=1)
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ FAIL  ] BUILD   \n'
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ FAIL  ] ( 1/1 ) BUILD   \n'
 
     # Command with failing status code.
     output.log(OutputMethod.MACRO_STATUS, 'BUILD', 'tar -czf hello.tar.gz', 1)
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ FAIL  ] BUILD    : tar -czf hello.tar.gz\n'
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ FAIL  ] ( 1/1 ) BUILD    : tar -czf hello.tar.gz\n'
+
+
+@freeze_time('2021-01-02 01:06:34')
+def test_basic_macro_status(capsys):
+    """Verify the basic macro_status() method works as expected."""
+    output = Basic()
+    # Sequence of 12.
+    output.log(OutputMethod.MACRO_STATUS, directive='BUILD', command='tar -czf hello.tar.gz', sequence=12)
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] ( 12/1 ) BUILD    : tar -czf hello.tar.gz\n'
+
+    # Total of 42.
+    output.log(OutputMethod.MACRO_STATUS, directive='BUILD', command='tar -czf hello.tar.gz', total=42)
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] (  1/42 ) BUILD    : tar -czf hello.tar.gz\n'
+
+    # Sequence 12 of 42.
+    output.log(OutputMethod.MACRO_STATUS, directive='BUILD', command='tar -czf hello.tar.gz', sequence=12, total=42)
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] ( 12/42 ) BUILD    : tar -czf hello.tar.gz\n'
+
+    # Sequence 64 of 112.
+    output.log(OutputMethod.MACRO_STATUS, directive='BUILD', command='tar -czf hello.tar.gz', sequence=64, total=112)
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] (  64/112 ) BUILD    : tar -czf hello.tar.gz\n'
+
+    # Sequence 3 of 112.
+    output.log(OutputMethod.MACRO_STATUS, directive='BUILD', command='tar -czf hello.tar.gz', sequence=3, total=112)
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ DONE  ] (   3/112 ) BUILD    : tar -czf hello.tar.gz\n'
 
 
 @freeze_time('2021-01-02 01:06:34')
@@ -190,7 +220,7 @@ def test_basic_info(capsys):
     output = Basic()
     output.log(OutputMethod.INFO, 'This is a test.\n\n\n')
     captured = capsys.readouterr()
-    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT   : This is a test.\n\n\n\n'
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT: This is a test.\n'
 
 
 @freeze_time('2021-01-02 01:06:34')
@@ -229,7 +259,7 @@ def test_tty_end_stage(capsys):
     output = Tty()
     output.log(OutputMethod.STAGE_END)
     captured = capsys.readouterr()
-    assert captured.out == 'Stage 1 finished with result COMPLETE\n\n'
+    assert captured.out == 'Stage 1 finished with result DONE\n\n'
 
     output.log(OutputMethod.STAGE_END, 1, 1)
     captured = capsys.readouterr()
@@ -253,11 +283,11 @@ def test_tty_macro_start(capsys):
     output = Tty()
     output.log(OutputMethod.MACRO_START, 'execute', 'ls')
     captured = capsys.readouterr()
-    assert captured.out == 'EXECUTE : ls ........................................................ RUNNING\n'
+    assert captured.out == '( 1/1 ) EXECUTE : ls ................................................ RUNNING\n'
 
     output.log(OutputMethod.MACRO_START, 'execute')
     captured = capsys.readouterr()
-    assert captured.out == 'EXECUTE  ..........................................................\n'
+    assert captured.out == 'EXECUTE ..................................................\n'
 
 
 def test_tty_macro_status(capsys):
@@ -286,7 +316,7 @@ def test_tty_info(capsys):
     output = Tty()
     output.log(OutputMethod.INFO, 'test message.\n\n\n')
     captured = capsys.readouterr()
-    assert captured.out == 'OUTPUT  : test message.\n\n\n\n'
+    assert captured.out == 'OUTPUT: test message.\n'
 
 
 def test_silent_start_job(capsys):
