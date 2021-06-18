@@ -64,6 +64,7 @@ Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detaile
 @click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
 @click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
 @click.option('--name', help='The stage name to use.', type=str)
+@click.option('--target', '-t', help='Run a particular stage by name.', type=str, multiple=True)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
@@ -84,6 +85,7 @@ def build_magic(
         action,
         runner,
         name,
+        target,
         wd,
         plain,
         quiet,
@@ -124,22 +126,43 @@ def build_magic(
                 click.secho(str(err), fg='red', err=True)
                 sys.exit(reference.ExitCode.INPUT_ERROR)
 
-            for stage_ in stages:
-                stages_.append(
-                    dict(
-                        sequence=next(seq),
-                        runner_type=stage_['runner_type'],
-                        directives=stage_['directives'],
-                        artifacts=stage_['artifacts'],
-                        action=stage_['action'],
-                        commands=stage_['commands'],
-                        environment=stage_['environment'],
-                        copy=stage_['copy'],
-                        wd=stage_['wd'],
-                        name=stage_['name'],
-                        parameters=stage_['parameters'],
+            if target:
+                stage_names = [stg.get('name') for stg in stages if stg.get('name')]
+                for trgt in target:
+                    if trgt in stage_names:
+                        stage_ = stages[stage_names.index(trgt)]
+                        stages_.append(
+                            dict(
+                                sequence=next(seq),
+                                runner_type=stage_['runner_type'],
+                                directives=stage_['directives'],
+                                artifacts=stage_['artifacts'],
+                                action=stage_['action'],
+                                commands=stage_['commands'],
+                                environment=stage_['environment'],
+                                copy=stage_['copy'],
+                                wd=stage_['wd'],
+                                name=stage_['name'],
+                                parameters=stage_['parameters'],
+                            )
+                        )
+            else:
+                for stage_ in stages:
+                    stages_.append(
+                        dict(
+                            sequence=next(seq),
+                            runner_type=stage_['runner_type'],
+                            directives=stage_['directives'],
+                            artifacts=stage_['artifacts'],
+                            action=stage_['action'],
+                            commands=stage_['commands'],
+                            environment=stage_['environment'],
+                            copy=stage_['copy'],
+                            wd=stage_['wd'],
+                            name=stage_['name'],
+                            parameters=stage_['parameters'],
+                        )
                     )
-                )
     else:
         # Set the commands from the command line.
         if command:

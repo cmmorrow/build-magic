@@ -1,0 +1,17 @@
+build-magic:
+  - stage:
+      name: Stage A
+      commands:
+        - execute: echo "A"
+  - stage:
+      name: Stage B
+      commands:
+        - execute: echo "B"
+  - stage:
+      name: Stage C
+      commands:
+        - execute: echo "C"
+  - stage:
+      name: Stage D
+      commands:
+        - execute: echo "D"

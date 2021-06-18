@@ -1,6 +1,7 @@
 """This module hosts unit tests for the cli."""
 
 import os
+import re
 from pathlib import Path
 from pkg_resources import resource_filename
 import sys
@@ -359,3 +360,14 @@ def test_cli_config_parameters(cli, mocker):
     assert "Starting Stage 1" in res.output
     assert "EXECUTE : echo hello ................................................ RUNNING" in res.output
     assert "Stage 1 finished with result COMPLETE" in res.output
+
+
+def test_cli_target(cli):
+    """Verify the --target option works correctly."""
+    file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'targets.yaml'
+    res = cli.invoke(build_magic, ['-C', str(file), '--target', 'Stage D', '-t', 'Stage B'])
+    assert res.exit_code == ExitCode.PASSED
+    out = res.output
+    assert 'Stage D' in out
+    out = out.split('\n', maxsplit=8)[-1]
+    assert 'Stage B' in out
