@@ -266,6 +266,7 @@ class OutputMethod(enum.Enum):
     MACRO_STATUS = 'macro_status'
     ERROR = 'error'
     INFO = 'info'
+    PROCESS_SPINNER = 'process_spinner'
 
 
 class KeyTypes(EnumExt):

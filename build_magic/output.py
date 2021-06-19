@@ -9,6 +9,8 @@ from colorama import Cursor, Fore, init, Style
 from build_magic import __version__ as version
 from build_magic.reference import OutputMethod
 
+from yaspin import yaspin
+
 
 class Output:
     """Interface for defining output methods."""
@@ -128,6 +130,7 @@ class Basic(Output):
             message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}'
         self._display(message)
 
+
     def end_stage(self, stage_number=1, status_code=0, name=None):
         """Indicates the end of a stage.
 
@@ -189,6 +192,18 @@ class Basic(Output):
         """
         message = f'{datetime.now().isoformat()} build-magic [ INFO  ] OUTPUT   : {msg}'
         self._display(message)
+
+    def process_spinner(self, spinner, process_active=False):
+        """Indicates whether a process is underway.
+
+        :param yaspin  spinner: Yaspin spinner object.
+        :param boolean process_active: Process activity status.
+        :return: None
+        """
+        if process_active:
+            spinner.start()
+        else:
+            spinner.stop()
 
 
 class Tty(Output):
@@ -333,6 +348,18 @@ class Tty(Output):
         message = 'OUTPUT  : {}'.format(msg)
         self._display(message)
 
+    def process_spinner(self, spinner, process_active=False):
+        """Indicates whether a process is underway.
+
+        :param yaspin  spinner: Yaspin spinner object.
+        :param boolean process_active: Process activity status.
+        :return: None
+        """
+        if process_active:
+            spinner.start()
+        else:
+            spinner.stop()
+
 
 class Silent(Output):
     """Silent output that suppresses output."""
@@ -371,4 +398,8 @@ class Silent(Output):
 
     def info(self, *args, **kwargs):
         """Communicates a general information message."""
+        return
+
+    def process_spinner(self, *args, **kwargs):
+        """Indicates whether a process is underway."""
         return

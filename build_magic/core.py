@@ -8,6 +8,8 @@ import types
 import json
 from jsonschema import ValidationError, validate as jsvalidator
 
+from yaspin import yaspin
+
 from build_magic import actions, output, runner
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
 from build_magic.macro import MacroFactory
@@ -141,11 +143,14 @@ class Engine:
         _output.log(mode.JOB_START)
 
         for stage in self._stages:
+            spinner = yaspin()
             # Run the stage.
             _output.log(mode.STAGE_START, stage.sequence, stage.name)
+            # Launch the process spinner
+            _output.log(mode.PROCESS_SPINNER, spinner, process_active=True)
             stage.setup()
             try:
-                exit_code = stage.run(self._continue_on_fail, self._verbose)
+                exit_code = stage.run(self._continue_on_fail, self._verbose, spinner)
             except (SetupError, ExecutionError, TeardownError) as err:
                 exit_code = ExitCode.INTERNAL_ERROR
                 _output.log(mode.ERROR, err)
@@ -376,7 +381,7 @@ class Stage:
 
         self._is_setup = True
 
-    def run(self, continue_on_fail=False, verbose=False):
+    def run(self, continue_on_fail=False, verbose=False, spinner=None):
         """Executes the commands in the Stage.
 
         :param bool continue_on_fail: If True, keep running commands even if the last command failed. Default is False.
@@ -391,6 +396,8 @@ class Stage:
         try:
             result = self._command_runner.provision()
         except Exception as err:
+            if spinner is not None:
+                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
             raise SetupError(exception=err)
         if not result:
             raise SetupError
@@ -411,9 +418,13 @@ class Stage:
 
             # Run the macro.
             try:
+                if spinner is not None:
+                    _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
                 _output.log(mode.MACRO_START, directive, mac.command)
                 status = self._command_runner.execute(mac)
             except Exception as err:
+                if spinner is not None:
+                    _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
                 raise ExecutionError(exception=err)
 
             # Handle the result.
