@@ -121,7 +121,7 @@ class Engine:
         self._stages = stages or []
 
         if not isinstance(stages, list):
-            raise TypeError("stages must be a list")
+            raise TypeError("Stages must be a list.")
 
         # Sort stages by sequence.
         if len(stages) > 1:
