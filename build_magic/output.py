@@ -193,17 +193,9 @@ class Basic(Output):
         message = f'{datetime.now().isoformat()} build-magic [ INFO  ] OUTPUT   : {msg}'
         self._display(message)
 
-    def process_spinner(self, spinner, process_active=False):
-        """Indicates whether a process is underway.
-
-        :param yaspin  spinner: Yaspin spinner object.
-        :param boolean process_active: Process activity status.
-        :return: None
-        """
-        if process_active:
-            spinner.start()
-        else:
-            spinner.stop()
+    def process_spinner(self, *args, **kwargs):
+        """Not used by the Basic Output class."""
+        return
 
 
 class Tty(Output):
