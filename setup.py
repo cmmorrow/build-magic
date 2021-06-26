@@ -43,6 +43,7 @@ setup(
         'python-vagrant==0.5.15',
         'PyYAML==5.4',
         'scp==0.13.3',
+        'yaspin==2.0.0',
     ],
     tests_require=[
         'pytest',
