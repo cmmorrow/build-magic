@@ -120,7 +120,8 @@ class Engine:
         self._verbose = verbose
         self._stages = stages or []
 
-        # TODO: Check to make sure stages is a list.
+        if not isinstance(stages, list):
+            raise TypeError("Stages must be a list.")
 
         # Sort stages by sequence.
         if len(stages) > 1:
