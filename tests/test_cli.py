@@ -287,7 +287,7 @@ def test_cli_stop_on_fail(cli):
     if sys.platform == 'linux':
         assert 'cp: missing file operand' in res.output
     else:
-        assert 'usage: cp' in res.output
+        assert 'usage: cp' in res.output or 'cp: missing file operand' in res.output
     assert 'OUTPUT: hello' not in res.output
     assert res.exit_code == ExitCode.FAILED
 
