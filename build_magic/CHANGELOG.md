@@ -1,5 +1,11 @@
 # What's New
 
+## Version 0.2.0
+
+* Added the sequence number and total commands to the output for each command.
+* Removed the newline character at the end of the output displayed when in verbose mode.
+* Changed the stage end status from COMPLETE to DONE.
+
 ## Version 0.1.1
 
 * Added the hammer and sparkles emoji to the terminal output.

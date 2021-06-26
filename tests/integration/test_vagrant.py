@@ -26,8 +26,8 @@ def test_wd(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : pwd' in output
-    assert '[ INFO  ] OUTPUT   : /app' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : pwd' in output
+    assert '[ INFO  ] OUTPUT: /app' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -61,9 +61,9 @@ def test_isolation(cli, tmp_path_factory):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : pwd' in output
-    assert '[ INFO  ] OUTPUT   : /app' in output
-    assert '[ INFO  ] OUTPUT   : audio.cpp' in output
+    assert '[ DONE  ] ( 1/3 ) EXECUTE  : pwd' in output
+    assert '[ INFO  ] OUTPUT: /app' in output
+    assert '[ INFO  ] OUTPUT: audio.cpp' in output
     assert 'main.cpp' in output
     assert 'plugins.cpp' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
@@ -89,4 +89,3 @@ def test_cleanup(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     print(output)
     assert False
-    

@@ -26,8 +26,8 @@ def test_single_command(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -48,9 +48,9 @@ def test_multiple_commands(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -72,9 +72,9 @@ def test_redirection(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo "hello world" > hello.txt' in output
-    assert '[ DONE  ] EXECUTE  : cat hello.txt' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/3 ) EXECUTE  : echo "hello world" > hello.txt' in output
+    assert '[ DONE  ] ( 2/3 ) EXECUTE  : cat hello.txt' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -94,7 +94,7 @@ def test_pipe(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : ps -ef | grep python' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : ps -ef | grep python' in output
     assert re.search(r'(?:b?[azck]?sh|fish) -c ps -ef \| grep python', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
@@ -115,8 +115,8 @@ def test_env(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo $SHELL' in output
-    assert re.search(r'\[ INFO\s\s] OUTPUT\s\s\s: /bin/(?:b?[a-z]?sh|fish)', output)
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo $SHELL' in output
+    assert re.search(r'\[ INFO\s\s] OUTPUT: /bin/(?:b?[a-z]?sh|fish)', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -136,8 +136,8 @@ def test_wd(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : pwd' in output
-    assert '[ INFO  ] OUTPUT   : /usr/bin' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : pwd' in output
+    assert '[ INFO  ] OUTPUT: /usr/bin' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -164,7 +164,7 @@ def test_copy_files(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : ls' in output
     assert 'audio.cpp' in output
     assert 'main.cpp' in output
     assert 'plugins.cpp' in output
@@ -203,9 +203,9 @@ def test_cleanup_all(cli, tmp_path_factory):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : touch file3.txt' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
-    assert '[ INFO  ] OUTPUT   : file1.txt' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : touch file3.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
+    assert '[ INFO  ] OUTPUT: file1.txt' in output
     assert re.search(r'\nfile2\.txt\n', output)
     assert re.search(r'\nfile3\.txt\n', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
@@ -238,9 +238,9 @@ def test_cleanup_select(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : touch file3.txt' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
-    assert '[ INFO  ] OUTPUT   : file1.txt' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : touch file3.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
+    assert '[ INFO  ] OUTPUT: file1.txt' in output
     assert re.search(r'\nfile2\.txt\n', output)
     assert re.search(r'\nfile3\.txt\n', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
@@ -291,13 +291,13 @@ def test_cleanup_directories(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : mkdir dir1/dir3 dir1/dir4 dir2/dir5' in output
-    assert '[ DONE  ] EXECUTE  : mkdir dir1/dir4/dir6' in output
-    assert '[ DONE  ] EXECUTE  : touch dir1/file1 dir1/file2' in output
-    assert '[ DONE  ] EXECUTE  : touch dir2/file3' in output
-    assert '[ DONE  ] EXECUTE  : touch dir1/dir3/file4 dir1/dir3/file5 dir1/dir3/file6' in output
-    assert '[ DONE  ] EXECUTE  : touch dir2/dir5/file7' in output
-    assert '[ DONE  ] EXECUTE  : touch dir1/dir4/dir6/file8 dir1/dir4/dir6/file9' in output
+    assert '[ DONE  ] ( 1/7 ) EXECUTE  : mkdir dir1/dir3 dir1/dir4 dir2/dir5' in output
+    assert '[ DONE  ] ( 2/7 ) EXECUTE  : mkdir dir1/dir4/dir6' in output
+    assert '[ DONE  ] ( 3/7 ) EXECUTE  : touch dir1/file1 dir1/file2' in output
+    assert '[ DONE  ] ( 4/7 ) EXECUTE  : touch dir2/file3' in output
+    assert '[ DONE  ] ( 5/7 ) EXECUTE  : touch dir1/dir3/file4 dir1/dir3/file5 dir1/dir3/file6' in output
+    assert '[ DONE  ] ( 6/7 ) EXECUTE  : touch dir2/dir5/file7' in output
+    assert '[ DONE  ] ( 7/7 ) EXECUTE  : touch dir1/dir4/dir6/file8 dir1/dir4/dir6/file9' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
     assert dir1.exists() is True
     assert dir2.exists() is True
