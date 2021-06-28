@@ -150,7 +150,7 @@ def test_stage_run_verbose(capsys):
     assert len(stage._results) == 1
     assert stage.is_setup is True
     captured = capsys.readouterr()
-    assert '\nOUTPUT  : hello\n' in captured.out
+    assert '\nOUTPUT: hello\n' in captured.out
 
 
 def test_stagefactory_build():
@@ -258,6 +258,11 @@ def test_engine_constructor():
     assert engine._stages[2].sequence == 2
     assert not engine._continue_on_fail
 
+def test_engine_stage_list_type_fail():
+    """Verify the stages argument must be a list."""
+    params = "dummy"
+    with pytest.raises(TypeError):
+        engine = Engine(params)
 
 def test_config_parser():
     """Verify the config parser works correctly."""

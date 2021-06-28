@@ -9,6 +9,8 @@ from colorama import Cursor, Fore, init, Style
 from build_magic import __version__ as version
 from build_magic.reference import OutputMethod
 
+from yaspin import yaspin
+
 
 class Output:
     """Interface for defining output methods."""
@@ -108,11 +110,10 @@ class Basic(Output):
 
         :return: None
         """
+        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Finished'
         if self.timer:
             delta = datetime.now() - self.timer
-            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] finished in {delta.total_seconds():.3f}'
-        else:
-            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] finished'
+            message = f'{message} in {delta.total_seconds():.3f}'
         self._display(message)
 
     def start_stage(self, stage_number=1, name=None):
@@ -122,11 +123,11 @@ class Basic(Output):
         :param str|None name: The stage name if given.
         :return: None
         """
+        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}'
         if name:
-            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}: {name}'
-        else:
-            message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}'
+            message = f'{message}: {name}'
         self._display(message)
+
 
     def end_stage(self, stage_number=1, status_code=0, name=None):
         """Indicates the end of a stage.
@@ -155,21 +156,24 @@ class Basic(Output):
         """Not used by the Basic Output class."""
         return
 
-    def macro_status(self, directive, command='', status_code=0):
+    def macro_status(self, directive, command='', status_code=0, sequence=1, total=1):
         """Indicates the success status of a command.
 
         :param str directive: The executed macro's directive.
         :param str command: The executed command.
-        :param status_code: The macro's exit code.
+        :param int status_code: The macro's exit code.
+        :param int sequence: The macro sequence.
+        :param int total: The total number of macros per stage.
         :return: None
         """
         result = 'DONE'
+        length = len(str(total))
+        seq = f'( {sequence:>{length}}/{total:>{length}} )'
         if status_code > 0:
             result = 'FAIL'
-        if not command:
-            message = f'{datetime.now().isoformat()} build-magic [ {result:<6}] {directive.upper():<8}'
-        else:
-            message = f'{datetime.now().isoformat()} build-magic [ {result:<6}] {directive.upper():<8} : {command}'
+        message = f'{datetime.now().isoformat()} build-magic [ {result:<6}] {seq} {directive.upper():<8}'
+        if command:
+            message = f'{message} : {command}'
         self._display(message)
 
     def error(self, err):
@@ -187,8 +191,13 @@ class Basic(Output):
         :param str msg: The message to print.
         :return: None
         """
-        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] OUTPUT   : {msg}'
+        msg = msg.rstrip()
+        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] OUTPUT: {msg}'
         self._display(message)
+
+    def process_spinner(self, *args, **kwargs):
+        """Not used by the Basic Output class."""
+        return
 
 
 class Tty(Output):
@@ -261,7 +270,7 @@ class Tty(Output):
         :return: None
         """
         color = Fore.GREEN + Style.BRIGHT
-        result = 'COMPLETE'
+        result = 'DONE'
         if status_code > 0:
             color = Fore.RED + Style.BRIGHT
             result = 'FAILED'
@@ -275,30 +284,36 @@ class Tty(Output):
         """Indicates there are no commands to execute."""
         self._display(Fore.YELLOW + 'No commands to run. Use --help for usage. Exiting...')
 
-    def macro_start(self, directive, command=''):
+    def macro_start(self, directive, command='', sequence=1, total=1):
         """Indicates the start of a command.
 
         :param str directive: The directive of the executing command.
         :param str command: The current executing command.
+        :param int sequence: The macro sequence.
+        :param int total: The total number of macros per stage.
         :return: None
         """
         width = self.get_width()
         status = Fore.YELLOW + Style.BRIGHT + 'RUNNING' + Style.RESET_ALL
-        spacing = width - 22 - len(command)
-        if len(command) + 11 > width - 11:
-            command = command[:width - 23] + '....'
+        seq_length = len(str(total))
+        seq = f'( {sequence:>{seq_length}}/{total:>{seq_length}} )'
+        spacing = width - 23 - len(command) - len(seq)
+        if len(command) + 12 + len(seq) > width - 11:
+            command = command[:width - 24 - len(seq)] + '....'
         if not command:
-            message = f'{directive.upper()} {command} {"." * spacing}'
+            message = f'{directive.upper()} {"." * spacing}'
         else:
-            message = f'{directive.upper():<8}: {command} {"." * spacing} {status}'
+            message = f'{seq} {directive.upper():<8}: {command} {"." * spacing} {status}'
         self._display(message)
 
-    def macro_status(self, directive='', command='', status_code=0):
+    def macro_status(self, directive='', command='', status_code=0, sequence=1, total=1):
         """Indicates the success status of a command.
 
         :param str directive: The executed macro's directive.
         :param str command: The executed command.
         :param status_code: The macro's exit code.
+        :param int sequence: The macro sequence.
+        :param int total: The total number of macros per stage.
         :return: None
         """
         def format_(color, status):
@@ -330,8 +345,21 @@ class Tty(Output):
         :param str msg: The message to print.
         :return: None
         """
-        message = 'OUTPUT  : {}'.format(msg)
+        msg = msg.rstrip()
+        message = 'OUTPUT: {}'.format(msg)
         self._display(message)
+
+    def process_spinner(self, spinner, process_active=False):
+        """Indicates whether a process is underway.
+
+        :param yaspin  spinner: Yaspin spinner object.
+        :param boolean process_active: Process activity status.
+        :return: None
+        """
+        if process_active:
+            spinner.start()
+        else:
+            spinner.stop()
 
 
 class Silent(Output):
@@ -371,4 +399,8 @@ class Silent(Output):
 
     def info(self, *args, **kwargs):
         """Communicates a general information message."""
+        return
+
+    def process_spinner(self, *args, **kwargs):
+        """Indicates whether a process is underway."""
         return

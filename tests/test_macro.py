@@ -129,7 +129,7 @@ def test_macro_factory_single_command(cmd):
     macros = factory.generate()
     assert len(macros) == 1
     assert macros[0].as_string() == 'ls'
-    assert macros[0].sequence == 0
+    assert macros[0].sequence == 1
 
 
 def test_macro_factory_single_command_with_suffix(cmd):
@@ -153,7 +153,7 @@ def test_macro_factory_multiple_commands():
     assert len(macros) == 2
     assert macros[0].as_string() == 'cd /build_magic'
     assert macros[1].as_string() == 'make artifact1 artifact2 artifact3'
-    assert [0, 1] == [m.sequence for m in macros]
+    assert [1, 2] == [m.sequence for m in macros]
 
 
 def test_macro_factory_multiple_commands_2():
@@ -173,7 +173,7 @@ def test_macro_factory_multiple_commands_2():
     assert macros[1].as_string() == 'rm dir1'
     assert macros[2].as_string() == 'rm dir2'
     assert macros[3].as_string() == 'rm dir3'
-    assert [0, 1, 2, 3] == [m.sequence for m in macros]
+    assert [1, 2, 3, 4] == [m.sequence for m in macros]
 
 
 def test_macro_factory_multiple_commands_3():
@@ -186,7 +186,7 @@ def test_macro_factory_multiple_commands_3():
     assert macros[0].as_string() == 'a b c'
     assert macros[1].as_string() == 'd e f'
     assert macros[2].as_string() == 'g h i'
-    assert [0, 1, 2] == [m.sequence for m in macros]
+    assert [1, 2, 3] == [m.sequence for m in macros]
 
 
 def test_macro_factory_no_command():

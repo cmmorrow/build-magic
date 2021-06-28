@@ -21,8 +21,8 @@ def test_single_command(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -38,8 +38,8 @@ def test_named_stage(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1: Test - complete with result DONE' in output
 
 
@@ -56,9 +56,9 @@ def test_multiple_commands(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
     res = subprocess.run(
@@ -70,9 +70,9 @@ def test_multiple_commands(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo hello world' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
-    assert '[ DONE  ] EXECUTE  : ls' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -90,9 +90,9 @@ def test_redirection(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo "hello world" > hello.txt' in output
-    assert '[ DONE  ] EXECUTE  : cat hello.txt' in output
-    assert '[ INFO  ] OUTPUT   : hello world' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo "hello world" > hello.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : cat hello.txt' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -109,7 +109,7 @@ def test_pipe(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : ps -ef | grep python' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : ps -ef | grep python' in output
     assert '/bin/sh -c ps -ef | grep python' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
@@ -127,8 +127,8 @@ def test_env(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : echo $SHELL' in output
-    assert re.search(r'\[ INFO\s\s] OUTPUT\s\s\s: /bin/(?:b?[a-z]?sh|fish)', output)
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo $SHELL' in output
+    assert re.search(r'\[ INFO\s\s] OUTPUT: /bin/(?:b?[a-z]?sh|fish)', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -145,8 +145,8 @@ def test_wd(cli):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : pwd' in output
-    assert '[ INFO  ] OUTPUT   : /usr/bin' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : pwd' in output
+    assert '[ INFO  ] OUTPUT: /usr/bin' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -167,8 +167,8 @@ def test_cleanup(cli, tmp_path):
     output = res.stdout.decode('utf-8')
     assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
-    assert '[ DONE  ] EXECUTE  : mkdir new' in output
-    assert '[ DONE  ] EXECUTE  : touch new/file3.txt' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : mkdir new' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : touch new/file3.txt' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
     assert file1.exists()
     assert file2.exists()

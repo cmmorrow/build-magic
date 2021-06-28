@@ -207,17 +207,17 @@ def test_cli_options_no_command(cli):
 
 def test_cli_verbose_output(cli):
     """Verify the --verbose option works correctly."""
-    ref = """[ INFO  ] OUTPUT   : hello world"""
+    ref = """[ INFO  ] OUTPUT: hello world"""
     res = cli.invoke(build_magic, ['--verbose', '--plain', 'echo hello world'])
     assert res.exit_code == ExitCode.PASSED
     assert ref in res.output
 
-    ref = """OUTPUT  : hello world"""
+    ref = """OUTPUT: hello world"""
     res = cli.invoke(build_magic, ['--verbose', 'echo hello world'])
     assert res.exit_code == ExitCode.PASSED
     assert ref in res.output
 
-    ref = """OUTPUT  : hello world"""
+    ref = """OUTPUT: hello world"""
     res = cli.invoke(build_magic, ['--verbose', '--fancy', 'echo hello world'])
     assert res.exit_code == ExitCode.PASSED
     assert ref in res.output
@@ -255,14 +255,14 @@ build-magic interrupted and exiting....
 def test_cli_copy(cli, tmp_file):
     """Verify the --copy option works correctly."""
     res = cli.invoke(build_magic, ['--copy', str(tmp_file), '--verbose', '-c', 'execute', 'cat hello.txt', 'hello.txt'])
-    assert 'OUTPUT  : hello world' in res.output
+    assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
 
 
 def test_cli_working_directory(cli, tmp_file):
     """Verify the --wd option works correctly."""
     res = cli.invoke(build_magic, ['--wd', str(tmp_file), '--verbose', '-c', 'execute', 'cat hello.txt'])
-    assert 'OUTPUT  : hello world' in res.output
+    assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
 
 
@@ -272,14 +272,14 @@ def test_cli_copy_working_directory(cli, current_file):
         build_magic,
         ['--copy', '.', '--wd', str(current_file), '--verbose', '-c', 'build', 'cat hello.txt', 'hello.txt'],
     )
-    assert 'OUTPUT  : hello world' in res.output
+    assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
 
 
 def test_cli_continue_on_fail(cli):
     """Verify the --continue option works correctly."""
     res = cli.invoke(build_magic, ['--verbose', '--continue', '-c', 'execute', 'cp', '-c', 'execute', 'echo hello'])
-    assert 'OUTPUT  : hello' in res.output
+    assert 'OUTPUT: hello' in res.output
     assert res.exit_code == ExitCode.FAILED
 
 
@@ -289,8 +289,8 @@ def test_cli_stop_on_fail(cli):
     if sys.platform == 'linux':
         assert 'cp: missing file operand' in res.output
     else:
-        assert 'usage: cp' in res.output
-    assert 'OUTPUT  : hello' not in res.output
+        assert 'usage: cp' in res.output or 'cp: missing file operand' in res.output
+    assert 'OUTPUT: hello' not in res.output
     assert res.exit_code == ExitCode.FAILED
 
 
@@ -298,8 +298,8 @@ def test_cli_parameters(cli):
     """Verify the --parameter option works correctly."""
     res = cli.invoke(build_magic, ['-p', 'keytype', 'rsa', '--parameter', 'keypass', '1234', 'echo hello'])
     assert res.exit_code == ExitCode.PASSED
-    assert 'EXECUTE : echo hello ................................................ RUNNING' in res.output
-    assert 'Stage 1 finished with result COMPLETE' in res.output
+    assert '( 1/1 ) EXECUTE : echo hello ........................................ RUNNING' in res.output
+    assert 'Stage 1 finished with result DONE' in res.output
 
 
 def test_cli_parameters_invalid_parameter(cli):
@@ -322,9 +322,9 @@ def test_cli_config(cli):
     res = cli.invoke(build_magic, ['--config', str(file)])
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
-    assert 'EXECUTE : echo hello' in res.output
-    assert 'EXECUTE : ls' in res.output
-    assert 'Stage 1: Test stage - finished with result COMPLETE' in res.output
+    assert '( 1/2 ) EXECUTE : echo hello' in res.output
+    assert '( 2/2 ) EXECUTE : ls' in res.output
+    assert 'Stage 1: Test stage - finished with result DONE' in res.output
     assert 'build-magic finished in' in res.output
 
 
@@ -337,9 +337,9 @@ def test_cli_config_multi(cli):
     assert 'Starting Stage 1: Test stage' in res.output
     assert 'Starting Stage 2: Stage A' in res.output
     assert 'Starting Stage 3: Stage B' in res.output
-    assert 'Stage 1: Test stage - finished with result COMPLETE' in res.output
-    assert 'Stage 2: Stage A - finished with result COMPLETE' in res.output
-    assert 'Stage 3: Stage B - finished with result COMPLETE' in res.output
+    assert 'Stage 1: Test stage - finished with result DONE' in res.output
+    assert 'Stage 2: Stage A - finished with result DONE' in res.output
+    assert 'Stage 3: Stage B - finished with result DONE' in res.output
 
 
 def test_cli_config_parameters(cli, mocker):
@@ -359,8 +359,8 @@ def test_cli_config_parameters(cli, mocker):
     res = cli.invoke(build_magic, ['--config', str(config)])
     assert res.exit_code == ExitCode.PASSED
     assert "Starting Stage 1" in res.output
-    assert "EXECUTE : echo hello ................................................ RUNNING" in res.output
-    assert "Stage 1 finished with result COMPLETE" in res.output
+    assert "( 1/1 ) EXECUTE : echo hello ........................................ RUNNING" in res.output
+    assert "Stage 1 finished with result DONE" in res.output
 
 
 def test_cli_target(cli):
@@ -372,3 +372,5 @@ def test_cli_target(cli):
     assert 'Stage D' in out
     out = out.split('\n', maxsplit=8)[-1]
     assert 'Stage B' in out
+    assert '( 1/1 ) EXECUTE : echo "B" .......................................... RUNNING' in res.output
+    assert "Stage 2: Stage B - finished with result DONE" in res.output
