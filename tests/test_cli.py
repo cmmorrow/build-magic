@@ -1,7 +1,6 @@
 """This module hosts unit tests for the cli."""
 
 import os
-import re
 from pathlib import Path
 from pkg_resources import resource_filename
 import sys
