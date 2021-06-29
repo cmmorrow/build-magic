@@ -173,34 +173,34 @@ def build_magic(
                         stage_ = stages[stage_names.index(trgt)]
                         stages_.append(get_config_params(stage_, next(seq)))
             elif args and cfg.name in DEFAULT_CONFIG_NAMES:
-                trgt = shlex.split(args[0])[0]
-                # Execute all stages in the default config file.
-                if trgt == 'all':
-                    for stage_ in stages:
+                for trgt in [shlex.split(t)[0] for t in args]:
+                    # Execute all stages in the default config file.
+                    if trgt == 'all':
+                        for stage_ in stages:
+                            stages_.append(get_config_params(stage_, next(seq)))
+                    # Execute only the stage in the default config file that matches the given arg.
+                    elif trgt in stage_names:
+                        stage_ = stages[stage_names.index(trgt)]
                         stages_.append(get_config_params(stage_, next(seq)))
-                # Execute only the stage in the default config file that matches the given arg.
-                elif trgt in stage_names:
-                    stage_ = stages[stage_names.index(trgt)]
-                    stages_.append(get_config_params(stage_, next(seq)))
-                # Otherwise, assume the args are a command.
-                else:
-                    directives, commands = ['execute'], [' '.join(args)]
-                    stages_.append(
-                        dict(
-                            sequence=1,
-                            runner_type=reference.Runners.LOCAL.value,
-                            directives=directives,
-                            artifacts=[],
-                            action=reference.Actions.DEFAULT.value,
-                            commands=commands,
-                            environment=environment,
-                            copy=copy,
-                            wd=wd,
-                            parameters=parameter,
+                    # Otherwise, assume the args are a command.
+                    else:
+                        directives, commands = ['execute'], [' '.join(args)]
+                        stages_.append(
+                            dict(
+                                sequence=next(seq),
+                                runner_type=reference.Runners.LOCAL.value,
+                                directives=directives,
+                                artifacts=[],
+                                action=reference.Actions.DEFAULT.value,
+                                commands=commands,
+                                environment=environment,
+                                copy=copy,
+                                wd=wd,
+                                parameters=parameter,
+                            )
                         )
-                    )
-                    if name:
-                        stages_[0].update(dict(name=name))
+                        if name:
+                            stages_[0].update(dict(name=name))
             # If a default config file exists but there are no args, skip it.
             elif not args and cfg.name in DEFAULT_CONFIG_NAMES:
                 continue

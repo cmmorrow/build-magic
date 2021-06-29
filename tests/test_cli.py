@@ -15,6 +15,34 @@ from build_magic.cli import build_magic
 from build_magic.reference import ExitCode
 
 
+USAGE = """Usage: build-magic [OPTIONS] [ARGS]...
+
+build-magic is an un-opinionated build automation tool. Some potential uses include:
+    * Building applications across multiple platforms.
+    * Conducting installation dry runs.
+    * Testing application installs across multiple platforms.
+    * Deploying and installing artifacts to remote machines.
+
+Examples:
+* Archive two files on the local machine.
+    build-magic tar -czf myfiles.tar.gz file1.txt file2.txt
+
+* Archive two files on the local machine and delete the original files.
+    build-magic -c build "tar -czf myfiles.tar.gz file1.txt file2.txt" -c execute "rm file1.txt file2.txt"
+    
+* Copy two files to a remote machine and archive them.
+    build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
+
+* Build a project in a Linux container.
+    build-magic -r docker -e Ubuntu:latest -c build "make all"
+
+Use --help for detailed usage of each option.
+
+Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
+
+"""
+
+
 @pytest.fixture
 def cli():
     """Provides a CliRunner object for invoking cli calls."""
@@ -48,37 +76,37 @@ def current_file(magic_dir):
     os.remove('hello.txt')
 
 
+@pytest.fixture
+def default_config(magic_dir):
+    """Provides a default config file in the temp directory."""
+    filename = 'build-magic.yaml'
+    current = Path().cwd().resolve()
+    config = current / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield magic_dir
+    os.chdir(str(current))
+    os.remove(filename)
+
+
+@pytest.fixture
+def second_default(magic_dir):
+    """Provides an additional default config as an alternative."""
+    filename = 'build-magic.yml'
+    current = Path().cwd().resolve()
+    config = current / filename
+    content = Path(__file__).parent.joinpath('files').joinpath('build-magic.yaml').read_text()
+    config.write_text(content)
+    yield magic_dir
+    os.chdir(str(current))
+    os.remove(filename)
+
+
 def test_cli_no_options(cli):
     """Verify that the usage is printed when no options or arguments are provided."""
-    ref = """Usage: build-magic [OPTIONS] [ARGS]...
-
-build-magic is an un-opinionated build automation tool. Some potential uses include:
-    * Building applications across multiple platforms.
-    * Conducting installation dry runs.
-    * Testing application installs across multiple platforms.
-    * Deploying and installing artifacts to remote machines.
-
-Examples:
-* Archive two files on the local machine.
-    build-magic tar -czf myfiles.tar.gz file1.txt file2.txt
-
-* Archive two files on the local machine and delete the original files.
-    build-magic -c build "tar -czf myfiles.tar.gz file1.txt file2.txt" -c execute "rm file1.txt file2.txt"
-    
-* Copy two files to a remote machine and archive them.
-    build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
-
-* Build a project in a Linux container.
-    build-magic -r docker -e Ubuntu:latest -c build "make all"
-
-Use --help for detailed usage of each option.
-
-Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
-
-"""
     res = cli.invoke(build_magic)
     assert res.exit_code == ExitCode.NO_TESTS
-    assert res.output == ref
+    assert res.output == USAGE
 
 
 def test_cli_help(cli):
@@ -117,7 +145,6 @@ Options:
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])
-    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert res.output == ref
 
@@ -374,3 +401,99 @@ def test_cli_target(cli):
     assert 'Stage B' in out
     assert '( 1/1 ) EXECUTE : echo "B" .......................................... RUNNING' in res.output
     assert "Stage 2: Stage B - finished with result DONE" in res.output
+
+
+def test_cli_default_config_all_stages(cli, default_config):
+    """Verify the "all" argument works with a default config file."""
+    res = cli.invoke(build_magic, ['all'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: build' in out
+    assert 'Starting Stage 2: deploy' in out
+    assert 'Starting Stage 3: release' in out
+
+
+def test_cli_default_config_single_stage(cli, default_config):
+    """Verify running a single stage by name as an argument works with a default config file."""
+    res = cli.invoke(build_magic, ['deploy'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: build' not in out
+    assert 'Starting Stage 1: deploy' in out
+    assert 'Starting Stage 3: release' not in out
+
+
+def test_cli_default_config_reorder_stages(cli, default_config):
+    """Verify running stages in a custom order by arguments works with a default config file."""
+    res = cli.invoke(build_magic, ['release', 'deploy', 'build'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 3: build' in out
+    assert 'Starting Stage 2: deploy' in out
+    assert 'Starting Stage 1: release' in out
+
+
+def test_cli_default_config_repeat_stages(cli, default_config):
+    """Verify running stages more than once by arguments works with a default config file."""
+    res = cli.invoke(build_magic, ['release', 'release'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: release' in out
+    assert 'Starting Stage 2: release' in out
+
+
+def test_cli_default_config_repeat_stages_all(cli, default_config):
+    """Verify running stages more than once by using all works with a default config file."""
+    res = cli.invoke(build_magic, ['all', 'build'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: build' in out
+    assert 'Starting Stage 2: deploy' in out
+    assert 'Starting Stage 3: release' in out
+    assert 'Starting Stage 4: build' in out
+
+
+def test_cli_default_config_with_ad_hoc_command(cli, default_config):
+    """Verify running running an ad hoc command works correctly with a default config file."""
+    res = cli.invoke(build_magic, ['--name', 'test', 'echo "hello world"'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: test' in out
+    assert 'echo "hello world"' in out
+
+
+def test_cli_default_config_args_with_ad_hoc_command(cli, default_config):
+    """Verify running stages from arguments with a command as an argument works with a default config file."""
+    # This is an edge case that works, but can lead to weird behavior.
+    res = cli.invoke(build_magic, ['echo "hello world"', 'all'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1' in out
+    assert 'echo "hello world" all' in out
+    assert 'Starting Stage 2: build' in out
+    assert 'Starting Stage 3: deploy' in out
+    assert 'Starting Stage 4: release' in out
+
+
+def test_cli_default_config_usage(cli, default_config):
+    """Verify the usage is printed when a default config file is present."""
+    res = cli.invoke(build_magic)
+    assert res.exit_code == ExitCode.NO_TESTS
+    assert res.output == USAGE
+
+
+def test_cli_default_config_multiple_commands(cli, default_config):
+    """Verify running multiple commands works when a default config file is present."""
+    res = cli.invoke(build_magic, ['-c', 'execute', 'echo hello', '-c', 'execute', 'echo world'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert "EXECUTE : echo hello" in out
+    assert "EXECUTE : echo world" in out
+
+
+def test_cli_default_config_multiple_defaults_error(cli, default_config, second_default):
+    """Test the case where an error is raised if there's more than one default config file."""
+    res = cli.invoke(build_magic, ['all'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert 'More than one config file found:' in out
