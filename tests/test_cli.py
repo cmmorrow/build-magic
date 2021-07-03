@@ -180,6 +180,11 @@ def test_cli_stage_name(cli):
     assert 'Starting Stage 1: test stage' in res.output
     assert 'Stage 1: test stage - finished with result COMPLETE'
 
+    res = cli.invoke(build_magic, ['--name', 'test stage', '-c', 'execute', 'echo hello'])
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: test stage' in res.output
+    assert 'Stage 1: test stage - finished with result COMPLETE'
+
 
 def test_cli_invalid_runner(cli):
     """Test the case where an invalid command runner is provided."""
@@ -403,6 +408,15 @@ def test_cli_target(cli):
     assert "Stage 2: Stage B - finished with result DONE" in res.output
 
 
+def test_cli_invalid_target(cli):
+    """Test the case where an invalid target name is provided."""
+    file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'targets.yaml'
+    res = cli.invoke(build_magic, ['-C', str(file), '-t', 'blarg'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == "Target blarg not found among ['Stage A', 'Stage B', 'Stage C', 'Stage D'].\n"
+
+
 def test_cli_default_config_all_stages(cli, default_config):
     """Verify the "all" argument works with a default config file."""
     res = cli.invoke(build_magic, ['all'])
@@ -442,6 +456,16 @@ def test_cli_default_config_repeat_stages(cli, default_config):
     assert 'Starting Stage 2: release' in out
 
 
+def test_cli_default_config_with_targets(cli, default_config):
+    """Verify running stages using the --target option works with a default config file."""
+    res = cli.invoke(build_magic, ['-t', 'release', '-t', 'deploy', '-t', 'build'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 3: build' in out
+    assert 'Starting Stage 2: deploy' in out
+    assert 'Starting Stage 1: release' in out
+
+
 def test_cli_default_config_repeat_stages_all(cli, default_config):
     """Verify running stages more than once by using all works with a default config file."""
     res = cli.invoke(build_magic, ['all', 'build'])
@@ -460,6 +484,15 @@ def test_cli_default_config_with_ad_hoc_command(cli, default_config):
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: test' in out
     assert 'echo "hello world"' in out
+
+
+def test_cli_default_config_not_repeated(cli, default_config):
+    """Test the case where a default config file is added explicitly with --command option."""
+    res = cli.invoke(build_magic, ['-C', 'build-magic.yaml', '-t', 'deploy'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: deploy' in out
+    assert 'Starting Stage 2: deploy' not in out
 
 
 def test_cli_default_config_args_with_ad_hoc_command(cli, default_config):

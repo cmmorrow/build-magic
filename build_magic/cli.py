@@ -122,6 +122,7 @@ def build_magic(
         out = reference.OutputTypes.TTY
 
     stages_ = []
+    all_stage_names = []
     config = list(config)
     seq = core.iterate_sequence()
 
@@ -166,6 +167,7 @@ def build_magic(
         for cfg in config:
             stages = get_stages_from_config(cfg)
             stage_names = [stg.get('name') for stg in stages if stg.get('name')]
+            all_stage_names.extend(stage_names)
             # Only execute stages that match a target name.
             if target:
                 for trgt in target:
@@ -229,6 +231,9 @@ def build_magic(
             stages_[0].update(dict(name=name))
     # If all else fails, display the usage text.
     if not stages_:
+        if target:
+            click.secho(f'Target {target[0]} not found among {all_stage_names}.', fg='red', err=True)
+            sys.exit(reference.ExitCode.INPUT_ERROR)
         click.echo(USAGE)
         sys.exit(reference.ExitCode.NO_TESTS)
 
