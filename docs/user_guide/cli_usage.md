@@ -2,9 +2,9 @@
 
 ## Synopsis
 
-```text
-build-magic [--help | --version]
+### Provide Commands
 
+```text
 build-magic [-r | --runner (local | remote | vagrant | docker)] 
     [-e | --environment <env>] [--name <stage>] [--wd <working-directory>] 
     [-p | --parameter <p-name p-value>]... 
@@ -18,18 +18,106 @@ build-magic [-r | --runner (local | remote | vagrant | docker)]
     [--fancy | --plain | --quiet] [--verbose] [--copy <copy-from>] 
     [--continue | --stop] [-c | --command <directive command>]... 
     [<artifact>...]
+```
 
+### Provide Config Files
+
+```text
 build-magic [--fancy | --plain | --quiet] [--verbose] 
-[-C | --config <config-file>]
+[-C | --config <config-file>] [-t | --target <stage name>]...
+
+build-magic [--fancy | --plain | --quiet] [--verbose]
+[all | <stage name> | [-t | --target <stage name>]...]
 ```
 
 ## Usage
 
-There are three ways to use build-magic from the command-line.
+There are two ways to use build-magic from the command-line.
 
-1. Execute a single command where any arguments provided after valid options are interpreted as part of **<command\>**. For example: `build-magic --verbose echo hello world`.
-2. Execute a single stage with multiple commands. This form must use one or more **[-c | --command <directive command\>]** options to specify the commands. In this form, any arguments provided after valid options are interpreted as one or more **<artifact\>**. Artifact arguments are ignored unless the **--copy** option is used. The artifacts must exist in **<copy-from\>** to be copied to the working directory.
-3. Execute multiple stages with multiple commands using a config file.
+### Specify commands to execute from the command line
+
+Execute a single command where any arguments provided after valid options are interpreted as part of **<command\>**. For example:
+
+```sh
+build-magic --verbose echo hello world
+```
+
+Alternatively, execute a single stage with multiple commands. This form must use one or more **[-c | --command <directive command\>]** options to specify the commands. For example:
+
+```sh
+build-magic --verbose \
+--command execute 'echo "hello world" > hello.txt' \
+--command execute 'cat hello.txt'
+```
+
+In this form, any arguments provided after valid options are interpreted as one or more **<artifact\>**. Artifact arguments are ignored unless the **--copy** option is used. The artifacts must exist in **<copy-from\>** to be copied to the working directory. For example:
+
+```sh
+build-magic --copy src --command build 'make' audio.c equalizer.c effects.c
+```
+
+### Specify stages and commands to execute from a config file
+
+Execute multiple stages with multiple commands using a config file. For example:
+
+```sh
+build-magic --config my_config.yaml
+```
+
+A config file in a different directory can also be used by providing the relative or absolute path to the config file:
+
+```sh
+build-magic --config my_project/config.yaml
+```
+
+Multiple config files can be specified and they will be executed in order.
+
+```sh
+build-magic --config config1.yaml --config config2.yaml
+```
+
+Execute a specific stage in a config file with the `--target` option. If for example, a config file has three stages named build, test, and deploy, the deploy stage can be run on it's own with:
+
+```sh
+build-magic --config my_config.yaml --target deploy
+```
+
+Multiple targets can be specified to change the stage execution order of a config file. Running tests before building can be accomplished with:
+
+```sh
+build-magic --config my_config.yaml --target test --target build
+```
+
+Named stages in a config file can also be run similar to a Makefile by specifying the stage name:
+
+```sh
+build-magic deploy
+```
+
+However, this usage will only work if the config file is named one of the following default filenames:
+
+* `build-magic.yaml`
+* `build_magic.yaml`
+* `build-magic.yml`
+* `build_magic.yml`
+
+To run all the stages in a default named config file, use:
+
+```sh
+build-magic all
+```
+
+!!! Note
+    The `make` like usage is more limited than using the `--target` option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with `all`. Also, a config file must have one of the default filenames mentioned above, which also means multiple config files cannot be used. The config file must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended for these reasons to use the `--target` option instead.
+
+It is also possible to use the `--target` option with a config file that has a default filename without having to specify the config filename with `--config`. For example:
+
+```sh
+build-magic --target test --target build
+```
+
+!!! Note
+    If running build-magic from a directory that has a config file with a default filename and another config file is specified with the `--config` option, both config files will be executed with the config file with the default filename running first.
 
 ## Description
 
@@ -80,3 +168,5 @@ The *default* action is set by default.
 **-c**, **--command** - A **<directive command\>** pair to execute. The command must be wrapped in quotes for build-magic to parse it correctly. For example: `--command execute "echo 'hello world'"`. Can be provided multiple times.
 
 **-C**, **--config** - Executes the stages in **<config-file\>**.
+
+**-t**, **--target** - Matches the name of a stage in the specified config file or files to execute. If **<stage name\>** doesn't match a named stage in any of the config files, an error is returned. Multiple targets can be provided and each corresponding stage will be executed in the order the targets are specified.

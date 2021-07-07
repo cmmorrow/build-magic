@@ -1,6 +1,8 @@
 """Click CLI for running build-magic."""
 
 import logging
+import pathlib
+import shlex
 import sys
 
 import click
@@ -28,6 +30,14 @@ WORKINGDIR = click.Path(exists=False, file_okay=False, dir_okay=True, resolve_pa
 
 # Defines the type for the config file.
 CONFIG = click.File(mode='r', encoding='utf-8', errors='strict', lazy=False)
+
+
+DEFAULT_CONFIG_NAMES = {
+    'build-magic.yaml',
+    'build_magic.yaml',
+    'build-magic.yml',
+    'build_magic.yml',
+}
 
 
 USAGE = """Usage: build-magic [OPTIONS] [ARGS]...
@@ -64,6 +74,7 @@ Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detaile
 @click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
 @click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
 @click.option('--name', help='The stage name to use.', type=str)
+@click.option('--target', '-t', help='Run a particular stage by name.', type=str, multiple=True)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
@@ -84,6 +95,7 @@ def build_magic(
         action,
         runner,
         name,
+        target,
         wd,
         plain,
         quiet,
@@ -110,51 +122,33 @@ def build_magic(
         out = reference.OutputTypes.TTY
 
     stages_ = []
+    all_stage_names = []
+    config = list(config)
+    seq = core.iterate_sequence()
 
-    if config:
-        seq = core.iterate_sequence()
-        for cfg in config:
-            # Read the config YAML file.
-            obj = yaml.safe_load(cfg)
+    # Check to see if a default-named config file exists in the current directory.
+    default_configs = DEFAULT_CONFIG_NAMES & set([path.name for path in pathlib.Path.cwd().iterdir()])
+    if len(default_configs) > 1:
+        click.secho(f'More than one config file found: {default_configs}', fg='red', err=True)
+        sys.exit(reference.ExitCode.INPUT_ERROR)
 
-            # Parse the YAML file and set the options.
-            try:
-                stages = core.config_parser(obj)
-            except ValueError as err:
-                click.secho(str(err), fg='red', err=True)
-                sys.exit(reference.ExitCode.INPUT_ERROR)
-
-            for stage_ in stages:
-                stages_.append(
-                    dict(
-                        sequence=next(seq),
-                        runner_type=stage_['runner_type'],
-                        directives=stage_['directives'],
-                        artifacts=stage_['artifacts'],
-                        action=stage_['action'],
-                        commands=stage_['commands'],
-                        environment=stage_['environment'],
-                        copy=stage_['copy'],
-                        wd=stage_['wd'],
-                        name=stage_['name'],
-                        parameters=stage_['parameters'],
-                    )
-                )
-    else:
-        # Set the commands from the command line.
-        if command:
-            directives, commands = list(zip(*command))
-            artifacts = args
+    # Add the default config to the list of configs.
+    if len(default_configs) == 1:
+        default_config_file_name = tuple(default_configs)[0]
+        config_file = pathlib.Path(default_config_file_name).open()
+        if config_file.name not in [conf.name for conf in config]:
+            config.insert(0, config_file)
         else:
-            directives, commands = ['execute'], [' '.join(args)]
-            artifacts = []
-        if not commands or commands == ['']:
-            click.echo(USAGE)
-            sys.exit(5)
+            config_file.close()
+
+    # Set the commands from the command line.
+    if command:
+        directives, commands = list(zip(*command))
+        artifacts = args
 
         stages_.append(
             dict(
-                sequence=1,
+                sequence=next(seq),
                 runner_type=reference.Runners.LOCAL.value,
                 directives=directives,
                 artifacts=artifacts,
@@ -169,31 +163,109 @@ def build_magic(
         if name:
             stages_[0].update(dict(name=name))
 
-    # Override values in the config file with options set at the command line.
-    for stage in stages_:
-        if action:
-            stage.update(dict(action=action))
-        if environment:
-            stage.update(dict(environment=environment))
-        if copy:
-            stage.update(dict(copy=copy))
-        if len(wd) > 1:
-            stage.update(dict(wd=wd))
-        if runner:
-            stage.update(dict(runner_type=runner))
-
-    # Build the stages.
-    stages = []
-    for stage in stages_:
-        try:
-            stages.append(core.build_stage(**stage))
-        except (NotADirectoryError, ValueError, reference.ValidationError) as err:
-            click.secho(str(err), fg='red', err=True)
+    if config:
+        for cfg in config:
+            stages = get_stages_from_config(cfg)
+            stage_names = [stg.get('name') for stg in stages if stg.get('name')]
+            all_stage_names.extend(stage_names)
+            # Only execute stages that match a target name.
+            if target:
+                for trgt in target:
+                    if trgt in stage_names:
+                        stage_ = stages[stage_names.index(trgt)]
+                        stages_.append(get_config_params(stage_, next(seq)))
+            elif args and cfg.name in DEFAULT_CONFIG_NAMES:
+                for trgt in [shlex.split(t)[0] for t in args]:
+                    # Execute all stages in the default config file.
+                    if trgt == 'all':
+                        for stage_ in stages:
+                            stages_.append(get_config_params(stage_, next(seq)))
+                    # Execute only the stage in the default config file that matches the given arg.
+                    elif trgt in stage_names:
+                        stage_ = stages[stage_names.index(trgt)]
+                        stages_.append(get_config_params(stage_, next(seq)))
+                    # Otherwise, assume the args are a command.
+                    else:
+                        directives, commands = ['execute'], [' '.join(args)]
+                        stages_.append(
+                            dict(
+                                sequence=next(seq),
+                                runner_type=reference.Runners.LOCAL.value,
+                                directives=directives,
+                                artifacts=[],
+                                action=reference.Actions.DEFAULT.value,
+                                commands=commands,
+                                environment=environment,
+                                copy=copy,
+                                wd=wd,
+                                parameters=parameter,
+                            )
+                        )
+                        if name:
+                            stages_[0].update(dict(name=name))
+            # If a default config file exists but there are no args, skip it.
+            elif not args and cfg.name in DEFAULT_CONFIG_NAMES:
+                continue
+            # The typical case where each stage is executed in the specified config file.
+            else:
+                for stage_ in stages:
+                    stages_.append(get_config_params(stage_, next(seq)))
+    # Assume the args are an ad-hoc command to execute.
+    elif args and not command:
+        directives, commands = ['execute'], [' '.join(args)]
+        stages_.append(
+            dict(
+                sequence=1,
+                runner_type=reference.Runners.LOCAL.value,
+                directives=directives,
+                artifacts=[],
+                action=reference.Actions.DEFAULT.value,
+                commands=commands,
+                environment=environment,
+                copy=copy,
+                wd=wd,
+                parameters=parameter,
+            )
+        )
+        if name:
+            stages_[0].update(dict(name=name))
+    # If all else fails, display the usage text.
+    if not stages_:
+        if target:
+            click.secho(f'Target {target[0]} not found among {all_stage_names}.', fg='red', err=True)
             sys.exit(reference.ExitCode.INPUT_ERROR)
+        click.echo(USAGE)
+        sys.exit(reference.ExitCode.NO_TESTS)
 
-    # Run the stages.
+    # Override values in the config file with options set at the command line.
+    if not command:
+        for stage in stages_:
+            if action:
+                stage.update(dict(action=action))
+            if environment:
+                stage.update(dict(environment=environment))
+            if copy:
+                stage.update(dict(copy=copy))
+            if len(wd) > 1:
+                stage.update(dict(wd=wd))
+            if runner:
+                stage.update(dict(runner_type=runner))
+
+    stages = build_stages(stages_)
+    engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
+    code = execute_stages(engine)
+
+    sys.exit(code)
+
+
+def execute_stages(engine):
+    """Helper function for executing each stage in order.
+
+    :param engine: The build-magic Engine object to execute.
+    :rtype: int
+    :return: The highest exit code from the executed stages.
+    """
     try:
-        engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
         code = engine.run()
     except NoJobs:
         sys.exit(reference.ExitCode.NO_TESTS)
@@ -202,5 +274,63 @@ def build_magic(
     except KeyboardInterrupt:
         click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)
         sys.exit(reference.ExitCode.INTERRUPTED)
+    return code
 
-    sys.exit(code)
+
+def build_stages(args):
+    """Helper function for building each Stage object.
+
+    :param list[dict] args: A list of keyword arguments to pass to the Stage factory.
+    :rtype: list[Stage]
+    :return: A list of corresponding Stage objects.
+    """
+    stages = []
+    for stage in args:
+        try:
+            stages.append(core.build_stage(**stage))
+        except (NotADirectoryError, ValueError, reference.ValidationError) as err:
+            click.secho(str(err), fg='red', err=True)
+            sys.exit(reference.ExitCode.INPUT_ERROR)
+    return stages
+
+
+def get_config_params(stage, seq=1):
+    """Maps config keys to stage arguments as a dictionary.
+
+    :param dict stage: The stage to map.
+    :param int seq: The stage sequence.
+    :rtype: dict
+    :return: The mapped keyword arguments.
+    """
+    return dict(
+        sequence=seq,
+        runner_type=stage.get('runner_type'),
+        directives=stage.get('directives'),
+        artifacts=stage.get('artifacts'),
+        action=stage.get('action'),
+        commands=stage.get('commands'),
+        environment=stage.get('environment'),
+        copy=stage.get('copy'),
+        wd=stage.get('wd'),
+        name=stage.get('name'),
+        parameters=stage.get('parameters'),
+    )
+
+
+def get_stages_from_config(cfg):
+    """Read a config YAML file and extract the stages.
+
+    :param str cfg: The config filename.
+    :rtype: list[dict]
+    :return: The extracted stages.
+    """
+    # Read the config YAML file.
+    obj = yaml.safe_load(cfg)
+
+    # Parse the YAML file and set the options.
+    try:
+        stages = core.config_parser(obj)
+    except ValueError as err:
+        click.secho(str(err), fg='red', err=True)
+        sys.exit(reference.ExitCode.INPUT_ERROR)
+    return stages

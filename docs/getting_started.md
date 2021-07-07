@@ -83,7 +83,9 @@ Currently, build-magic only supports SSH connections via public/private key pair
 You can verify build-magic is install by running the following command from a command prompt:
 
 ```text
-build-magic --verbose 'echo Hello World!'
+build-magic --verbose "echo 'hello world'"
 ```
 
-You should see build-magic run and output `Hello World!`
+You should see build-magic run and output `hello world`
+
+![build-magic](build-magic.gif)

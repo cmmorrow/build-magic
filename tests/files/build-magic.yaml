@@ -1,0 +1,13 @@
+build-magic:
+  - stage:
+      name: build
+      commands:
+        - execute: echo build
+  - stage:
+      name: deploy
+      commands:
+        - execute: echo deploy
+  - stage:
+      name: release
+      commands:
+        - execute: echo release

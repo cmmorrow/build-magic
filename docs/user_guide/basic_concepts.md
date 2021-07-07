@@ -9,6 +9,7 @@ To get the most out of build-magic, you should become familiar with build-magic'
 - Working Directory
 - Stages
 - Config File
+- Targets
 - Job
 - Actions
 - Parameters
@@ -94,11 +95,15 @@ A Stage is a collection of Commands. When you use build-magic from the command-l
 
 ## Config File
 
-A build-magic Config File is a YAML file that describes the Stages and Commands to run, and how to run them.
+A build-magic Config File is a YAML file that describes the Stages and Commands to run, and how to run them. The Config File consists of a list of Stages to be executed in order. Multiple Config Files can be provided, in which case the Stages are executed in the order they are provided in each Config File.
+
+## Targets
+
+A Target is a Stage name that can be used to run the corresponding Stage regardless of the Stage order in the Config file. Multiple Targets can be specified to reorder Stages at runtime. Targets can be used to filter the Stages to execute.
 
 ## Job
 
-A Job is a collection of all the Stages that build-magic is going to execute.
+A Job is a collection of all the Stages that build-magic is going to execute. If more than one Config File is provided, the Job consists of every Stage from each Config File.
 
 ## Actions
 
