@@ -308,6 +308,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#targets" class="md-nav__link">
+    Targets
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#job" class="md-nav__link">
     Job
   </a>
@@ -516,6 +523,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#targets" class="md-nav__link">
+    Targets
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#job" class="md-nav__link">
     Job
   </a>
@@ -559,6 +573,7 @@
 <li>Working Directory</li>
 <li>Stages</li>
 <li>Config File</li>
+<li>Targets</li>
 <li>Job</li>
 <li>Actions</li>
 <li>Parameters</li>
@@ -621,9 +636,11 @@
 <h2 id="stages">Stages</h2>
 <p>A Stage is a collection of Commands. When you use build-magic from the command-line, all the Commands are gathered into a single stage and executed as a single collection. Build-magic can execute multiple Stages, but only by using a Config File.</p>
 <h2 id="config-file">Config File</h2>
-<p>A build-magic Config File is a YAML file that describes the Stages and Commands to run, and how to run them.</p>
+<p>A build-magic Config File is a YAML file that describes the Stages and Commands to run, and how to run them. The Config File consists of a list of Stages to be executed in order. Multiple Config Files can be provided, in which case the Stages are executed in the order they are provided in each Config File.</p>
+<h2 id="targets">Targets</h2>
+<p>A Target is a Stage name that can be used to run the corresponding Stage regardless of the Stage order in the Config file. Multiple Targets can be specified to reorder Stages at runtime. Targets can be used to filter the Stages to execute.</p>
 <h2 id="job">Job</h2>
-<p>A Job is a collection of all the Stages that build-magic is going to execute.</p>
+<p>A Job is a collection of all the Stages that build-magic is going to execute. If more than one Config File is provided, the Job consists of every Stage from each Config File.</p>
 <h2 id="actions">Actions</h2>
 <p>Actions can be used to modify build-magic's default behavior by adding setup and teardown behavior to a Stage. Build-magic's Actions are:</p>
 <ul>

@@ -207,14 +207,14 @@
       
         <li class="md-nav__item">
   <a href="#what-build-magic-is" class="md-nav__link">
-    What build-magic Is
+    What build-magic "Is"
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#what-build-magic-is-not" class="md-nav__link">
-    What build-magic Is Not
+    What build-magic "Is Not"
   </a>
   
 </li>
@@ -410,14 +410,14 @@
       
         <li class="md-nav__item">
   <a href="#what-build-magic-is" class="md-nav__link">
-    What build-magic Is
+    What build-magic "Is"
   </a>
   
 </li>
       
         <li class="md-nav__item">
   <a href="#what-build-magic-is-not" class="md-nav__link">
-    What build-magic Is Not
+    What build-magic "Is Not"
   </a>
   
 </li>
@@ -436,12 +436,12 @@
                 
                 
                 <h1 id="welcome-to-build-magic">Welcome to build-magic &#x1F528;&#x2728;</h1>
-<p>An un-opinionated build automation tool.</p>
-<p>Build-magic is a command-line application for automating build, test, install, package, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.</p>
+<p>An un-opinionated, general purpose automation tool.</p>
+<p>Build-magic is a command-line application for automating build, test, install, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.</p>
 <hr />
 <p><img alt="build-magic" src="build-magic.gif" /></p>
 <p>Using build-magic is as simple as:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic &quot;echo hello world &gt; hello.txt&quot;
+<div class="highlight"><pre><span></span><code>&gt; build-magic &quot;echo hello world!&quot;
 </code></pre></div>
 <p>But can support complex build automation with multiple steps such as:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic \
@@ -455,19 +455,25 @@
 --command execute &quot;tar -czf myapp.tar.gz build/*&quot; \
 --command release &quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;
 </code></pre></div>
+<p>Build-magic can also execute a batch of commands in a config file such as:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C release.yaml
+</code></pre></div>
+<p>Or, if the config file is named <code>build-magic.yaml</code>, can be run similar to the <code>make</code> command with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic all
+</code></pre></div>
 <hr />
 <p>Build-magic lets you work the way you want to work.</p>
 <ul>
-<li>No need to login into a remote build server.</li>
 <li>Build and test your Linux application on a Windows laptop.</li>
 <li>Install and test your application in a VM.</li>
+<li>Automate your build, test, and deploy pipeline on your laptop or in the cloud.</li>
 </ul>
 <p>Build-magic can execute commands on your local machine, on a remote server, in a Docker container, or in a virtual machine.</p>
-<h2 id="what-build-magic-is">What build-magic Is</h2>
+<h2 id="what-build-magic-is">What build-magic "Is"</h2>
 <p>A command-line automation tool for running commands locally, remotely, in a container, or in a VM. The complexity of what build-magic can do is limited primarily by your imagination. Build-magic strives to enable developers to simplifier their application builds in a portable, user-friendly way.</p>
-<h2 id="what-build-magic-is-not">What build-magic Is Not</h2>
-<p>Another CI/CD tool. There are plenty of great CI/CD tools out there. Build-magic isn't a replacement for Jenkins or GitHub Actions. In addition to build automation, these tools bake in notifications, post webhooks for source control events, and are generally cloud based. Build-magic is instead focused on build automation you can control locally.</p>
-<p>CI/CD tools are extremely useful, and both Jenkins and GitHub Actions can use build-magic to minimize differences between production builds in the cloud and development builds on your laptop.</p>
+<h2 id="what-build-magic-is-not">What build-magic "Is Not"</h2>
+<p>A CI/CD tool replacement. There are plenty of great CI/CD tools out there. Build-magic isn't a replacement for Jenkins, GitLab CI, or GitHub Actions. In addition to build automation, these tools bake in notifications, post webhooks for source control events, and are generally cloud based. Build-magic is instead focused on build automation you can control locally.</p>
+<p>CI/CD tools are extremely useful, and Jenkins, GitLab CI, and GitHub Actions can use build-magic to minimize differences between production builds in the cloud and development builds on your laptop.</p>
                 
               
               
