@@ -238,18 +238,17 @@ def build_magic(
         sys.exit(reference.ExitCode.NO_TESTS)
 
     # Override values in the config file with options set at the command line.
-    if not command:
-        for stage in stages_:
-            if action:
-                stage.update(dict(action=action))
-            if environment:
-                stage.update(dict(environment=environment))
-            if copy:
-                stage.update(dict(copy=copy))
-            if len(wd) > 1:
-                stage.update(dict(wd=wd))
-            if runner:
-                stage.update(dict(runner_type=runner))
+    for stage in stages_:
+        if action:
+            stage.update(dict(action=action))
+        if environment:
+            stage.update(dict(environment=environment))
+        if copy:
+            stage.update(dict(copy=copy))
+        if len(wd) > 1:
+            stage.update(dict(wd=wd))
+        if runner:
+            stage.update(dict(runner_type=runner))
 
     stages = build_stages(stages_)
     engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
