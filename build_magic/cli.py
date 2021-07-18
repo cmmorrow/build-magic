@@ -74,15 +74,17 @@ Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detaile
 @click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
 @click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
 @click.option('--name', help='The stage name to use.', type=str)
-@click.option('--target', '-t', help='Run a particular stage by name.', type=str, multiple=True)
+@click.option('--target', '-t', help='Run a particular stage by name.', multiple=True, type=str)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
+@click.option('--variable', '-v', help='Key/value config file variables.', multiple=True, type=(str, str))
+@click.option('--prompt', help='Config file variable with prompt for value.', multiple=True, type=str)
 @click.option('--action', help='Setup and teardown action to perform.', type=ACTIONS)
 @click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
 @click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
 @click.option('--verbose', help='Verbose output -- stdout from executed commands will be printed.', is_flag=True)
-@click.option('--version', help='Show the version and exit.', is_flag=True)
+@click.version_option(version=ver, message='%(version)s')
 @click.argument('args', nargs=-1)
 def build_magic(
         command,
@@ -92,6 +94,8 @@ def build_magic(
         environment,
         args,
         parameter,
+        variable,
+        prompt,
         action,
         runner,
         name,
@@ -100,7 +104,6 @@ def build_magic(
         plain,
         quiet,
         verbose,
-        version,
 ):
     """An un-opinionated build automation tool.
 
@@ -109,9 +112,6 @@ def build_magic(
 
     Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
     """
-    if version:
-        click.echo(ver)
-        sys.exit(0)
 
     # Get the output type.
     if plain:
@@ -165,7 +165,12 @@ def build_magic(
 
     if config:
         for cfg in config:
-            stages = get_stages_from_config(cfg)
+            if prompt:
+                variable = list(variable)
+                for var in prompt:
+                    val = click.prompt(f'{var}', hide_input=True)
+                    variable.append((var, val))
+            stages = get_stages_from_config(cfg, dict(variable))
             stage_names = [stg.get('name') for stg in stages if stg.get('name')]
             all_stage_names.extend(stage_names)
             # Only execute stages that match a target name.
@@ -316,10 +321,11 @@ def get_config_params(stage, seq=1):
     )
 
 
-def get_stages_from_config(cfg):
+def get_stages_from_config(cfg, variables):
     """Read a config YAML file and extract the stages.
 
     :param str cfg: The config filename.
+    :param dict variables: Variables to substitute into the config file.
     :rtype: list[dict]
     :return: The extracted stages.
     """
@@ -328,6 +334,7 @@ def get_stages_from_config(cfg):
 
     # Parse the YAML file and set the options.
     try:
+        obj = core.parse_variables(obj, variables)
         stages = core.config_parser(obj)
     except ValueError as err:
         click.secho(str(err), fg='red', err=True)

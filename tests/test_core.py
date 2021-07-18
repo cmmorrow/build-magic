@@ -1,10 +1,11 @@
 """This module hosts unit tests for the core classes."""
+import json
 
 import pytest
 
 from build_magic.actions import Default
 from build_magic.core import (
-    config_parser, Engine, iterate_sequence, Stage, StageFactory
+    config_parser, Engine, iterate_sequence, parse_variables, Stage, StageFactory
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs, ValidationError
 from build_magic.macro import Macro
@@ -258,11 +259,13 @@ def test_engine_constructor():
     assert engine._stages[2].sequence == 2
     assert not engine._continue_on_fail
 
+
 def test_engine_stage_list_type_fail():
     """Verify the stages argument must be a list."""
     params = "dummy"
     with pytest.raises(TypeError):
-        engine = Engine(params)
+        Engine(params)
+
 
 def test_config_parser():
     """Verify the config parser works correctly."""
@@ -438,3 +441,141 @@ def test_iterative_sequence():
         out.append(next(seq))
         i += 1
     assert out == [1, 2, 3, 4, 5]
+
+
+def test_parse_variables():
+    """Verify parser_variables works correctly."""
+    variables = {
+        'OS': 'linux',
+        'ARCH': 'arm64',
+    }
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'runner': 'local',
+                    'commands': [
+                        {'execute': 'export GOARCH={{ ARCH }}'},
+                        {'execute': 'export GOOS={{ OS }}'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
+        '[{"execute": "export GOARCH=arm64"}, {"execute": "export GOOS=linux"}]}}]}'
+    )
+
+
+def test_parse_variables_multiple_matches():
+    """Verify parser_variables works with substituting multiple instances of the same variable."""
+    variables = {
+        'user': 'max',
+        'pass': 'dummy',
+        'version': '2.2.2',
+    }
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'commands': [
+                        {'execute': 'prep.sh --version {{ version }}'},
+                        {'build': 'build.sh --u {{ user }} --pass {{ pass }} --version {{ version }}'},
+                        {'install': 'docker build -t test:{{ version }} .'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "commands": [{"execute": "prep.sh --version 2.2.2"}, '
+        '{"build": "build.sh --u max --pass dummy --version 2.2.2"}, {"install": "docker build -t test:2.2.2 ."}]}}]}'
+    )
+
+
+def test_parse_variables_different_spacing():
+    """Verify parser_variables works with inconsistent spacing around the placeholder text."""
+    variables = {
+        'user': 'max',
+        'pass': 'dummy',
+        'version': '2.2.2',
+    }
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'commands': [
+                        {'execute': 'prep.sh --version {{version }}'},
+                        {'build': 'build.sh --u {{ user }} --pass {{pass}} --version {{ version}}'},
+                        {'install': 'docker build -t test:{{version}} .'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "commands": [{"execute": "prep.sh --version 2.2.2"}, '
+        '{"build": "build.sh --u max --pass dummy --version 2.2.2"}, {"install": "docker build -t test:2.2.2 ."}]}}]}'
+    )
+
+
+def test_parse_variables_no_matches():
+    """Test the case where there are no matches for parse_variables to substitute."""
+    variables = {
+        'user': 'max',
+        'pass': 'dummy',
+        'version': '2.2.2',
+    }
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'runner': 'local',
+                    'commands': [
+                        {'execute': 'export GOARCH={{ ARCH }}'},
+                        {'execute': 'export GOOS={{ OS }}'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
+        '[{"execute": "export GOARCH={{ ARCH }}"}, {"execute": "export GOOS={{ OS }}"}]}}]}'
+    )
+
+
+def test_parser_variables_too_much_space():
+    """Test the case where a placeholder isn't substituted by parse_variables because there's too much white space."""
+    variables = {
+        'OS': 'linux',
+        'ARCH': 'arm64',
+    }
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'runner': 'local',
+                    'commands': [
+                        {'execute': 'export GOARCH={{  ARCH }}'},
+                        {'execute': 'export GOOS={{ OS     }}'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
+        '[{"execute": "export GOARCH={{  ARCH }}"}, {"execute": "export GOOS={{ OS     }}"}]}}]}'
+    )

@@ -134,6 +134,8 @@ Options:
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   -p, --parameter <TEXT TEXT>...  Key/value used for runner specific settings.
+  -v, --variable <TEXT TEXT>...   Key/value config file variables.
+  --prompt TEXT                   Config file variable with prompt for value.
   --action [default|cleanup|persist]
                                   Setup and teardown action to perform.
   --plain / --fancy               Enable basic output. Ideal for automation.
@@ -530,3 +532,31 @@ def test_cli_default_config_multiple_defaults_error(cli, default_config, second_
     out = res.output
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert 'More than one config file found:' in out
+
+
+def test_cli_variable(cli):
+    """Verify adding variables from the CLI properly replaces placeholders in a config file."""
+    config = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'variables.yaml'
+    res = cli.invoke(build_magic, ['-C', config, '--variable', 'ARCH', 'arm64', '-v', 'OS', 'linux'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert "EXECUTE : export GOARCH=arm64" in out
+    assert "EXECUTE : export GOOS=linux" in out
+
+
+def test_cli_variable_not_found(cli):
+    """Test the case where variables aren't substituted because they aren't found in the config file."""
+    config = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'variables.yaml'
+    res = cli.invoke(build_magic, ['-C', config, '--variable', 'user', 'elle', '-v', 'host', 'server'])
+    out = res.output
+    assert res.exit_code == ExitCode.FAILED
+    assert 'EXECUTE : export GOARCH={{ ARCH }}' in out
+
+
+def test_cli_prompt(cli):
+    """Verify the prompt option works correctly."""
+    config = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'prompt.yaml'
+    res = cli.invoke(build_magic, ['-C', config, '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n')
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'EXECUTE : echo elle:secret' in out
