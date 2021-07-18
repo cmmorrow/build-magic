@@ -108,14 +108,21 @@ def parse_variables(config, variables):
     :rtype: dict
     :return: The resulting config after variable substitution.
     """
+    pattern = r'({{\s?\w+\s?}})'
+    matched = False
     config_string = json.dumps(config)
-    matches = re.findall(r'({{\s?\w+\s?}})', json.dumps(config))
-    if matches:
-        for key, value in variables.items():
-            for match in matches:
-                if key in match:
-                    config_string = re.sub(r'{{\s?' + key + r'\s?}}', value, config_string)
-                    break
+    if variables:
+        if re.search(pattern, json.dumps(config)):
+            matches = re.findall(pattern, json.dumps(config))
+            if matches:
+                for key, value in variables.items():
+                    for match in matches:
+                        if key in match:
+                            config_string = re.sub(r'{{\s?' + key + r'\s?}}', value, config_string)
+                            matched = True
+                            break
+            if not matched:
+                raise ValueError('No variable matches found.')
     return json.loads(config_string)
 
 

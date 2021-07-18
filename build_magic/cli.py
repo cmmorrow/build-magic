@@ -164,12 +164,12 @@ def build_magic(
             stages_[0].update(dict(name=name))
 
     if config:
+        if prompt:
+            variable = list(variable)
+            for var in prompt:
+                value = click.prompt(f'{var}', hide_input=True)
+                variable.append((var, value))
         for cfg in config:
-            if prompt:
-                variable = list(variable)
-                for var in prompt:
-                    val = click.prompt(f'{var}', hide_input=True)
-                    variable.append((var, val))
             stages = get_stages_from_config(cfg, dict(variable))
             stage_names = [stg.get('name') for stg in stages if stg.get('name')]
             all_stage_names.extend(stage_names)

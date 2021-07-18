@@ -547,14 +547,11 @@ def test_parse_variables_no_matches():
             }
         ]
     }
-    output = parse_variables(config, variables)
-    assert json.dumps(output) == (
-        '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
-        '[{"execute": "export GOARCH={{ ARCH }}"}, {"execute": "export GOOS={{ OS }}"}]}}]}'
-    )
+    with pytest.raises(ValueError, match='No variable matches found'):
+        parse_variables(config, variables)
 
 
-def test_parser_variables_too_much_space():
+def test_parse_variables_too_much_space():
     """Test the case where a placeholder isn't substituted by parse_variables because there's too much white space."""
     variables = {
         'OS': 'linux',
@@ -578,4 +575,52 @@ def test_parser_variables_too_much_space():
     assert json.dumps(output) == (
         '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
         '[{"execute": "export GOARCH={{  ARCH }}"}, {"execute": "export GOOS={{ OS     }}"}]}}]}'
+    )
+
+
+def test_parse_variables_no_variables_no_placeholders():
+    """Test the case where parse_variables isn't provided any variables or placeholders."""
+    variables = {}
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'runner': 'local',
+                    'commands': [
+                        {'execute': 'export GOARCH=arm64'},
+                        {'execute': 'export GOOS=linux'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
+        '[{"execute": "export GOARCH=arm64"}, {"execute": "export GOOS=linux"}]}}]}'
+    )
+
+
+def test_parse_variables_no_variables():
+    """Test the case where parse_variables isn't provided any variables."""
+    variables = {}
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'example',
+                    'runner': 'local',
+                    'commands': [
+                        {'execute': 'export GOARCH={{ ARCH }}'},
+                        {'execute': 'export GOOS={{ OS }}'},
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
+        '[{"execute": "export GOARCH={{ ARCH }}"}, {"execute": "export GOOS={{ OS }}"}]}}]}'
     )
