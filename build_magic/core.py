@@ -2,7 +2,6 @@
 
 
 from pathlib import Path
-from pkg_resources import resource_filename
 import types
 
 import json
@@ -47,6 +46,24 @@ def iterate_sequence():
         seq += 1
 
 
+def generate_config_template():
+    """Reads the static config file template and writes the contents to a template in the current directory.
+
+    :rtype: Path
+    :return: The newly created config file.
+    """
+    filename = 'build-magic_template.yaml'
+    current = Path().cwd().resolve()
+    file = current / filename
+    if file.exists():
+        raise FileExistsError
+
+    template = Path(__file__).parent / 'static' / filename
+    content = template.read_text()
+    file.write_text(content)
+    return file
+
+
 def config_parser(config):
     """Parse the parameters from a build-magic config file.
 
@@ -55,7 +72,7 @@ def config_parser(config):
     :return: A list of stage parameters.
     """
     # Read the config schema.
-    schema = Path(resource_filename('build_magic', 'core.py')).parent / 'static' / 'config_schema.json'
+    schema = Path(__file__).parent / 'static' / 'config_schema.json'
     with open(schema, 'r') as file:
         schema = json.load(file)
 
