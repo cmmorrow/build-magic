@@ -2,6 +2,7 @@
 
 
 from pathlib import Path
+import re
 import types
 
 import json
@@ -10,7 +11,7 @@ from jsonschema import ValidationError, validate as jsvalidator
 from yaspin import yaspin
 
 from build_magic import actions, output, runner
-from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs
+from build_magic.exc import ExecutionError, NoJobs, SetupError, TeardownError
 from build_magic.macro import MacroFactory
 from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
 from build_magic.reference import BindDirectory, HostWorkingDirectory, KeyPassword, KeyPath, KeyType
@@ -116,6 +117,32 @@ def config_parser(config):
     return stages
 
 
+def parse_variables(config, variables):
+    """Parses a config file for variables and substitutes the variable placeholders in the config for the given values.
+
+    :param dict config: The content of the config file to parse.
+    :param dict variables: The variables to substitute where the key matches a placeholder in the config.
+    :rtype: dict
+    :return: The resulting config after variable substitution.
+    """
+    pattern = r'({{\s?\w+\s?}})'
+    matched = False
+    config_string = json.dumps(config)
+    if variables:
+        if re.search(pattern, json.dumps(config)):
+            matches = re.findall(pattern, json.dumps(config))
+            if matches:
+                for key, value in variables.items():
+                    for match in matches:
+                        if key in match:
+                            config_string = re.sub(r'{{\s?' + key + r'\s?}}', value, config_string)
+                            matched = True
+                            break
+            if not matched:
+                raise ValueError('No variable matches found.')
+    return json.loads(config_string)
+
+
 class Engine:
     """The primary driver in build-magic. The engine executes stages and reports on the results.
 
@@ -124,7 +151,7 @@ class Engine:
     :param list[Stage]|None stages: The stage or stages to execute.
     """
 
-    __slots__ = ['_continue_on_fail', '_stages', '_verbose']
+    __slots__ = ('_continue_on_fail', '_stages', '_verbose')
 
     def __init__(self, stages=None, continue_on_fail=False, output_format=OutputTypes.TTY, verbose=False):
         """Executes stages and reports the results.

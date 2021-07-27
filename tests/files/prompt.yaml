@@ -1,0 +1,5 @@
+build-magic:
+  - stage:
+      name: Prompt Test
+      commands:
+        - execute: echo {{ user }}:{{ password }}

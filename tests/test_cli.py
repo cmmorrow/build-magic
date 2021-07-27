@@ -77,8 +77,41 @@ def current_file(magic_dir):
 
 
 @pytest.fixture
+def config_file(magic_dir):
+    """Provides a config file in the temp directory."""
+    filename = 'config.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def multi_config(magic_dir):
+    """Provides a config file with multiple stage in the temp directory."""
+    filename = 'multi.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def targets_config(magic_dir):
+    """Provides a config file for testing multiple targets in the temp directory."""
+    filename = 'targets.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
 def default_config(magic_dir):
-    """Provides a default config file in the temp directory."""
+    """Provides a default config file in the current directory."""
     filename = 'build-magic.yaml'
     current = Path().cwd().resolve()
     config = current / filename
@@ -100,6 +133,65 @@ def second_default(magic_dir):
     yield magic_dir
     os.chdir(str(current))
     os.remove(filename)
+
+
+@pytest.fixture
+def variable_and_default_config(default_config, variables_config):
+    """Provides a default and variable config file in the current directory."""
+    filename = variables_config.name
+    current = Path().cwd().resolve()
+    config = current / filename
+    content = variables_config.read_text()
+    config.write_text(content)
+    yield magic_dir
+    os.chdir(str(current))
+    os.remove(filename)
+
+
+@pytest.fixture
+def prompt_and_default_config(default_config, prompt_config):
+    """Provides a default and prompt config file in the current directory."""
+    filename = prompt_config.name
+    current = Path().cwd().resolve()
+    config = current / filename
+    content = prompt_config.read_text()
+    config.write_text(content)
+    yield magic_dir
+    os.chdir(str(current))
+    os.remove(filename)
+
+
+@pytest.fixture
+def parameters_config(magic_dir):
+    """Provides a config file with parameters in the temp directory."""
+    filename = 'parameters.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def variables_config(magic_dir):
+    """Provides a config file for testing variable substitution in the temp directory."""
+    filename = 'variables.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def prompt_config(magic_dir):
+    """Provides a config file with a prompt for variable input in the temp directory."""
+    filename = 'prompt.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
 
 
 def test_cli_no_options(cli):
@@ -137,6 +229,8 @@ Options:
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   -p, --parameter <TEXT TEXT>...  Key/value used for runner specific settings.
+  -v, --variable <TEXT TEXT>...   Key/value config file variables.
+  --prompt TEXT                   Config file variable with prompt for value.
   --action [default|cleanup|persist]
                                   Setup and teardown action to perform.
   --plain / --fancy               Enable basic output. Ideal for automation.
@@ -381,10 +475,9 @@ def test_cli_template_permission_error(cli, mocker):
     assert res.output == "Cannot generate the config template because build-magic doesn't have permission.\n"
 
 
-def test_cli_config(cli):
+def test_cli_config(cli, config_file):
     """Verify the --config option works correctly."""
-    file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'config.yaml'
-    res = cli.invoke(build_magic, ['--config', str(file)])
+    res = cli.invoke(build_magic, ['--config', str(config_file)])
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
     assert '( 1/2 ) EXECUTE : echo hello' in res.output
@@ -393,10 +486,10 @@ def test_cli_config(cli):
     assert 'build-magic finished in' in res.output
 
 
-def test_cli_config_multi(cli):
+def test_cli_config_multi(cli, config_file, multi_config):
     """Verify assigning multiple config files works correctly."""
-    file1 = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'config.yaml'
-    file2 = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'multi.yaml'
+    file1 = config_file
+    file2 = multi_config
     res = cli.invoke(build_magic, ['--config', str(file1), '--config', str(file2)])
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
@@ -407,7 +500,7 @@ def test_cli_config_multi(cli):
     assert 'Stage 3: Stage B - finished with result DONE' in res.output
 
 
-def test_cli_config_parameters(cli, mocker):
+def test_cli_config_parameters(cli, mocker, parameters_config):
     """Verify assigning parameters from a config file works correctly."""
     mocker.patch('paramiko.ECDSAKey.from_private_key_file')
     mocker.patch('build_magic.runner.Remote.connect', return_value=paramiko.SSHClient)
@@ -420,18 +513,17 @@ def test_cli_config_parameters(cli, mocker):
         )
     )
     mocker.patch('paramiko.SSHClient.close')
-    config = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'parameters.yaml'
-    res = cli.invoke(build_magic, ['--config', str(config)])
+    res = cli.invoke(build_magic, ['--config', str(parameters_config)])
     assert res.exit_code == ExitCode.PASSED
     assert "Starting Stage 1" in res.output
     assert "( 1/1 ) EXECUTE : echo hello ........................................ RUNNING" in res.output
     assert "Stage 1 finished with result DONE" in res.output
 
 
-def test_cli_target(cli):
+def test_cli_target(cli, targets_config):
     """Verify the --target option works correctly."""
-    file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'targets.yaml'
-    res = cli.invoke(build_magic, ['-C', str(file), '--target', 'Stage D', '-t', 'Stage B'])
+    # file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'targets.yaml'
+    res = cli.invoke(build_magic, ['-C', str(targets_config), '--target', 'Stage D', '-t', 'Stage B'])
     assert res.exit_code == ExitCode.PASSED
     out = res.output
     assert 'Stage D' in out
@@ -441,10 +533,9 @@ def test_cli_target(cli):
     assert "Stage 2: Stage B - finished with result DONE" in res.output
 
 
-def test_cli_invalid_target(cli):
+def test_cli_invalid_target(cli, targets_config):
     """Test the case where an invalid target name is provided."""
-    file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'targets.yaml'
-    res = cli.invoke(build_magic, ['-C', str(file), '-t', 'blarg'])
+    res = cli.invoke(build_magic, ['-C', str(targets_config), '-t', 'blarg'])
     out = res.output
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert out == "Target blarg not found among ['Stage A', 'Stage B', 'Stage C', 'Stage D'].\n"
@@ -563,3 +654,66 @@ def test_cli_default_config_multiple_defaults_error(cli, default_config, second_
     out = res.output
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert 'More than one config file found:' in out
+
+
+def test_cli_variable(cli, variables_config):
+    """Verify adding variables from the CLI properly replaces placeholders in a config file."""
+    res = cli.invoke(build_magic, ['-C', variables_config, '--variable', 'ARCH', 'arm64', '-v', 'OS', 'linux'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert "EXECUTE : export GOARCH=arm64" in out
+    assert "EXECUTE : export GOOS=linux" in out
+
+
+def test_cli_variable_not_found(cli, variables_config):
+    """Test the case where variables aren't substituted because they aren't found in the config file."""
+    res = cli.invoke(build_magic, ['-C', variables_config, '--variable', 'user', 'elle', '-v', 'host', 'server'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == 'No variable matches found.\n'
+
+
+def test_cli_prompt(cli, prompt_config):
+    """Verify the prompt option works correctly."""
+    res = cli.invoke(build_magic, ['-C', prompt_config, '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n')
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'EXECUTE : echo elle:secret' in out
+
+
+def test_cli_variables_with_two_config_files(cli, variable_and_default_config):
+    """Verify using variables still works when there is one config file with placeholders and one without."""
+    # Without the default config
+    res = cli.invoke(build_magic, ['-C', 'variables.yaml', '--variable', 'ARCH', 'arm64', '-v', 'OS', 'linux'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert "EXECUTE : export GOARCH=arm64" in out
+    assert "EXECUTE : export GOOS=linux" in out
+
+    # Including the default config
+    res = cli.invoke(
+        build_magic,
+        ['-C', 'variables.yaml', '-C', 'build-magic.yaml', '--variable', 'ARCH', 'arm64', '-v', 'OS', 'linux'],
+    )
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert "EXECUTE : export GOARCH=arm64" in out
+    assert "EXECUTE : export GOOS=linux" in out
+
+
+def test_cli_prompt_with_two_config_files(cli, prompt_and_default_config):
+    """Verify using prompt still works when there is one config file with placeholders and one without."""
+    # Without the default config
+    res = cli.invoke(build_magic, ['-C', 'prompt.yaml', '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n')
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'EXECUTE : echo elle:secret' in out
+
+    # Including the default config
+    res = cli.invoke(
+        build_magic,
+        ['-C', 'prompt.yaml', '-C', 'build-magic.yaml', '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n',
+    )
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'EXECUTE : echo elle:secret' in out

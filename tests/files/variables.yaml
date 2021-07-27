@@ -1,0 +1,6 @@
+build-magic:
+  - stage:
+      name: Variable Test
+      commands:
+        - execute: export GOARCH={{ ARCH }}
+        - execute: export GOOS={{ OS }}
