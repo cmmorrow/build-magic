@@ -75,6 +75,7 @@ Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detaile
 @click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
 @click.option('--name', help='The stage name to use.', type=str)
 @click.option('--target', '-t', help='Run a particular stage by name.', type=str, multiple=True)
+@click.option('--template', help='Generates a config file template in the current directory.', is_flag=True)
 @click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
 @click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
@@ -96,6 +97,7 @@ def build_magic(
         runner,
         name,
         target,
+        template,
         wd,
         plain,
         quiet,
@@ -112,6 +114,21 @@ def build_magic(
     if version:
         click.echo(ver)
         sys.exit(0)
+
+    if template:
+        try:
+            core.generate_config_template()
+            sys.exit(0)
+        except FileExistsError:
+            click.secho('Cannot generate the config template because it already exists!', fg='red', err=True)
+            sys.exit(reference.ExitCode.INPUT_ERROR)
+        except PermissionError:
+            click.secho(
+                "Cannot generate the config template because build-magic doesn't have permission.",
+                fg='red',
+                err=True,
+            )
+            sys.exit(reference.ExitCode.INPUT_ERROR)
 
     # Get the output type.
     if plain:

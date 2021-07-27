@@ -31,7 +31,7 @@ setup(
     },
     package_data={
         'build_magic': [
-            'static/config_schema.json',
+            'static/*',
         ],
     },
     install_requires=[
