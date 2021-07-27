@@ -8,7 +8,7 @@ import pytest
 
 from build_magic.actions import Default
 from build_magic.core import (
-    config_parser, Engine, generate_config_template, iterate_sequence, Stage, StageFactory
+    config_parser, Engine, generate_config_template, iterate_sequence, parse_variables, Stage, StageFactory
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs, ValidationError
 from build_magic.macro import Macro
@@ -268,7 +268,6 @@ def test_engine_stage_list_type_fail():
     params = "dummy"
     with pytest.raises(TypeError):
         Engine(params)
-
 
 
 def test_generate_config_template():
