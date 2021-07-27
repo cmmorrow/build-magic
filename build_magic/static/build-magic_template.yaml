@@ -1,0 +1,8 @@
+build-magic:
+  - stage:
+      name: example
+      runner: local
+      environment: 'none'
+      action: default
+      commands:
+        - build: echo 'Hello World!'

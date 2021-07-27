@@ -1,11 +1,14 @@
 """This module hosts unit tests for the core classes."""
+
 import json
+import os
+import pathlib
 
 import pytest
 
 from build_magic.actions import Default
 from build_magic.core import (
-    config_parser, Engine, iterate_sequence, parse_variables, Stage, StageFactory
+    config_parser, Engine, generate_config_template, iterate_sequence, Stage, StageFactory
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs, ValidationError
 from build_magic.macro import Macro
@@ -265,6 +268,19 @@ def test_engine_stage_list_type_fail():
     params = "dummy"
     with pytest.raises(TypeError):
         Engine(params)
+
+
+
+def test_generate_config_template():
+    """Verify the generate_config_template() function works correctly."""
+    filename = 'build-magic_template.yaml'
+    template = pathlib.Path(__file__).parent.parent / 'build_magic' / 'static' / filename
+    ref = template.read_text()
+
+    config = generate_config_template()
+    content = config.read_text()
+    os.unlink(config)
+    assert content == ref
 
 
 def test_config_parser():

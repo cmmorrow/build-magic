@@ -223,6 +223,9 @@ Options:
                                   The command runner to use.
   --name TEXT                     The stage name to use.
   -t, --target TEXT               Run a particular stage by name.
+  --template                      Generates a config file template in the
+                                  current directory.
+
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   -p, --parameter <TEXT TEXT>...  Key/value used for runner specific settings.
@@ -239,6 +242,7 @@ Options:
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])
+    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert res.output == ref
 
@@ -440,6 +444,35 @@ def test_cli_parameters_invalid_parameter_value(cli):
     res = cli.invoke(build_magic, ['-p', 'keytype', 'dummy', 'echo hello'])
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert "Validation failed: Value dummy is not one of " in res.output
+
+
+def test_cli_config_template(cli):
+    """Verify the --template option works correctly."""
+    filename = 'build-magic_template.yaml'
+    current = Path().cwd().resolve()
+    res = cli.invoke(build_magic, ['--template'])
+    assert current.joinpath(filename).exists()
+    os.remove(filename)
+    assert res.exit_code == ExitCode.PASSED
+
+
+def test_cli_template_exists(cli):
+    """Test the case where a template config file cannot be generated because one already exists."""
+    filename = 'build-magic_template.yaml'
+    current = Path.cwd().resolve()
+    Path.touch(current.joinpath(filename))
+    res = cli.invoke(build_magic, ['--template'])
+    os.remove(filename)
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert res.output == 'Cannot generate the config template because it already exists!\n'
+
+
+def test_cli_template_permission_error(cli, mocker):
+    """Test the case where a template config file cannot be generated because the user does not have permission."""
+    mocker.patch('build_magic.core.generate_config_template', side_effect=PermissionError)
+    res = cli.invoke(build_magic, ['--template'])
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert res.output == "Cannot generate the config template because build-magic doesn't have permission.\n"
 
 
 def test_cli_config(cli, config_file):
