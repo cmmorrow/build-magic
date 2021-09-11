@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from pkg_resources import resource_filename
 import sys
 from unittest.mock import MagicMock
 
@@ -20,7 +19,7 @@ USAGE = """Usage: build-magic [OPTIONS] [ARGS]...
 build-magic is an un-opinionated build automation tool. Some potential uses include:
     * Building applications across multiple platforms.
     * Conducting installation dry runs.
-    * Testing application installs across multiple platforms.
+    * Automating repeated tasks.
     * Deploying and installing artifacts to remote machines.
 
 Examples:
@@ -34,7 +33,13 @@ Examples:
     build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
 
 * Build a project in a Linux container.
-    build-magic -r docker -e Ubuntu:latest -c build "make all"
+    build-magic -r docker -e Ubuntu:latest -c execute "configure" -c build "make all"
+    
+* Execute multiple commands in a config file.
+    build-magic -C myconfig.yaml
+    
+* Execute a particular stage in a config file.
+    build-magic -C myconfig.yaml -t build
 
 Use --help for detailed usage of each option.
 
@@ -207,9 +212,16 @@ def test_cli_help(cli):
 
   An un-opinionated build automation tool.
 
-  ARGS - Files as arguments to copy from the copy path to the working
-  directory. Alternatively, ARGS can be a single command to execute if the
-  --command option isn't used.
+  ARGS - One of three possible uses based on context:
+
+  1. If the --copy option is used, each argument in ARGS is a file name in the
+  copy from directory to copy to the working directory.
+
+  2. If there is a config file named build-magic.yaml in the working
+  directory, ARGS is the name of a stage to execute.
+
+  3. ARGS are considered a single command to execute if the --command option
+  isn't used.
 
   Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a
   detailed usage description.
@@ -217,32 +229,39 @@ def test_cli_help(cli):
 Options:
   -c, --command <TEXT TEXT>...    A directive, command pair to execute.
   -C, --config FILENAME           The config file to load parameters from.
-  --copy TEXT                     Copy from the specified path.
+  --copy TEXT                     Copy files from the specified path.
   -e, --environment TEXT          The command runner environment to use.
   -r, --runner [local|remote|vagrant|docker]
                                   The command runner to use.
   --name TEXT                     The stage name to use.
-  -t, --target TEXT               Run a particular stage by name.
+  -t, --target TEXT               Run a particular stage in a config file by
+                                  name.
+
   --template                      Generates a config file template in the
                                   current directory.
 
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
-  -p, --parameter <TEXT TEXT>...  Key/value used for runner specific settings.
-  -v, --variable <TEXT TEXT>...   Key/value config file variables.
+  -p, --parameter <TEXT TEXT>...  Space separated key/value used for runner
+                                  specific settings.
+
+  -v, --variable <TEXT TEXT>...   Space separated key/value config file
+                                  variables.
+
   --prompt TEXT                   Config file variable with prompt for value.
   --action [default|cleanup|persist]
-                                  Setup and teardown action to perform.
-  --plain / --fancy               Enable basic output. Ideal for automation.
-  --quiet                         Suppress all output from build-magic.
+                                  The setup and teardown action to perform.
+  --plain / --fancy               Enables basic output. Ideal for logging and
+                                  automation.
+
+  --quiet                         Suppresses all output from build-magic.
   --verbose                       Verbose output -- stdout from executed
-                                  commands will be printed.
+                                  commands will be printed when complete.
 
   --version                       Show the version and exit.
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])
-    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert res.output == ref
 
@@ -556,9 +575,9 @@ def test_cli_default_config_single_stage(cli, default_config):
     res = cli.invoke(build_magic, ['deploy'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'Starting Stage 1: build' not in out
-    assert 'Starting Stage 1: deploy' in out
-    assert 'Starting Stage 3: release' not in out
+    assert ('Starting Stage 1: build' in out) is False
+    assert ('Starting Stage 1: deploy' in out) is True
+    assert ('Starting Stage 3: release' in out) is False
 
 
 def test_cli_default_config_reorder_stages(cli, default_config):
@@ -602,12 +621,26 @@ def test_cli_default_config_repeat_stages_all(cli, default_config):
 
 
 def test_cli_default_config_with_ad_hoc_command(cli, default_config):
-    """Verify running running an ad hoc command works correctly with a default config file."""
+    """Verify running an ad hoc command works correctly with a default config file."""
     res = cli.invoke(build_magic, ['--name', 'test', 'echo "hello world"'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'Starting Stage 1: test' in out
-    assert 'echo "hello world"' in out
+    assert ('Starting Stage 1: test' in out) is True
+    assert ('echo "hello world"' in out) is True
+
+
+def test_cli_default_config_with_ad_hoc_command_no_quotes(cli, default_config):
+    """Verify running an un-quoted ad hoc command works correctly with a default config file.
+
+    This test covers an edge case where a default config exists, but an un-quoted ad hoc command is provided,
+    causing the command to be executed n times where n is the number of args in the command."""
+    res = cli.invoke(build_magic, ['echo', 'hello', 'world'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert ('Starting Stage 1' in out) is True
+    assert ('echo hello world' in out) is True
+    assert ('Starting Stage 2' in out) is False
+    assert ('Starting Stage 3' in out) is False
 
 
 def test_cli_default_config_not_repeated(cli, default_config):
@@ -615,21 +648,8 @@ def test_cli_default_config_not_repeated(cli, default_config):
     res = cli.invoke(build_magic, ['-C', 'build-magic.yaml', '-t', 'deploy'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'Starting Stage 1: deploy' in out
-    assert 'Starting Stage 2: deploy' not in out
-
-
-def test_cli_default_config_args_with_ad_hoc_command(cli, default_config):
-    """Verify running stages from arguments with a command as an argument works with a default config file."""
-    # This is an edge case that works, but can lead to weird behavior.
-    res = cli.invoke(build_magic, ['echo "hello world"', 'all'])
-    out = res.output
-    assert res.exit_code == ExitCode.PASSED
-    assert 'Starting Stage 1' in out
-    assert 'echo "hello world" all' in out
-    assert 'Starting Stage 2: build' in out
-    assert 'Starting Stage 3: deploy' in out
-    assert 'Starting Stage 4: release' in out
+    assert ('Starting Stage 1: deploy' in out) is True
+    assert ('Starting Stage 2: deploy' in out) is False
 
 
 def test_cli_default_config_usage(cli, default_config):

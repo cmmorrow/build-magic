@@ -45,7 +45,7 @@ USAGE = """Usage: build-magic [OPTIONS] [ARGS]...
 build-magic is an un-opinionated build automation tool. Some potential uses include:
     * Building applications across multiple platforms.
     * Conducting installation dry runs.
-    * Testing application installs across multiple platforms.
+    * Automating repeated tasks.
     * Deploying and installing artifacts to remote machines.
 
 Examples:
@@ -59,7 +59,13 @@ Examples:
     build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
 
 * Build a project in a Linux container.
-    build-magic -r docker -e Ubuntu:latest -c build "make all"
+    build-magic -r docker -e Ubuntu:latest -c execute "configure" -c build "make all"
+    
+* Execute multiple commands in a config file.
+    build-magic -C myconfig.yaml
+    
+* Execute a particular stage in a config file.
+    build-magic -C myconfig.yaml -t build
 
 Use --help for detailed usage of each option.
 
@@ -67,24 +73,43 @@ Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detaile
 """
 
 
+ACTION_HELP = 'The setup and teardown action to perform.'
+COMMAND_HELP = 'A directive, command pair to execute.'
+CONFIG_HELP = 'The config file to load parameters from.'
+CONTINUE_HELP = 'Continue to run after failure if True.'
+COPY_HELP = 'Copy files from the specified path.'
+ENVIRONMENT_HELP = 'The command runner environment to use.'
+NAME_HELP = 'The stage name to use.'
+PARAMETER_HELP = 'Space separated key/value used for runner specific settings.'
+PLAIN_HELP = 'Enables basic output. Ideal for logging and automation.'
+PROMPT_HELP = 'Config file variable with prompt for value.'
+QUIET_HELP = 'Suppresses all output from build-magic.'
+RUNNER_HELP = 'The command runner to use.'
+TARGET_HELP = 'Run a particular stage in a config file by name.'
+TEMPLATE_HELP = 'Generates a config file template in the current directory.'
+VARIABLE_HELP = 'Space separated key/value config file variables.'
+VERBOSE_HELP = 'Verbose output -- stdout from executed commands will be printed when complete.'
+WD_HELP = 'The working directory to run commands from.'
+
+
 @click.command()
-@click.option('--command', '-c', help='A directive, command pair to execute.', multiple=True, type=(str, str))
-@click.option('--config', '-C', help='The config file to load parameters from.', multiple=True, type=CONFIG)
-@click.option('--copy', help='Copy from the specified path.', default='', type=str)
-@click.option('--environment', '-e', help='The command runner environment to use.', default='', type=str)
-@click.option('--runner', '-r', help='The command runner to use.', type=RUNNERS)
-@click.option('--name', help='The stage name to use.', type=str)
-@click.option('--target', '-t', help='Run a particular stage by name.', multiple=True, type=str)
-@click.option('--template', help='Generates a config file template in the current directory.', is_flag=True)
-@click.option('--wd', help='The working directory to run commands from.', default='.', type=WORKINGDIR)
-@click.option('--continue/--stop', 'continue_', help='Continue to run after failure if True.', default=False)
-@click.option('--parameter', '-p', help='Key/value used for runner specific settings.', multiple=True, type=(str, str))
-@click.option('--variable', '-v', help='Key/value config file variables.', multiple=True, type=(str, str))
-@click.option('--prompt', help='Config file variable with prompt for value.', multiple=True, type=str)
-@click.option('--action', help='Setup and teardown action to perform.', type=ACTIONS)
-@click.option('--plain/--fancy', help='Enable basic output. Ideal for automation.', default=False)
-@click.option('--quiet', help='Suppress all output from build-magic.', is_flag=True)
-@click.option('--verbose', help='Verbose output -- stdout from executed commands will be printed.', is_flag=True)
+@click.option('--command', '-c', help=COMMAND_HELP, multiple=True, type=(str, str))
+@click.option('--config', '-C', help=CONFIG_HELP, multiple=True, type=CONFIG)
+@click.option('--copy', help=COPY_HELP, default='', type=str)
+@click.option('--environment', '-e', help=ENVIRONMENT_HELP, default='', type=str)
+@click.option('--runner', '-r', help=RUNNER_HELP, type=RUNNERS)
+@click.option('--name', help=NAME_HELP, type=str)
+@click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
+@click.option('--template', help=TEMPLATE_HELP, is_flag=True)
+@click.option('--wd', help=WD_HELP, default='.', type=WORKINGDIR)
+@click.option('--continue/--stop', 'continue_', help=CONTINUE_HELP, default=False)
+@click.option('--parameter', '-p', help=PARAMETER_HELP, multiple=True, type=(str, str))
+@click.option('--variable', '-v', help=VARIABLE_HELP, multiple=True, type=(str, str))
+@click.option('--prompt', help=PROMPT_HELP, multiple=True, type=str)
+@click.option('--action', help=ACTION_HELP, type=ACTIONS)
+@click.option('--plain/--fancy', help=PLAIN_HELP, default=False)
+@click.option('--quiet', help=QUIET_HELP, is_flag=True)
+@click.option('--verbose', help=VERBOSE_HELP, is_flag=True)
 @click.version_option(version=ver, message='%(version)s')
 @click.argument('args', nargs=-1)
 def build_magic(
@@ -109,8 +134,15 @@ def build_magic(
 ):
     """An un-opinionated build automation tool.
 
-    ARGS - Files as arguments to copy from the copy path to the working directory.
-    Alternatively, ARGS can be a single command to execute if the --command option isn't used.
+    ARGS - One of three possible uses based on context:
+
+    1. If the --copy option is used, each argument in ARGS is a file name in the copy from directory to copy to
+    the working directory.
+
+    2. If there is a config file named build-magic.yaml in the working directory, ARGS is the name of a stage to
+    execute.
+
+    3. ARGS are considered a single command to execute if the --command option isn't used.
 
     Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
     """
@@ -225,6 +257,7 @@ def build_magic(
                         )
                         if name:
                             stages_[0].update(dict(name=name))
+                        break
             # If a default config file exists but there are no args, skip it.
             elif not args and cfg.name in DEFAULT_CONFIG_NAMES:
                 continue
