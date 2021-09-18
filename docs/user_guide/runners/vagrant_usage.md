@@ -22,22 +22,49 @@ There are a few noteworthy differences between using the *vagrant* Command Runne
 
 The *vagrant* Command Runner invokes `/bin/sh` to execute commands, allowing the use of redirection and piping.
 
-```text
-> build-magic --verbose \
---runner vagrant \
---environment Vagrantfile \
--c execute 'echo "hello world" > hello.txt' \
--c execute 'cat hello.txt'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner vagrant \
+      --environment Vagrantfile \
+      -c execute 'echo "hello world" > hello.txt' \
+      -c execute 'cat hello.txt'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: vagrant
+          environment: Vagrantfile
+          commands:
+            - execute: echo "hello world" > hello.txt
+            - execute: cat hello.txt
+    ```
 
 Environment variables can be included in commands by wrapping the command in single quotes:
 
-```text
-> build-magic --verbose \
---runner vagrant \
---environment Vagrantfile \
-'echo $TERM'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+    --runner vagrant \
+    --environment Vagrantfile \
+    'echo $TERM'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: vagrant
+          environment: Vagrantfile
+          commands:
+            - execute: 'echo $TERM'
+    ```
 
 ## Setting the Working Directory
 
@@ -50,9 +77,23 @@ When using the *vagrant* Command Runner, the Working Directory option **--wd** r
 
 Unlike the *docker* Command Runner, the Working Directory and Bind Directory for the *vagrant* Command Runner do not default to the same directory. The Working Directory defaults to `/home/vagrant` and the Bind Directory defaults to `/vagrant`. This means if you want the Working Directory to be set to the Bind Directory, the **--wd** option must be used to set the Working Directory to `/vagrant`.
 
-```text
-> build-magic -r vagrant -e . --wd /vagrant make
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic -r vagrant -e . --wd /vagrant make
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: vagrant
+          environment: .
+          working directory: /vagrant
+          commands:
+            - execute: make
+    ```
 
 ## Copying Files Into the Virtual Machine
 
@@ -60,35 +101,64 @@ By using synced folders, all files in Host Working Directory are available from 
 
 Individual files can be copied into the container from a directory specified with the **--copy** option. If using the **--copy** option, the files to copy should be specified as arguments.
 
-```text
-> build-magic \
---runner vagrant \
---environment Vagrantfile \
---copy /home/myproject \
---command install "apk add gcc" \
---command build 'make' \
-main.cpp plugins.cpp audio.cpp
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic \
+      --runner vagrant \
+      --environment Vagrantfile \
+      --copy /home/myproject \
+      --command install "apk add gcc" \
+      --command build 'make' \
+      main.cpp plugins.cpp audio.cpp
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: vagrant
+          environment: Vagrantfile
+          copy from directory: /home/myproject
+          artifacts:
+            - main.cpp
+            - plugins.cpp
+            - audio.cpp
+          commands:
+            - install: apk add gcc
+            - build: make
+    ```
 
 ## Debugging the Virtual Machine
 
 If a command fails in the container for an unknown reason, the *persist* Action can be used for troubleshooting. The *persist* Action will keep the container running in the background after build-magic has exited.
 
-```text
-> build-magic --runner vagrant \
---environment Vagrantfile \
---action persist \
---command execute "cp"
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --runner vagrant \
+      --environment Vagrantfile \
+      --action persist \
+      --command execute "cp"
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: vagrant
+          environment: Vagrantfile
+          action: persist
+          commands:
+            - execute cp
+    ```
 
 The command `cp` will fail because it doesn't have any arguments. The virtual machine will continue to run and can be accessed with:
 
-```text
-> vagrant ssh
-```
+    > vagrant ssh
 
 When finished, exit the virtual machine with `exit`. The virtual machine can then be stopped and destroyed with:
 
-```text
-> vagrant destroy
-```
+    > vagrant destroy

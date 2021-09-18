@@ -1,31 +1,47 @@
-# Defining build-magic config files
+# Defining build-magic Config Files
 
-Build-magic supports executing multiple stages as static, repeatable jobs with a config file. A build-magic config file is a YAML file with the following structure:
+## Synopsis
+
+Build-magic supports executing multiple stages as static, repeatable jobs with a Config File. A build-magic Config File is a YAML file with the following structure:
 
 ```yaml
 build-magic:
     - stage:
         name: Build Project
+        runner: docker
+        environment: centos:7
         working directory: /home/myproject
+        parameters:
+            - bind: /home/myproject
         commands:
+            - execute: configure
             - build: make
     - stage:
         name: Run tests
+        runner: docker
+        environment: centos:7
         working directory: /home/myproject
+        parameters:
+            - bind: /home/myproject
         commands: 
             - execute: service start mydb
             - test: make test
             - execute: service stop mydb
     - stage:
-        name: Package Fedora
+        name: Package CentOS
+        runner: docker
+        environment: centos:7
         working directory: /home/myproject
-        cleanup: true
+        parameters:
+            - bind: /home/myproject
         commands:
             - build: make rpm
             - release: jfrog rt upload "build/RPMS/x86_64/(*).rpm" my-artifactory
 ```
 
-**build-magic** - Each build-magic config file must start with **build-magic** on the first line. The type of the **build-magic** property is an array of **stage** properties. The **build-magic** property must define at least one **stage**.
+## Description
+
+**build-magic** - Each build-magic Config File must start with **build-magic** on the first line. The type of the **build-magic** property is an array of **stage** properties. The **build-magic** property must define at least one **stage**.
 
 **stage** - Each **stage** is an object that defines the same properties as the CLI. The only property of **stage** that's required is **commands**.
 

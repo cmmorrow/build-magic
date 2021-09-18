@@ -1,9 +1,10 @@
 site_name: build-magic
 nav:
   - Home: index.md
+  - What's New: CHANGELOG.md
   - Getting Started: getting_started.md
   - User Guide:
-    - Basic Concepts: user_guide/basic_concepts.md
+    - Core Concepts: user_guide/core_concepts.md
     - Using the CLI: user_guide/cli_usage.md
     - Defining Config Files: user_guide/config_usage.md
     - Using Command Runners:
@@ -12,19 +13,36 @@ nav:
       - Using the Vagrant Runner: user_guide/runners/vagrant_usage.md
       - Using the Remote Runner: user_guide/runners/remote_usage.md
 markdown_extensions:
+  - toc:
+      permalink: True
   - admonition
   - pymdownx.highlight
+  - pymdownx.tabbed
   - pymdownx.superfences
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid-experimental
-          format: !!python/name:pymdownx.superfences.fence_code_format
+  # - pymdownx.superfences:
+  #     custom_fences:
+  #       - name: mermaid
+  #         class: mermaid-experimental
+  #         format: !!python/name:pymdownx.superfences.fence_code_format
 theme:
   # name: readthedocs
   name: material
   palette:
+    scheme: slate
     primary: teal
+    accent: light blue
+    # - media: "(prefers-color-scheme: light)"
+    #   scheme: default
+    #   primary: teal
+    #   toggle:
+    #     icon: material/toggle-switch-off-outline
+    #     name: Switch to dark mode
+    # - media: "(prefers-color-scheme: dark)"
+    #   scheme: slate
+    #   primary: teal
+    #   toggle:
+    #     icon: material/toggle-switch
+    #     name: Switch to light mode
   # highlightjs: true
   # hljs_languages:
   #   - yaml

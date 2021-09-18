@@ -7,70 +7,171 @@ The *remote* Command Runner executes commands on a remote machine. To execute co
 
 To connect to a remote machine, the **--environment** option should include the user and hostname of the machine to connect to, for example:
 
-```text
-build-magic --verbose \
---runner remote \
---environment user@myhost \
-"echo hello world"
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost \
+      "echo hello world"
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          commands:
+            - execute: echo hello world
+    ```
 
 Optionally, the port can also be given. By default, the port SSH will use is 22.
 
-```text
-build-magic --verbose \
---runner remote \
---environment user@myhost:2222 \
-"echo hello world"
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost:2222 \
+      "echo hello world"
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost:2222
+          commands:
+            - execute: echo hello world
+    ```
 
 ## Running Shell Commands
 
 The *remote* Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping.
 
-```text
-> build-magic --verbose \
---runner remote \
---environment user@myhost \
--c execute 'echo "hello world" > hello.txt' \
--c execute 'cat hello.txt'
-```
+=== "Command-line"
 
-```text
-> build-magic --verbose \
---runner remote \
---environment user@myhost \
-'ps -ef | grep python'
-```
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost \
+      -c execute 'echo "hello world" > hello.txt' \
+      -c execute 'cat hello.txt'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          commands:
+            - execute: echo "hello world" > hello.txt
+            - execute: cat hello.txt
+    ```
+
+---
+
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost \
+      'ps -ef | grep python'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          commands:
+            - execute: ps -ef | grep python
+    ```
 
 Environment variables can be included in commands by wrapping the command in single quotes:
 
-```text
-> build-magic --verbose --runner remote --environment user@myhost 'echo $SHELL'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose -r remote -e user@myhost 'echo $SHELL'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          commands:
+            - execute: 'echo $SHELL'
+    ```
 
 ## Setting the Working Directory
 
 The Working Directory is the path that build-magic operates from. By default, the Working Directory is the home directory of user used for logging into the remote machine.
 
-The Working Directory can be changed to any path the user has permission to read from with the `--wd` option.
+The Working Directory can be changed to any path the user has permission to read from with the **--wd** option.
 
-```text
-> build-magic --runner remote --environment user@myhost --wd ~/myproject make
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --runner remote --environment user@myhost --wd ~/myproject make
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          working directory: ~/myproject
+          commands:
+            - execute: make
+    ```
 
 ## Copying Files To The Remote Machine
 
 Individual files can be copied to the remote machine from a directory specified with the **--copy** option. If using the **--copy** option, the files to copy should be specified as arguments.
 
-```text
-> build-magic \
---runner remote \
---environment user@myhost \
---copy /home/myproject \
---command execute ./configure \
---command build 'make' \
-main.cpp plugins.cpp audio.cpp
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic \
+      --runner remote \
+      --environment user@myhost \
+      --copy /home/myproject \
+      --command execute ./configure \
+      --command build 'make' \
+      main.cpp plugins.cpp audio.cpp
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          copy from directory: /home/myproject
+          artifacts:
+            - main.cpp
+            - plugins.cpp
+            - audio.cpp
+          commands:
+            - execute: ./configure
+            - execute: make
+    ```
 
 ## Cleaning Up New Files
 
@@ -80,15 +181,30 @@ The *cleanup* Action will take a snapshot of every file and directory in the wor
 
 If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.
 
-The *cleanup* Action can be executed with the `--action` option.
+The *cleanup* Action can be executed with the **--action** option.
 
-```text
-> build-magic --action cleanup \
---runner remote \
---environment user@myhost \
--c build 'python setup.py sdist bdist_wheel --universal' \
--c release 'twine upload dist/*'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --action cleanup \
+      --runner remote \
+      --environment user@myhost \
+      -c build 'python setup.py sdist bdist_wheel --universal' \
+      -c release 'twine upload dist/*'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          action: cleanup
+          commands:
+            - build: python setup.py sdist bdist_wheel --universal
+            - release: twine upload dist/*
+    ```
 
 !!! Note
     There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.
@@ -99,13 +215,28 @@ If using the **--copy** option to copy files to the working directory on the rem
 
 The *remote* Command Runner uses SSH public/private keypairs to connect to remote machines and execute commands. By default, build-magic looks for the private key at `~/.ssh/id_rsa`. The path to the private key can be specified with **--parameter keypath**:
 
-```text
-> build-magic --verbose \
---runner remote \
---environment user@myhost \
---parameter keypath ~/ssh/keys/id_rsa \
---command execute 'echo hello world'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost \
+      --parameter keypath ~/.ssh/keys/id_rsa \
+      --command execute 'echo hello world'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          parameters:
+            - keypath: ~/.ssh/keys/id_rsa
+          commands:
+            - execute: echo hello world
+    ```
 
 Build-magic supports several different SSH key types:
 
@@ -116,23 +247,56 @@ Build-magic supports several different SSH key types:
 
 The SSH key type can be specified with **--parameter keytype**:
 
-```text
-> build-magic --verbose \
---runner remote \
---environment user@myhost \
---parameter keytype ecdsa \
---parameter keypath ~/.ssh/id_ecdsa \
---command execute 'echo hello world'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost \
+      --parameter keytype ecdsa \
+      --parameter keypath ~/.ssh/id_ecdsa \
+      --command execute 'echo hello world'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          parameters:
+            - keytype: ecdsa
+            - keypath: ~/.ssh/id_ecdsa
+          commands:
+            - execute: echo hello world
+    ```
 
 To use a private key protected by a passphrase, use **--parameter keypass**:
 
-```text
-> build-magic --verbose \
---runner remote \
---environment user@myhost \
---parameter keytype ecdsa \
---parameter keypath ~/.ssh/id_ecdsa \
---parameter keypass secret \
---command execute 'echo hello world'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner remote \
+      --environment user@myhost \
+      --parameter keytype ecdsa \
+      --parameter keypath ~/.ssh/id_ecdsa \
+      --parameter keypass secret \
+      --command execute 'echo hello world'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: remote
+          environment: user@myhost
+          parameters:
+            - keytype: ecdsa
+            - keypath: ~/.ssh/id_ecdsa
+            - keypass: secret
+          commands:
+            - execute: echo hello world
+    ```

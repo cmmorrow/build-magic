@@ -1,4 +1,4 @@
-# Welcome to build-magic &#x1F528;&#x2728;
+# build-magic &#x1F528;&#x2728;
 
 An un-opinionated, general purpose automation tool.
 
@@ -10,53 +10,84 @@ Build-magic is a command-line application for automating build, test, install, a
 
 Using build-magic is as simple as:
 
-```text
-> build-magic "echo hello world!"
-```
+    > build-magic echo hello world!
 
-But can support complex build automation with multiple steps such as:
+but can support complex build automation with multiple steps on the command-line or in a Config File.
 
-```text
-> build-magic \
---runner docker \
---environment ubuntu:latest \
---verbose \
---cleanup \
---command execute "./configure CC=c99 CFLAGS=-O2 LIBS=-lposix" \
---command build "make" \
---command test "make test" \
---command execute "tar -czf myapp.tar.gz build/*" \
---command release "jfrog rt upload myapp.tar.gz my-artifactory"
-```
+=== "Command-line"
 
-Build-magic can also execute a batch of commands in a config file such as:
+    ```bash
+    > build-magic \
+      --runner docker \
+      --environment ubuntu:latest \
+      --verbose \
+      --cleanup \
+      --command execute "./configure CC=c99 CFLAGS=-O2 LIBS=-lposix" \
+      --command build "make" \
+      --command test "make test" \
+      --command execute "tar -czf myapp.tar.gz build/*" \
+      --command release "jfrog rt upload myapp.tar.gz my-artifactory"
+    ```
 
-```text
-> build-magic -C release.yaml
-```
+=== "Config File"
 
-Or, if the config file is named `build-magic.yaml`, can be run similar to the `make` command with:
+    ```yaml
+    build-magic:
+      - stage:
+          name: release 
+          runner: docker
+          environment: ubuntu:latest
+          action: cleanup
+          commands:
+            - execute: ./configure CC=c99 CFLAGS=-O2 LIBS=-lposix
+            - build: make
+            - test: make test
+            - execute: tar -czf myapp.tar.gz build/*
+            - release: jfrog rt upload myapp.tar.gz my-artifactory
+    ```
 
-```text
-> build-magic all
-```
+Build-magic can execute a batch of commands in a Config File with:
+
+    > build-magic -C release.yaml
+
+Or, if the Config File is named `build-magic.yaml`, can be run similar to the `make` command with:
+
+    > build-magic release
 
 ---
 
-Build-magic lets you work the way you want to work.
+## Common Use Cases
 
-* Build and test your Linux application on a Windows laptop.
-* Install and test your application in a VM.
-* Automate your build, test, and deploy pipeline on your laptop or in the cloud.
+* Automate building, testing, and releasing new software versions.
+* Build and deploy new machine learning models.
+* Automate deploying software to staging or production cloud environments.
+* Simplify onboarding new team members by automating development environment setup and installation.
+* Automate launching an application for local testing with the same config file used for deploying in production.
+* Execute regression, integration, and unit tests across multiple platforms and servers.
+* Automate dry runs of critical commands that cannot be tested on a production system.
 
-Build-magic can execute commands on your local machine, on a remote server, in a Docker container, or in a virtual machine.
+## Features
 
-## What build-magic "Is"
+### Work the way you want to work
 
-A command-line automation tool for running commands locally, remotely, in a container, or in a VM. The complexity of what build-magic can do is limited primarily by your imagination. Build-magic strives to enable developers to simplifier their application builds in a portable, user-friendly way.
+Developing for Linux from a Windows or MacOS laptop? Build-magic lets you build, test, and deploy your application within a Docker container, virtual machine, or on a remote machine. Build-magic will manage the environment differences for you so you can focus on the details that matter.
 
-## What build-magic "Is Not"
+### Automate everything
 
-A CI/CD tool replacement. There are plenty of great CI/CD tools out there. Build-magic isn't a replacement for Jenkins, GitLab CI, or GitHub Actions. In addition to build automation, these tools bake in notifications, post webhooks for source control events, and are generally cloud based. Build-magic is instead focused on build automation you can control locally.
+If your terminal can do it, build-magic can automate it! Build-magic is a modern alternative to automating with Makefiles and shell scripts. Build-magic config files feature an easy to use YAML syntax for executing multiple stages (targets). Build-magic actions can also apply setup and teardown behaviors for preserving container or VM state, or clean up extra files generated as part of a build process. Build-magic also gives you control over how output is displayed by providing a TTY friendly format as well a log file friendly format.
 
-CI/CD tools are extremely useful, and Jenkins, GitLab CI, and GitHub Actions can use build-magic to minimize differences between production builds in the cloud and development builds on your laptop.
+### Simple but powerful
+
+There are no looping mechanics or specialized conditional logic handlers beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and replicate. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs become idempotent. The persist action will preserve the state of a container or VM after execution of a job.
+
+### Un-opinionated
+
+As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic config file or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.
+
+### Runtime variables
+
+Build-magic config files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic config file.
+
+### Cross platform
+
+Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic config files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.

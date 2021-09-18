@@ -6,19 +6,31 @@ The *local* Command Runner executes commands on the host machine where build-mag
 
 The *local* Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping.
 
-```text
-> build-magic --verbose \
--c execute 'echo "hello world" > hello.txt' \
--c execute 'cat hello.txt'
-```
+=== "Command-line"
 
-```text
+    ```bash  
+    > build-magic --verbose \
+      -c execute 'echo "hello world" > hello.txt' \
+      -c execute 'cat hello.txt'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          commands:
+            - execute: echo "hello world" > hello.txt
+            - execute: cat hello.txt
+    ```
+
+```bash
 > build-magic --verbose 'ps -ef | grep python'
 ```
 
 Environment variables can be included in commands by wrapping the command in single quotes:
 
-```text
+```bash
 > build-magic --verbose 'echo $SHELL'
 ```
 
@@ -28,9 +40,21 @@ The Working Directory is the path that build-magic operates from. By default, th
 
 The Working Directory can be changed to any path the user has permission to read from with the `--wd` option.
 
-```text
-> build-magic --wd ~/myproject make
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --wd ~/myproject make
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          working directory: ~/myproject
+          commands:
+            - execute: make
+    ```
 
 ## Cleaning Up New Files
 
@@ -40,13 +64,26 @@ The *cleanup* Action will take a snapshot of every file and directory in the wor
 
 If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.
 
-The *cleanup* Action can be executed with the `--action` option.
+The *cleanup* Action can be executed with the **--action** option.
 
-```text
-> build-magic --action cleanup \
--c build 'python setup.py sdist bdist_wheel --universal' \
--c release 'twine upload dist/*'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --action cleanup \
+      -c build 'python setup.py sdist bdist_wheel --universal' \
+      -c release 'twine upload dist/*'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          action: cleanup
+          commands:
+            build: python setup.py sdist bdist_wheel --universal
+            release: twine upload dist/*
+    ```
 
 !!! Note
     There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.

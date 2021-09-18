@@ -9,22 +9,49 @@ The *docker* Command Runner executes commands in a container. Build-magic will s
 
 The *docker* Command Runner invokes `/bin/sh` to execute commands, allowing the use of redirection and piping.
 
-```text
-> build-magic --verbose \
---runner docker \
---environment alpine:latest \
--c execute 'echo "hello world" > hello.txt' \
--c execute 'cat hello.txt'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner docker \
+      --environment alpine:latest \
+      -c execute 'echo "hello world" > hello.txt' \
+      -c execute 'cat hello.txt'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine:latest
+          commands:
+            - execute: echo "hello world" > hello.txt
+            - execute: cat hello.txt
+    ```
 
 Environment variables can be included in commands by wrapping the command in single quotes:
 
-```text
-> build-magic --verbose \
---runner docker \
---environment alpine:latest \
-'echo $TERM'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --verbose \
+      --runner docker \
+      --environment alpine:latest \
+      'echo $TERM'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine:latest
+          commands:
+            - execute: 'echo $TERM'
+    ```
 
 ## Setting the Working Directory
 
@@ -34,15 +61,46 @@ When using the *docker* Command Runner, the Working Directory option **--wd** re
 
 By default, the Host Working Directory is the current directory build-magic is executed from, but can be changed with **--parameter hostwd**.
 
-```text
-> build-magic -r docker -e alpine --parameter hostwd /home/myproject make
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic -r docker -e alpine --parameter hostwd /home/myproject make
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine
+          parameters:
+            - hostwd: /home/myproject
+          commands:
+            - execute: make
+    ```
 
 The Bind Directory and Working Directory both default to `/build-magic` in the container. The Bind Directory can be changed with **--parameter bind**.
 
-```text
-> build-magic -r docker -e alpine --parameter bind /app --wd /app make
-```
+=== "Command-line"
+
+    ```text
+    > build-magic -r docker -e alpine --parameter bind /app --wd /app make
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine
+          working directory: /app
+          parameters:
+            - bind /app
+          commands:
+            make
+    ```
 
 Just as with every other Command Runner, the Working Directory can be changed with the **--wd** option.
 
@@ -52,29 +110,67 @@ By establishing a mount, all files in Host Working Directory are available from 
 
 Individual files can be copied into the container from a directory specified with the **--copy** option. If using the **--copy** option, the files to copy should be specified as arguments.
 
-```text
-> build-magic \
---runner docker \
---environment alpine:latest \
---copy /home/myproject \
---wd /app \
---command install "apk add gcc" \
---command build 'make' \
-main.cpp plugins.cpp audio.cpp
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic \
+      --runner docker \
+      --environment alpine:latest \
+      --copy /home/myproject \
+      --wd /app \
+      --command install "apk add gcc" \
+      --command build 'make' \
+      main.cpp plugins.cpp audio.cpp
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine:latest
+          copy from directory: /home/myproject
+          working directory: /app
+          artifacts:
+            - main.cpp
+            - plugins.cpp
+            - audio.cpp
+          commands:
+            - install: apk add gcc
+            - build: make
+    ```
 
 Instead of copying individual files to the Working Directory, an entire directory can be used by the container by setting the Host Working Directory, Bind Directory, and Working Directory:
 
-```text
-> build-magic \
---runner docker \
---environment alpine:latest \
---parameter hostwd /home/myproject \
---parameter bind /app \
---wd /app \
---command install "apk add gcc" \
---command build 'make'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic \
+      --runner docker \
+      --environment alpine:latest \
+      --parameter hostwd /home/myproject \
+      --parameter bind /app \
+      --wd /app \
+      --command install "apk add gcc" \
+      --command build 'make'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine:latest
+          parameters:
+            - hostwd: /home/myproject
+            - bind: /app
+          working directory: /app
+          commands:
+            - install: apk add gcc
+            - build: make
+    ```
 
 ## Cleaning Up New Files
 
@@ -88,13 +184,30 @@ The exception is for files that are copied to the Host Working Directory from a 
 
 If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.
 
-The *cleanup* Action can be executed with the `--action` option.
+The *cleanup* Action can be executed with the **--action** option.
 
-```text
-> build-magic --action cleanup \
--c build 'python setup.py sdist bdist_wheel --universal' \
--c release 'twine upload dist/*'
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --action cleanup \
+      -r docker \
+      -e alpine:latest \
+      -c build 'python setup.py sdist bdist_wheel --universal' \
+      -c release 'twine upload dist/*'
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine:latest
+          action: cleanup
+          commands:
+            - build: python setup.py sdist bdist_wheel --universal
+            - release: twine upload dist/*
+    ```
 
 !!! Note
     There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.
@@ -103,32 +216,40 @@ The *cleanup* Action can be executed with the `--action` option.
 
 If a command fails in the container for an unknown reason, the *persist* Action can be used for troubleshooting. The *persist* Action will keep the container running in the background after build-magic has exited.
 
-```text
-> build-magic --runner docker \
---environment alpine:latest \
---action persist \
---command execute "cp"
-```
+=== "Command-line"
+
+    ```bash
+    > build-magic --runner docker \
+      --environment alpine:latest \
+      --action persist \
+      --command execute "cp"
+    ```
+
+=== "Config File"
+
+    ```yaml
+    build-magic:
+      - stage:
+          runner: docker
+          environment: alpine:latest
+          action: persist
+          commands:
+            - execute: cp
+    ```
 
 The command `cp` will fail because it doesn't have any arguments. The container will continue to run and can be seen with:
 
-```text
-> docker ps all
-CONTAINER ID   IMAGE          COMMAND     CREATED          STATUS        PORTS    NAMES
-7fa0295c9d93   alpine:latest  "sh"        36 seconds ago   Up 34 seconds          build-magic
-```
+    > docker ps all
+    CONTAINER ID   IMAGE          COMMAND     CREATED          STATUS        PORTS    NAMES
+    7fa0295c9d93   alpine:latest  "sh"        36 seconds ago   Up 34 seconds          build-magic
 
 The container can be inspected by running a shell on the container with:
 
-```text
-> docker exec -it build-magic /bin/sh
-```
+    > docker exec -it build-magic /bin/sh
 
 When finished, exit the container with `exit`. The container can then be stopped and destroyed with:
 
-```text
-> docker stop build-magic
-> docker rm build-magic
-```
+    > docker stop build-magic
+    > docker rm build-magic
 
 Until the `build-magic` container is stopped and destroyed, build-magic won't be able to start a new container.

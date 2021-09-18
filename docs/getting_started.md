@@ -2,60 +2,80 @@
 
 ## Requirements
 
-The build-magic project is written in Python and is cross-platform.
-
 * Operating System: MacOS, Windows, or Linux
-* Python 3.6+
+* Python 3.6+ (optional)
 * Docker (optional)
 * Vagrant (optional)
 * OpenSSH (optional)
 
+The build-magic project is cross-platform and will run on all recent OS versions. If build-magic isn't installed from a binary package, Python 3.6 or greater is required.
+
+To get the most out of build-magic, it is recommended to have OpenSSH, Docker, and Vagrant installed.
+
 ## Installation
 
-### Installing From PyPI
+### Linux
+
+The easiest way to install build-magic for Linux is by installing from a package.
+
+#### Debian/Ubuntu/Mint
+
+<!-- [build-magic-0.3.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build_magic-0.3.0_amd64.deb) -->
+
+Compatible versions are Debian 10 (buster)+, Ubuntu 18.04 (bionic)+, or Mint Linux 19 (Tara)+.
+
+#### Fedora/CentOS/Red Hat
+
+<!-- [build-magic](https://github.com/cmmorrow/build-magic/releases/download/v0.2.0/build_magic-0.2.0-py2.py3-none-any.whl) -->
+
+Compatible versions are CentOS 7 or newer.
+
+### Install via pipx
+
+If you have Python3 installed, the recommended way to install build-magic is into an isolated environment via [pipx](https://pypa.github.io/pipx/).
+
+```bash
+> pipx install build-magic
+```
+
+### Installing from PyPI
 
 You can install build-magic using [pip](http://pip-installer.org/) with the following command:
 
-```text
-pip install build-magic
+```bash
+> pip install build-magic
 ```
 
-Alternatively, if you want build-magic to run from an isolated environment, you can use:
-
-```text
-pipx install build-magic
-```
-
-### Installing From Source
+### Installing from Source
 
 The build-magic project is written in Python. First, create a new virtual environment for development with:
 
-```text
-python3 -m venv /path/to/new/virtual/environment
+```bash
+> python3 -m venv /path/to/new/virtual/environment
 ```
 
 Alternatively, you can create a virtual environment with `conda` or `virtualenv`. Be sure to activate your virtual environment with:
 
-```text
-source /path/to/new/virtual/environment/bin/activate
+```bash
+> source /path/to/new/virtual/environment/bin/activate
 ```
 
 Next, navigate to the directory where you want to install build-magic and clone the [repository](https://github.com/cmmorrow/build-magic) using HTTPS with:
 
-```text
-git clone https://github.com/cmmorrow/build-magic.git
+```bash
+> git clone https://github.com/cmmorrow/build-magic.git
 ```
 
 Or using SSH with:
 
-```text
-git clone git@github.com:cmmorrow/build-magic.git
+```bash
+> git clone git@github.com:cmmorrow/build-magic.git
 ```
 
 Or using the GitHub CLI with:
 
-```text
-gh repo clone cmmorrow/build-magic
+```bash
+> gh repo clone cmmorrow/build-magic
 ```
 
 ### Getting The Most Out of build-magic With Optional Command Runners
@@ -82,8 +102,8 @@ Currently, build-magic only supports SSH connections via public/private key pair
 
 You can verify build-magic is install by running the following command from a command prompt:
 
-```text
-build-magic --verbose "echo 'hello world'"
+```bash
+> build-magic --verbose "echo 'hello world'"
 ```
 
 You should see build-magic run and output `hello world`
