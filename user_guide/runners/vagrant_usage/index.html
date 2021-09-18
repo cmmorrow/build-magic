@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -226,8 +226,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../../core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -481,7 +481,7 @@
               
                 
                 
-                <h1 id="using-the-vagrant-command-runner">Using the Vagrant Command Runner</h1>
+                <h1 id="using-the-vagrant-command-runner">Using the Vagrant Command Runner<a class="headerlink" href="#using-the-vagrant-command-runner" title="Permanent link">&para;</a></h1>
 <p>The <em>vagrant</em> Command Runner executes commands in a virtual machine. Vagrant is a command line utility for creating and managing virtual machines. A specialized Ruby scripted called a Vagrantfile is used to provision the virtual machine.</p>
 <p>Build-magic will start a new virtual machine provisioned by a specified Vagrantfile. The path to the Vagrantfile can be provided by the <strong>--environment</strong> option. When the Stage ends, build-magic will destroy the virtual machine so that it doesn't continue to use resources on the host machine.</p>
 <div class="admonition note">
@@ -492,28 +492,53 @@
 <p class="admonition-title">Note</p>
 <p>Build-magic only supports Linux-based Vagrant Boxes with the <em>vagrant</em> Command Runner.</p>
 </div>
-<h2 id="using-a-virtual-machine-compared-to-a-container">Using a Virtual Machine Compared to a Container</h2>
+<h2 id="using-a-virtual-machine-compared-to-a-container">Using a Virtual Machine Compared to a Container<a class="headerlink" href="#using-a-virtual-machine-compared-to-a-container" title="Permanent link">&para;</a></h2>
 <p>There are a few noteworthy differences between using the <em>vagrant</em> Command Runner to execute commands in a virtual machine vs using the <em>docker</em> Command Runner to execute commands in a container.</p>
 <ul>
 <li>Virtual machines much more closely resemble a full operating system compared to a container. This can be useful when testing package installation for a target operating system/distribution/version. Containers are relatively minimal and won't have a lot of programs or libraries available by default.</li>
 <li>Virtual machines are significantly slower to start up compared to a container.</li>
 <li>Virtual machines typically consume more resources (CPU, memory, disk space) on the host machine compared to containers.</li>
 </ul>
-<h2 id="running-shell-commands">Running Shell Commands</h2>
+<h2 id="running-shell-commands">Running Shell Commands<a class="headerlink" href="#running-shell-commands" title="Permanent link">&para;</a></h2>
 <p>The <em>vagrant</em> Command Runner invokes <code>/bin/sh</code> to execute commands, allowing the use of redirection and piping.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner vagrant \
---environment Vagrantfile \
--c execute &#39;echo &quot;hello world&quot; &gt; hello.txt&#39; \
--c execute &#39;cat hello.txt&#39;
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner vagrant <span class="se">\</span>
+  --environment Vagrantfile <span class="se">\</span>
+  -c execute <span class="s1">&#39;echo &quot;hello world&quot; &gt; hello.txt&#39;</span> <span class="se">\</span>
+  -c execute <span class="s1">&#39;cat hello.txt&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">vagrant</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Vagrantfile</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo &quot;hello world&quot; &gt; hello.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat hello.txt</span>
+</code></pre></div>
+</div>
+</div>
 <p>Environment variables can be included in commands by wrapping the command in single quotes:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner vagrant \
---environment Vagrantfile \
-&#39;echo $TERM&#39;
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+--runner vagrant <span class="se">\</span>
+--environment Vagrantfile <span class="se">\</span>
+<span class="s1">&#39;echo $TERM&#39;</span>
 </code></pre></div>
-<h2 id="setting-the-working-directory">Setting the Working Directory</h2>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">vagrant</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Vagrantfile</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="s">&#39;echo</span><span class="nv"> </span><span class="s">$TERM&#39;</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="setting-the-working-directory">Setting the Working Directory<a class="headerlink" href="#setting-the-working-directory" title="Permanent link">&para;</a></h2>
 <p>When using the <em>vagrant</em> Command Runner, the Working Directory option <strong>--wd</strong> refers to the Working Directory within the virtual machine.</p>
 <p><img alt="diagram" src="https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBzdWJncmFwaCBIb3N0XG4gICAgYShIb3N0IFdvcmtpbmcgRGlyZWN0b3J5KVxuICAgIGVuZFxuICAgIHN1YmdyYXBoIFZpcnR1YWwgTWFjaGluZVxuICAgIGIoQmluZCBEaXJlY3RvcnkpXG4gICAgYyhXb3JraW5nIERpcmVjdG9yeSlcbiAgICBiIC0tPiBjXG4gICAgZW5kXG4gICAgYSAtLT4gYiIsIm1lcm1haWQiOnt9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlfQ" /></p>
 <div class="admonition note">
@@ -521,26 +546,70 @@
 <p>The host directory and bind directory are set from the Vagrantfile with <code>config.vm.synced_folder</code>, and therefore cannot be controlled by build-magic. See the Vagrant Synced Folders <a href="https://www.vagrantup.com/docs/synced-folders">documentation</a> for details.</p>
 </div>
 <p>Unlike the <em>docker</em> Command Runner, the Working Directory and Bind Directory for the <em>vagrant</em> Command Runner do not default to the same directory. The Working Directory defaults to <code>/home/vagrant</code> and the Bind Directory defaults to <code>/vagrant</code>. This means if you want the Working Directory to be set to the Bind Directory, the <strong>--wd</strong> option must be used to set the Working Directory to <code>/vagrant</code>.</p>
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic -r vagrant -e . --wd /vagrant make
 </code></pre></div>
-<h2 id="copying-files-into-the-virtual-machine">Copying Files Into the Virtual Machine</h2>
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">vagrant</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">.</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/vagrant</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="copying-files-into-the-virtual-machine">Copying Files Into the Virtual Machine<a class="headerlink" href="#copying-files-into-the-virtual-machine" title="Permanent link">&para;</a></h2>
 <p>By using synced folders, all files in Host Working Directory are available from Bind Directory in the virtual machine. While it's possible to work on files in the Bind Directory, it isn't recommended for I/O intensive operations like compiling code. Some of the synced folder implementations Vagrant uses have significant overhead associated with the mount, so in situations where performance is slow, it's a good idea to instead copy files from the Bind Directory to the Working Directory.</p>
 <p>Individual files can be copied into the container from a directory specified with the <strong>--copy</strong> option. If using the <strong>--copy</strong> option, the files to copy should be specified as arguments.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic \
---runner vagrant \
---environment Vagrantfile \
---copy /home/myproject \
---command install &quot;apk add gcc&quot; \
---command build &#39;make&#39; \
-main.cpp plugins.cpp audio.cpp
+<div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --runner vagrant <span class="se">\</span>
+  --environment Vagrantfile <span class="se">\</span>
+  --copy /home/myproject <span class="se">\</span>
+  --command install <span class="s2">&quot;apk add gcc&quot;</span> <span class="se">\</span>
+  --command build <span class="s1">&#39;make&#39;</span> <span class="se">\</span>
+  main.cpp plugins.cpp audio.cpp
 </code></pre></div>
-<h2 id="debugging-the-virtual-machine">Debugging the Virtual Machine</h2>
+</div>
+<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">vagrant</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Vagrantfile</span>
+      <span class="nt">copy from directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+      <span class="nt">artifacts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">main.cpp</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">plugins.cpp</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">audio.cpp</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apk add gcc</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="debugging-the-virtual-machine">Debugging the Virtual Machine<a class="headerlink" href="#debugging-the-virtual-machine" title="Permanent link">&para;</a></h2>
 <p>If a command fails in the container for an unknown reason, the <em>persist</em> Action can be used for troubleshooting. The <em>persist</em> Action will keep the container running in the background after build-magic has exited.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --runner vagrant \
---environment Vagrantfile \
---action persist \
---command execute &quot;cp&quot;
+<div class="tabbed-set" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><label for="__tabbed_5_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --runner vagrant <span class="se">\</span>
+  --environment Vagrantfile <span class="se">\</span>
+  --action persist <span class="se">\</span>
+  --command execute <span class="s2">&quot;cp&quot;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><label for="__tabbed_5_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">vagrant</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Vagrantfile</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">persist</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">execute cp</span>
+</code></pre></div>
+</div>
+</div>
 <p>The command <code>cp</code> will fail because it doesn't have any arguments. The virtual machine will continue to run and can be accessed with:</p>
 <div class="highlight"><pre><span></span><code>&gt; vagrant ssh
 </code></pre></div>

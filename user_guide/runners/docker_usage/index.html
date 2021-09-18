@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -226,8 +226,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../../core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -481,80 +481,199 @@
               
                 
                 
-                <h1 id="using-the-docker-command-runner">Using the Docker Command Runner</h1>
+                <h1 id="using-the-docker-command-runner">Using the Docker Command Runner<a class="headerlink" href="#using-the-docker-command-runner" title="Permanent link">&para;</a></h1>
 <p>The <em>docker</em> Command Runner executes commands in a container. Build-magic will start a new container named <code>build-magic</code> using the image specified by <strong>--environment</strong>. The container will start detached from the build-magic sub-process, use a pseudo TTY, and override the container entrypoint to <code>/bin/sh</code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Build-magic only supports Linux-based containers with the <em>docker</em> Command Runner. Windows-based container will fail to launch.</p>
 </div>
-<h2 id="running-shell-commands">Running Shell Commands</h2>
+<h2 id="running-shell-commands">Running Shell Commands<a class="headerlink" href="#running-shell-commands" title="Permanent link">&para;</a></h2>
 <p>The <em>docker</em> Command Runner invokes <code>/bin/sh</code> to execute commands, allowing the use of redirection and piping.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner docker \
---environment alpine:latest \
--c execute &#39;echo &quot;hello world&quot; &gt; hello.txt&#39; \
--c execute &#39;cat hello.txt&#39;
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner docker <span class="se">\</span>
+  --environment alpine:latest <span class="se">\</span>
+  -c execute <span class="s1">&#39;echo &quot;hello world&quot; &gt; hello.txt&#39;</span> <span class="se">\</span>
+  -c execute <span class="s1">&#39;cat hello.txt&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo &quot;hello world&quot; &gt; hello.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat hello.txt</span>
+</code></pre></div>
+</div>
+</div>
 <p>Environment variables can be included in commands by wrapping the command in single quotes:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner docker \
---environment alpine:latest \
-&#39;echo $TERM&#39;
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner docker <span class="se">\</span>
+  --environment alpine:latest <span class="se">\</span>
+  <span class="s1">&#39;echo $TERM&#39;</span>
 </code></pre></div>
-<h2 id="setting-the-working-directory">Setting the Working Directory</h2>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="s">&#39;echo</span><span class="nv"> </span><span class="s">$TERM&#39;</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="setting-the-working-directory">Setting the Working Directory<a class="headerlink" href="#setting-the-working-directory" title="Permanent link">&para;</a></h2>
 <p>When using the <em>docker</em> Command Runner, the Working Directory option <strong>--wd</strong> refers to the Working Directory within the container. Build-magic mounts a local directory, referred to as the Host Working Directory, to a Bind Directory in the container. The Bind Directory in the container might or might not be the same as the Working Directory.</p>
 <p><img alt="Working Directory Diagram" src="https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFJcbiAgICBzdWJncmFwaCBIb3N0XG4gICAgYShIb3N0IFdvcmtpbmcgRGlyZWN0b3J5KVxuICAgIGVuZFxuICAgIHN1YmdyYXBoIENvbnRhaW5lclxuICAgIGIoQmluZCBEaXJlY3RvcnkpXG4gICAgYyhXb3JraW5nIERpcmVjdG9yeSlcbiAgICBiIC0tPiBjXG4gICAgZW5kXG4gICAgYSAtLT4gYiIsIm1lcm1haWQiOnt9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlfQ" /></p>
 <p>By default, the Host Working Directory is the current directory build-magic is executed from, but can be changed with <strong>--parameter hostwd</strong>.</p>
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic -r docker -e alpine --parameter hostwd /home/myproject make
 </code></pre></div>
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">hostwd</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
 <p>The Bind Directory and Working Directory both default to <code>/build-magic</code> in the container. The Bind Directory can be changed with <strong>--parameter bind</strong>.</p>
+<div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic -r docker -e alpine --parameter bind /app --wd /app make
 </code></pre></div>
+</div>
+<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bind /app</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
 <p>Just as with every other Command Runner, the Working Directory can be changed with the <strong>--wd</strong> option.</p>
-<h2 id="copying-files-into-the-container">Copying Files Into the Container</h2>
+<h2 id="copying-files-into-the-container">Copying Files Into the Container<a class="headerlink" href="#copying-files-into-the-container" title="Permanent link">&para;</a></h2>
 <p>By establishing a mount, all files in Host Working Directory are available from Bind Directory in the container. While it's possible to work on files in the Bind Directory, it isn't recommended for I/O intensive operations like compiling code. Docker has some overhead associated with the mount, so in situations where performance is slow, it's a good idea to instead copy files from the Bind Directory to the Working Directory.</p>
 <p>Individual files can be copied into the container from a directory specified with the <strong>--copy</strong> option. If using the <strong>--copy</strong> option, the files to copy should be specified as arguments.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic \
---runner docker \
---environment alpine:latest \
---copy /home/myproject \
---wd /app \
---command install &quot;apk add gcc&quot; \
---command build &#39;make&#39; \
-main.cpp plugins.cpp audio.cpp
+<div class="tabbed-set" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><label for="__tabbed_5_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --runner docker <span class="se">\</span>
+  --environment alpine:latest <span class="se">\</span>
+  --copy /home/myproject <span class="se">\</span>
+  --wd /app <span class="se">\</span>
+  --command install <span class="s2">&quot;apk add gcc&quot;</span> <span class="se">\</span>
+  --command build <span class="s1">&#39;make&#39;</span> <span class="se">\</span>
+  main.cpp plugins.cpp audio.cpp
 </code></pre></div>
+</div>
+<input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><label for="__tabbed_5_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+      <span class="nt">copy from directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+      <span class="nt">artifacts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">main.cpp</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">plugins.cpp</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">audio.cpp</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apk add gcc</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
 <p>Instead of copying individual files to the Working Directory, an entire directory can be used by the container by setting the Host Working Directory, Bind Directory, and Working Directory:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic \
---runner docker \
---environment alpine:latest \
---parameter hostwd /home/myproject \
---parameter bind /app \
---wd /app \
---command install &quot;apk add gcc&quot; \
---command build &#39;make&#39;
+<div class="tabbed-set" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><label for="__tabbed_6_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --runner docker <span class="se">\</span>
+  --environment alpine:latest <span class="se">\</span>
+  --parameter hostwd /home/myproject <span class="se">\</span>
+  --parameter <span class="nb">bind</span> /app <span class="se">\</span>
+  --wd /app <span class="se">\</span>
+  --command install <span class="s2">&quot;apk add gcc&quot;</span> <span class="se">\</span>
+  --command build <span class="s1">&#39;make&#39;</span>
 </code></pre></div>
-<h2 id="cleaning-up-new-files">Cleaning Up New Files</h2>
+</div>
+<input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><label for="__tabbed_6_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">hostwd</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apk add gcc</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="cleaning-up-new-files">Cleaning Up New Files<a class="headerlink" href="#cleaning-up-new-files" title="Permanent link">&para;</a></h2>
 <p>Compiling software into executables can often produce extra files that need to be manually deleted. Build-magic can clean up these newly created files with the <em>cleanup</em> Action.</p>
 <p>The <em>cleanup</em> Action will take a snapshot of every file and directory in the Host Working Directory before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.</p>
 <p>If the Working Directory is different from the Bind Directory, all files will be lost when the build-magic container is destroyed when build-magic exits. However, if the Working Directory is also the Bind Directory, any newly created files in the Host Working Directory will be deleted.</p>
 <p>The exception is for files that are copied to the Host Working Directory from a directory specified with the <strong>--copy</strong> option. Since these files are copied before the Stage starts executing Commands, they will not be cleaned up when the Stage ends.</p>
 <p>If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.</p>
-<p>The <em>cleanup</em> Action can be executed with the <code>--action</code> option.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup \
--c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
--c release &#39;twine upload dist/*&#39;
+<p>The <em>cleanup</em> Action can be executed with the <strong>--action</strong> option.</p>
+<div class="tabbed-set" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><label for="__tabbed_7_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup <span class="se">\</span>
+  -r docker <span class="se">\</span>
+  -e alpine:latest <span class="se">\</span>
+  -c build <span class="s1">&#39;python setup.py sdist bdist_wheel --universal&#39;</span> <span class="se">\</span>
+  -c release <span class="s1">&#39;twine upload dist/*&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><label for="__tabbed_7_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">python setup.py sdist bdist_wheel --universal</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">twine upload dist/*</span>
+</code></pre></div>
+</div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>
 </div>
-<h2 id="debugging-the-build-magic-container">Debugging the build-magic Container</h2>
+<h2 id="debugging-the-build-magic-container">Debugging the build-magic Container<a class="headerlink" href="#debugging-the-build-magic-container" title="Permanent link">&para;</a></h2>
 <p>If a command fails in the container for an unknown reason, the <em>persist</em> Action can be used for troubleshooting. The <em>persist</em> Action will keep the container running in the background after build-magic has exited.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --runner docker \
---environment alpine:latest \
---action persist \
---command execute &quot;cp&quot;
+<div class="tabbed-set" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --runner docker <span class="se">\</span>
+  --environment alpine:latest <span class="se">\</span>
+  --action persist <span class="se">\</span>
+  --command execute <span class="s2">&quot;cp&quot;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><label for="__tabbed_8_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">persist</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cp</span>
+</code></pre></div>
+</div>
+</div>
 <p>The command <code>cp</code> will fail because it doesn't have any arguments. The container will continue to run and can be seen with:</p>
 <div class="highlight"><pre><span></span><code>&gt; docker ps all
 CONTAINER ID   IMAGE          COMMAND     CREATED          STATUS        PORTS    NAMES

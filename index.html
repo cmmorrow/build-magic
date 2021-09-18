@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL(".",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -63,7 +63,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#welcome-to-build-magic" class="md-skip">
+        <a href="#build-magic" class="md-skip">
           Skip to content
         </a>
       
@@ -206,16 +206,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-build-magic-is" class="md-nav__link">
-    What build-magic "Is"
+  <a href="#common-use-cases" class="md-nav__link">
+    Common Use Cases
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-build-magic-is-not" class="md-nav__link">
-    What build-magic "Is Not"
+  <a href="#features" class="md-nav__link">
+    Features
   </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#work-the-way-you-want-to-work" class="md-nav__link">
+    Work the way you want to work
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automate-everything" class="md-nav__link">
+    Automate everything
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simple-but-powerful" class="md-nav__link">
+    Simple but powerful
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#un-opinionated" class="md-nav__link">
+    Un-opinionated
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-variables" class="md-nav__link">
+    Runtime variables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-platform" class="md-nav__link">
+    Cross platform
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -271,8 +319,8 @@
   
   
     <li class="md-nav__item">
-      <a href="user_guide/basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="user_guide/core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -409,16 +457,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-build-magic-is" class="md-nav__link">
-    What build-magic "Is"
+  <a href="#common-use-cases" class="md-nav__link">
+    Common Use Cases
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-build-magic-is-not" class="md-nav__link">
-    What build-magic "Is Not"
+  <a href="#features" class="md-nav__link">
+    Features
   </a>
+  
+    <nav class="md-nav" aria-label="Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#work-the-way-you-want-to-work" class="md-nav__link">
+    Work the way you want to work
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#automate-everything" class="md-nav__link">
+    Automate everything
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simple-but-powerful" class="md-nav__link">
+    Simple but powerful
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#un-opinionated" class="md-nav__link">
+    Un-opinionated
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#runtime-variables" class="md-nav__link">
+    Runtime variables
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-platform" class="md-nav__link">
+    Cross platform
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -435,45 +531,74 @@
               
                 
                 
-                <h1 id="welcome-to-build-magic">Welcome to build-magic &#x1F528;&#x2728;</h1>
+                <h1 id="build-magic">build-magic &#x1F528;&#x2728;<a class="headerlink" href="#build-magic" title="Permanent link">&para;</a></h1>
 <p>An un-opinionated, general purpose automation tool.</p>
 <p>Build-magic is a command-line application for automating build, test, install, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.</p>
 <hr />
 <p><img alt="build-magic" src="build-magic.gif" /></p>
 <p>Using build-magic is as simple as:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic &quot;echo hello world!&quot;
+<div class="highlight"><pre><span></span><code>&gt; build-magic echo hello world!
 </code></pre></div>
-<p>But can support complex build automation with multiple steps such as:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic \
---runner docker \
---environment ubuntu:latest \
---verbose \
---cleanup \
---command execute &quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot; \
---command build &quot;make&quot; \
---command test &quot;make test&quot; \
---command execute &quot;tar -czf myapp.tar.gz build/*&quot; \
---command release &quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;
+<p>but can support complex build automation with multiple steps on the command-line or in a Config File.</p>
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --runner docker <span class="se">\</span>
+  --environment ubuntu:latest <span class="se">\</span>
+  --verbose <span class="se">\</span>
+  --cleanup <span class="se">\</span>
+  --command execute <span class="s2">&quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot;</span> <span class="se">\</span>
+  --command build <span class="s2">&quot;make&quot;</span> <span class="se">\</span>
+  --command <span class="nb">test</span> <span class="s2">&quot;make test&quot;</span> <span class="se">\</span>
+  --command execute <span class="s2">&quot;tar -czf myapp.tar.gz build/*&quot;</span> <span class="se">\</span>
+  --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
 </code></pre></div>
-<p>Build-magic can also execute a batch of commands in a config file such as:</p>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">release</span> 
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./configure CC=c99 CFLAGS=-O2 LIBS=-lposix</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myapp.tar.gz build/*</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload myapp.tar.gz my-artifactory</span>
+</code></pre></div>
+</div>
+</div>
+<p>Build-magic can execute a batch of commands in a Config File with:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic -C release.yaml
 </code></pre></div>
-<p>Or, if the config file is named <code>build-magic.yaml</code>, can be run similar to the <code>make</code> command with:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic all
+<p>Or, if the Config File is named <code>build-magic.yaml</code>, can be run similar to the <code>make</code> command with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic release
 </code></pre></div>
 <hr />
-<p>Build-magic lets you work the way you want to work.</p>
+<h2 id="common-use-cases">Common Use Cases<a class="headerlink" href="#common-use-cases" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Build and test your Linux application on a Windows laptop.</li>
-<li>Install and test your application in a VM.</li>
-<li>Automate your build, test, and deploy pipeline on your laptop or in the cloud.</li>
+<li>Automate building, testing, and releasing new software versions.</li>
+<li>Build and deploy new machine learning models.</li>
+<li>Automate deploying software to staging or production cloud environments.</li>
+<li>Simplify onboarding new team members by automating development environment setup and installation.</li>
+<li>Automate launching an application for local testing with the same config file used for deploying in production.</li>
+<li>Execute regression, integration, and unit tests across multiple platforms and servers.</li>
+<li>Automate dry runs of critical commands that cannot be tested on a production system.</li>
 </ul>
-<p>Build-magic can execute commands on your local machine, on a remote server, in a Docker container, or in a virtual machine.</p>
-<h2 id="what-build-magic-is">What build-magic "Is"</h2>
-<p>A command-line automation tool for running commands locally, remotely, in a container, or in a VM. The complexity of what build-magic can do is limited primarily by your imagination. Build-magic strives to enable developers to simplifier their application builds in a portable, user-friendly way.</p>
-<h2 id="what-build-magic-is-not">What build-magic "Is Not"</h2>
-<p>A CI/CD tool replacement. There are plenty of great CI/CD tools out there. Build-magic isn't a replacement for Jenkins, GitLab CI, or GitHub Actions. In addition to build automation, these tools bake in notifications, post webhooks for source control events, and are generally cloud based. Build-magic is instead focused on build automation you can control locally.</p>
-<p>CI/CD tools are extremely useful, and Jenkins, GitLab CI, and GitHub Actions can use build-magic to minimize differences between production builds in the cloud and development builds on your laptop.</p>
+<h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
+<h3 id="work-the-way-you-want-to-work">Work the way you want to work<a class="headerlink" href="#work-the-way-you-want-to-work" title="Permanent link">&para;</a></h3>
+<p>Developing for Linux from a Windows or MacOS laptop? Build-magic lets you build, test, and deploy your application within a Docker container, virtual machine, or on a remote machine. Build-magic will manage the environment differences for you so you can focus on the details that matter.</p>
+<h3 id="automate-everything">Automate everything<a class="headerlink" href="#automate-everything" title="Permanent link">&para;</a></h3>
+<p>If your terminal can do it, build-magic can automate it! Build-magic is a modern alternative to automating with Makefiles and shell scripts. Build-magic config files feature an easy to use YAML syntax for executing multiple stages (targets). Build-magic actions can also apply setup and teardown behaviors for preserving container or VM state, or clean up extra files generated as part of a build process. Build-magic also gives you control over how output is displayed by providing a TTY friendly format as well a log file friendly format.</p>
+<h3 id="simple-but-powerful">Simple but powerful<a class="headerlink" href="#simple-but-powerful" title="Permanent link">&para;</a></h3>
+<p>There are no looping mechanics or specialized conditional logic handlers beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and replicate. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs become idempotent. The persist action will preserve the state of a container or VM after execution of a job.</p>
+<h3 id="un-opinionated">Un-opinionated<a class="headerlink" href="#un-opinionated" title="Permanent link">&para;</a></h3>
+<p>As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic config file or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.</p>
+<h3 id="runtime-variables">Runtime variables<a class="headerlink" href="#runtime-variables" title="Permanent link">&para;</a></h3>
+<p>Build-magic config files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic config file.</p>
+<h3 id="cross-platform">Cross platform<a class="headerlink" href="#cross-platform" title="Permanent link">&para;</a></h3>
+<p>Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic config files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.</p>
                 
               
               

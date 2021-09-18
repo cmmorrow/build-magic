@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -219,8 +219,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../user_guide/basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../user_guide/core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -346,19 +346,19 @@
                 
                   <h1>Class diagram</h1>
                 
-                <pre class="mermaid-experimental"><code>classDiagram
+                <div class="highlight"><pre><span></span><code>classDiagram
     CommandRunner o-- Local : Realizes
     CommandRunner o-- Remote : Realizes
     CommandRunner o-- Docker : Realizes
     CommandRunner o-- Vagrant : Realizes
     CommandRunner --|&gt; Status : Returns
-    StageFactory "1" --|&gt; "1..n" Stage
-    Stage "1" *-- "1" CommandRunner
-    Stage "1" ..|&gt; "1" MacroFactory : Calls
-    Macro "1..n" &lt;|-- "1" MacroFactory : Generates
-    Stage "1" *-- "1..n" Macro
-    Stage "1" *-- "1..n" Status
-    Output "1" &lt;|.. "1" Stage : Calls
+    StageFactory &quot;1&quot; --|&gt; &quot;1..n&quot; Stage
+    Stage &quot;1&quot; *-- &quot;1&quot; CommandRunner
+    Stage &quot;1&quot; ..|&gt; &quot;1&quot; MacroFactory : Calls
+    Macro &quot;1..n&quot; &lt;|-- &quot;1&quot; MacroFactory : Generates
+    Stage &quot;1&quot; *-- &quot;1..n&quot; Macro
+    Stage &quot;1&quot; *-- &quot;1..n&quot; Status
+    Output &quot;1&quot; &lt;|.. &quot;1&quot; Stage : Calls
     Output &lt;|-- Basic : Inherits
     Output &lt;|-- Silent : Inherits
     Output &lt;|-- Tty : Inherits
@@ -526,7 +526,8 @@
         +names() Tuple~str~
         +available() Tuple~Any~
         +values() Tuple~Any~
-    }</code></pre>
+    }
+</code></pre></div>
                 
               
               

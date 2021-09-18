@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -226,8 +226,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../../core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -453,33 +453,67 @@
               
                 
                 
-                <h1 id="using-the-local-command-runner">Using the Local Command Runner</h1>
+                <h1 id="using-the-local-command-runner">Using the Local Command Runner<a class="headerlink" href="#using-the-local-command-runner" title="Permanent link">&para;</a></h1>
 <p>The <em>local</em> Command Runner executes commands on the host machine where build-magic is running. This means build-magic can only run commands that work on the host machine or shell where build-magic is running.</p>
-<h2 id="running-shell-commands">Running Shell Commands</h2>
+<h2 id="running-shell-commands">Running Shell Commands<a class="headerlink" href="#running-shell-commands" title="Permanent link">&para;</a></h2>
 <p>The <em>local</em> Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
--c execute &#39;echo &quot;hello world&quot; &gt; hello.txt&#39; \
--c execute &#39;cat hello.txt&#39;
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  -c execute <span class="s1">&#39;echo &quot;hello world&quot; &gt; hello.txt&#39;</span> <span class="se">\</span>
+  -c execute <span class="s1">&#39;cat hello.txt&#39;</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose &#39;ps -ef | grep python&#39;
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo &quot;hello world&quot; &gt; hello.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat hello.txt</span>
+</code></pre></div>
+</div>
+</div>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="s1">&#39;ps -ef | grep python&#39;</span>
 </code></pre></div>
 <p>Environment variables can be included in commands by wrapping the command in single quotes:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose &#39;echo $SHELL&#39;
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="s1">&#39;echo $SHELL&#39;</span>
 </code></pre></div>
-<h2 id="setting-the-working-directory">Setting the Working Directory</h2>
+<h2 id="setting-the-working-directory">Setting the Working Directory<a class="headerlink" href="#setting-the-working-directory" title="Permanent link">&para;</a></h2>
 <p>The Working Directory is the path that build-magic operates from. By default, the Working Directory is the current directory of the shell when build-magic is executed. On Linux and MacOS, this directory is the value of <code>$PWD</code> or <code>pwd</code> on Windows.</p>
 <p>The Working Directory can be changed to any path the user has permission to read from with the <code>--wd</code> option.</p>
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic --wd ~/myproject make
 </code></pre></div>
-<h2 id="cleaning-up-new-files">Cleaning Up New Files</h2>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/myproject</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="cleaning-up-new-files">Cleaning Up New Files<a class="headerlink" href="#cleaning-up-new-files" title="Permanent link">&para;</a></h2>
 <p>Compiling software into executables can often produce extra files that need to be manually deleted. Build-magic can clean up these newly created files with the <em>cleanup</em> Action.</p>
 <p>The <em>cleanup</em> Action will take a snapshot of every file and directory in the working directory before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.</p>
 <p>If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.</p>
-<p>The <em>cleanup</em> Action can be executed with the <code>--action</code> option.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup \
--c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
--c release &#39;twine upload dist/*&#39;
+<p>The <em>cleanup</em> Action can be executed with the <strong>--action</strong> option.</p>
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup <span class="se">\</span>
+  -c build <span class="s1">&#39;python setup.py sdist bdist_wheel --universal&#39;</span> <span class="se">\</span>
+  -c release <span class="s1">&#39;twine upload dist/*&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">python setup.py sdist bdist_wheel --universal</span>
+        <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">twine upload dist/*</span>
+</code></pre></div>
+</div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>

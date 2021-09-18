@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -226,8 +226,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -310,11 +310,12 @@
     Specify commands to execute from the command line
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Specify commands to execute from the command line">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#specify-stages-and-commands-to-execute-from-a-config-file" class="md-nav__link">
-    Specify stages and commands to execute from a config file
+  <a href="#description" class="md-nav__link">
+    Description
   </a>
   
 </li>
@@ -323,11 +324,29 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#description" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#specify-stages-and-commands-to-execute-from-a-config-file" class="md-nav__link">
+    Specify stages and commands to execute from a Config File
+  </a>
+  
+    <nav class="md-nav" aria-label="Specify stages and commands to execute from a Config File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
     Description
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -497,11 +516,12 @@
     Specify commands to execute from the command line
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Specify commands to execute from the command line">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#specify-stages-and-commands-to-execute-from-a-config-file" class="md-nav__link">
-    Specify stages and commands to execute from a config file
+  <a href="#description" class="md-nav__link">
+    Description
   </a>
   
 </li>
@@ -510,11 +530,29 @@
     </nav>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#description" class="md-nav__link">
+        
+          <li class="md-nav__item">
+  <a href="#specify-stages-and-commands-to-execute-from-a-config-file" class="md-nav__link">
+    Specify stages and commands to execute from a Config File
+  </a>
+  
+    <nav class="md-nav" aria-label="Specify stages and commands to execute from a Config File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
     Description
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -531,9 +569,9 @@
               
                 
                 
-                <h1 id="using-the-build-magic-command-line-interface">Using the build-magic Command-line Interface</h1>
-<h2 id="synopsis">Synopsis</h2>
-<h3 id="provide-commands">Provide Commands</h3>
+                <h1 id="using-the-build-magic-command-line-interface">Using the build-magic Command-line Interface<a class="headerlink" href="#using-the-build-magic-command-line-interface" title="Permanent link">&para;</a></h1>
+<h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
+<h3 id="provide-commands">Provide Commands<a class="headerlink" href="#provide-commands" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>build-magic [-r | --runner (local | remote | vagrant | docker)] 
     [-e | --environment &lt;env&gt;] [--name &lt;stage&gt;] [--wd &lt;working-directory&gt;] 
     [-p | --parameter &lt;p-name p-value&gt;]... 
@@ -548,68 +586,32 @@ build-magic [-r | --runner (local | remote | vagrant | docker)]
     [--continue | --stop] [-c | --command &lt;directive command&gt;]... 
     [&lt;artifact&gt;...]
 </code></pre></div>
-<h3 id="provide-config-files">Provide Config Files</h3>
+<h3 id="provide-config-files">Provide Config Files<a class="headerlink" href="#provide-config-files" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>build-magic [--fancy | --plain | --quiet] [--verbose] 
-[-C | --config &lt;config-file&gt;] [-t | --target &lt;stage name&gt;]...
+[-t | --target &lt;stage name&gt;]... 
+[-v | --variable &lt;var-name var-value&gt;]... 
+[--prompt &lt;prompt-name&gt;]... -C | --config &lt;config-file&gt;
 
-build-magic [--fancy | --plain | --quiet] [--verbose]
-[all | &lt;stage name&gt; | [-t | --target &lt;stage name&gt;]...]
+build-magic [--fancy | --plain | --quiet] [--verbose] 
+[-v | --variable &lt;var-name var-value&gt;]... 
+[--prompt &lt;prompt-name&gt;]... 
+all | &lt;stage name&gt;... | [-t | --target &lt;stage name&gt;]...
 </code></pre></div>
-<h2 id="usage">Usage</h2>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <p>There are two ways to use build-magic from the command-line.</p>
-<h3 id="specify-commands-to-execute-from-the-command-line">Specify commands to execute from the command line</h3>
+<h3 id="specify-commands-to-execute-from-the-command-line">Specify commands to execute from the command line<a class="headerlink" href="#specify-commands-to-execute-from-the-command-line" title="Permanent link">&para;</a></h3>
 <p>Execute a single command where any arguments provided after valid options are interpreted as part of <strong>&lt;command></strong>. For example:</p>
-<div class="highlight"><pre><span></span><code>build-magic --verbose <span class="nb">echo</span> hello world
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="nb">echo</span> hello world
 </code></pre></div>
 <p>Alternatively, execute a single stage with multiple commands. This form must use one or more <strong>[-c | --command &lt;directive command>]</strong> options to specify the commands. For example:</p>
-<div class="highlight"><pre><span></span><code>build-magic --verbose <span class="se">\</span>
---command execute <span class="s1">&#39;echo &quot;hello world&quot; &gt; hello.txt&#39;</span> <span class="se">\</span>
---command execute <span class="s1">&#39;cat hello.txt&#39;</span>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --command execute <span class="s1">&#39;echo &quot;hello world&quot; &gt; hello.txt&#39;</span> <span class="se">\</span>
+  --command execute <span class="s1">&#39;cat hello.txt&#39;</span>
 </code></pre></div>
 <p>In this form, any arguments provided after valid options are interpreted as one or more <strong>&lt;artifact></strong>. Artifact arguments are ignored unless the <strong>--copy</strong> option is used. The artifacts must exist in <strong>&lt;copy-from></strong> to be copied to the working directory. For example:</p>
-<div class="highlight"><pre><span></span><code>build-magic --copy src --command build <span class="s1">&#39;make&#39;</span> audio.c equalizer.c effects.c
+<div class="highlight"><pre><span></span><code>&gt; build-magic --copy src --command build <span class="s1">&#39;make&#39;</span> audio.c equalizer.c effects.c
 </code></pre></div>
-<h3 id="specify-stages-and-commands-to-execute-from-a-config-file">Specify stages and commands to execute from a config file</h3>
-<p>Execute multiple stages with multiple commands using a config file. For example:</p>
-<div class="highlight"><pre><span></span><code>build-magic --config my_config.yaml
-</code></pre></div>
-<p>A config file in a different directory can also be used by providing the relative or absolute path to the config file:</p>
-<div class="highlight"><pre><span></span><code>build-magic --config my_project/config.yaml
-</code></pre></div>
-<p>Multiple config files can be specified and they will be executed in order.</p>
-<div class="highlight"><pre><span></span><code>build-magic --config config1.yaml --config config2.yaml
-</code></pre></div>
-<p>Execute a specific stage in a config file with the <code>--target</code> option. If for example, a config file has three stages named build, test, and deploy, the deploy stage can be run on it's own with:</p>
-<div class="highlight"><pre><span></span><code>build-magic --config my_config.yaml --target deploy
-</code></pre></div>
-<p>Multiple targets can be specified to change the stage execution order of a config file. Running tests before building can be accomplished with:</p>
-<div class="highlight"><pre><span></span><code>build-magic --config my_config.yaml --target <span class="nb">test</span> --target build
-</code></pre></div>
-<p>Named stages in a config file can also be run similar to a Makefile by specifying the stage name:</p>
-<div class="highlight"><pre><span></span><code>build-magic deploy
-</code></pre></div>
-<p>However, this usage will only work if the config file is named one of the following default filenames:</p>
-<ul>
-<li><code>build-magic.yaml</code></li>
-<li><code>build_magic.yaml</code></li>
-<li><code>build-magic.yml</code></li>
-<li><code>build_magic.yml</code></li>
-</ul>
-<p>To run all the stages in a default named config file, use:</p>
-<div class="highlight"><pre><span></span><code>build-magic all
-</code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <code>make</code> like usage is more limited than using the <code>--target</code> option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with <code>all</code>. Also, a config file must have one of the default filenames mentioned above, which also means multiple config files cannot be used. The config file must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended for these reasons to use the <code>--target</code> option instead.</p>
-</div>
-<p>It is also possible to use the <code>--target</code> option with a config file that has a default filename without having to specify the config filename with <code>--config</code>. For example:</p>
-<div class="highlight"><pre><span></span><code>build-magic --target <span class="nb">test</span> --target build
-</code></pre></div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If running build-magic from a directory that has a config file with a default filename and another config file is specified with the <code>--config</code> option, both config files will be executed with the config file with the default filename running first.</p>
-</div>
-<h2 id="description">Description</h2>
+<h4 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h4>
 <p><strong>--help</strong> - Prints build-magic's help text.</p>
 <p><strong>--version</strong> - Prints the build-magic version.</p>
 <p><strong>-r</strong>, <strong>--runner</strong> - The command runner to use for executing commands. Must be one of <em>local</em>, <em>remote</em>, <em>vagrant</em> or <em>docker</em>. The default command runner is <em>local</em>.</p>
@@ -642,8 +644,57 @@ build-magic [--fancy | --plain | --quiet] [--verbose]
 <p>Depending on the commands being executed, using <strong>--continue</strong> can lead to unstable behavior as failures can cascade to subsequent commands.</p>
 </div>
 <p><strong>-c</strong>, <strong>--command</strong> - A <strong>&lt;directive command></strong> pair to execute. The command must be wrapped in quotes for build-magic to parse it correctly. For example: <code>--command execute "echo 'hello world'"</code>. Can be provided multiple times.</p>
+<h3 id="specify-stages-and-commands-to-execute-from-a-config-file">Specify stages and commands to execute from a Config File<a class="headerlink" href="#specify-stages-and-commands-to-execute-from-a-config-file" title="Permanent link">&para;</a></h3>
+<p>Execute multiple stages with multiple commands using a Config File. For example:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config my_config.yaml
+</code></pre></div>
+<p>A Config File in a different directory can also be used by providing the relative or absolute path to the config file:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config my_project/config.yaml
+</code></pre></div>
+<p>Multiple Config Files can be specified and they will be executed in order.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config config1.yaml --config config2.yaml
+</code></pre></div>
+<p>Execute a specific stage in a Config File with the <code>--target</code> option. If for example, a Config File has three stages named <em>build</em>, <em>test</em>, and <em>deploy</em>, the <em>deploy</em> stage can be run on it's own with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config my_config.yaml --target deploy
+</code></pre></div>
+<p>Multiple targets can be specified to change the stage execution order of a Config File. Running tests before building can be accomplished with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config my_config.yaml --target <span class="nb">test</span> --target build
+</code></pre></div>
+<p>Named stages in a Config File can also be run similar to a Makefile by specifying the stage name:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic deploy
+</code></pre></div>
+<p>However, this usage will only work if the Config File is named one of the following default filenames:</p>
+<ul>
+<li><code>build-magic.yaml</code></li>
+<li><code>build_magic.yaml</code></li>
+<li><code>build-magic.yml</code></li>
+<li><code>build_magic.yml</code></li>
+</ul>
+<p>To run all the stages in a default named Config File, use:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic all
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>make</code> like usage is more limited than using the <code>--target</code> option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with <code>all</code>. Stage names also need to be a single word. Also, a Config File must have one of the default filenames mentioned above, which also means multiple Config Files cannot be used. The Config File must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended to use the <code>--target</code> option instead for these reasons.</p>
+</div>
+<p>It is also possible to use the <code>--target</code> option with a Config File that has a default filename without having to specify the Config File name with <code>--config</code>. For example:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --target <span class="nb">test</span> --target build
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If running build-magic from a directory that has a Config File with a default filename and another Config File is specified with the <code>--config</code> option, both Config Files will be executed with the Config File with the default filename running first.</p>
+</div>
+<h4 id="description_1">Description<a class="headerlink" href="#description_1" title="Permanent link">&para;</a></h4>
+<p><strong>--help</strong> - Prints build-magic's help text.</p>
+<p><strong>--version</strong> - Prints the build-magic version.</p>
+<p><strong>--fancy</strong> - This option is the default unless <strong>--plain</strong> or <strong>--quiet</strong> is used. If specified, build-magic will check to see if it's being executed in a TTY, and if so, use colored text, cursor repositioning, and format stdout to fit the terminal size. Otherwise, build-magic will assume an output width of 80 characters.</p>
+<p><strong>--plain</strong> - If specified, build-magic will write it's output to stdout in a log-like format ideal for non-interactive use.</p>
+<p><strong>--quiet</strong> - If specified, build-magic will suppress it's output to stdout.</p>
+<p><strong>--verbose</strong> - If specified, the stdout output of each command will be captured and printed after the execution of the corresponding command.</p>
 <p><strong>-C</strong>, <strong>--config</strong> - Executes the stages in <strong>&lt;config-file></strong>.</p>
-<p><strong>-t</strong>, <strong>--target</strong> - Matches the name of a stage in the specified config file or files to execute. If <strong>&lt;stage name></strong> doesn't match a named stage in any of the config files, an error is returned. Multiple targets can be provided and each corresponding stage will be executed in the order the targets are specified.</p>
+<p><strong>-t</strong>, <strong>--target</strong> - Matches the name of a stage in the specified Config File or files to execute. If <strong>&lt;stage name></strong> doesn't match a named stage in any of the Config Files, an error is returned. Multiple targets can be provided and each corresponding stage will be executed in the order the targets are specified.</p>
+<p><strong>-v</strong>, <strong>--variable</strong> - A name/value pair of <strong>&lt;var-name var-value></strong> where the name matches a placeholder in a Config File using the syntax <code>{{ var-name }}</code> and the value is the value to substitute the placeholder with.</p>
+<p><strong>--prompt</strong> - Similar to <strong>--variable</strong> but only accepts a placeholder name <strong>&lt;prompt-name></strong> and interactively prompts the user to input the value to be substituted. The input is hidden as to not be displayed in the shell history.</p>
                 
               
               
@@ -662,7 +713,7 @@ build-magic [--fancy | --plain | --quiet] [--verbose]
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
-        <a href="../basic_concepts/" class="md-footer__link md-footer__link--prev" rel="prev">
+        <a href="../core_concepts/" class="md-footer__link md-footer__link--prev" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -671,7 +722,7 @@ build-magic [--fancy | --plain | --quiet] [--verbose]
               <span class="md-footer__direction">
                 Previous
               </span>
-              Basic Concepts
+              Core Concepts
             </div>
           </div>
         </a>

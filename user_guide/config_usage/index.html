@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -226,8 +226,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -281,6 +281,20 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+</li>
       
     </ul>
   
@@ -396,6 +410,20 @@
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
+        <li class="md-nav__item">
+  <a href="#synopsis" class="md-nav__link">
+    Synopsis
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    Description
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -409,30 +437,44 @@
               
                 
                 
-                <h1 id="defining-build-magic-config-files">Defining build-magic config files</h1>
-<p>Build-magic supports executing multiple stages as static, repeatable jobs with a config file. A build-magic config file is a YAML file with the following structure:</p>
+                <h1 id="defining-build-magic-config-files">Defining build-magic Config Files<a class="headerlink" href="#defining-build-magic-config-files" title="Permanent link">&para;</a></h1>
+<h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
+<p>Build-magic supports executing multiple stages as static, repeatable jobs with a Config File. A build-magic Config File is a YAML file with the following structure:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
     <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
         <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Build Project</span>
+        <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+        <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
         <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+        <span class="nt">parameters</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
         <span class="nt">commands</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">configure</span>
             <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
     <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
         <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+        <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+        <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
         <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+        <span class="nt">parameters</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
         <span class="nt">commands</span><span class="p">:</span> 
             <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">service start mydb</span>
             <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
             <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">service stop mydb</span>
     <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
-        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Package Fedora</span>
+        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Package CentOS</span>
+        <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+        <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
         <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">cleanup</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+        <span class="nt">parameters</span><span class="p">:</span>
+            <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
         <span class="nt">commands</span><span class="p">:</span>
             <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make rpm</span>
             <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload &quot;build/RPMS/x86_64/(*).rpm&quot; my-artifactory</span>
 </code></pre></div>
-<p><strong>build-magic</strong> - Each build-magic config file must start with <strong>build-magic</strong> on the first line. The type of the <strong>build-magic</strong> property is an array of <strong>stage</strong> properties. The <strong>build-magic</strong> property must define at least one <strong>stage</strong>.</p>
+<h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
+<p><strong>build-magic</strong> - Each build-magic Config File must start with <strong>build-magic</strong> on the first line. The type of the <strong>build-magic</strong> property is an array of <strong>stage</strong> properties. The <strong>build-magic</strong> property must define at least one <strong>stage</strong>.</p>
 <p><strong>stage</strong> - Each <strong>stage</strong> is an object that defines the same properties as the CLI. The only property of <strong>stage</strong> that's required is <strong>commands</strong>.</p>
 <p><strong>name</strong> - Optional name to give the executing <strong>stage</strong>. If <strong>name</strong> isn't provided, the default stage name is 1, and each subsequent stage name is incremented by 1.</p>
 <p><strong>runner</strong> - The command runner to use for executing commands. The value must be one of <em>local</em>, <em>remote</em>, <em>vagrant</em> or <em>docker</em>. The default command runner is <em>local</em>.</p>

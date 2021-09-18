@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -226,8 +226,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../../basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../../core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -481,79 +481,200 @@
               
                 
                 
-                <h1 id="using-the-remote-command-runner">Using the Remote Command Runner</h1>
+                <h1 id="using-the-remote-command-runner">Using the Remote Command Runner<a class="headerlink" href="#using-the-remote-command-runner" title="Permanent link">&para;</a></h1>
 <p>The <em>remote</em> Command Runner executes commands on a remote machine. To execute commands remotely, SSH needs to be installed on the host machine and configured using a public/private key pair. This way, build-magic can execute commands without prompting the user for a password.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>To connect to or from a Windows 10 machine, OpenSSH needs to be installed on the Windows machine. Build-magic isn't compatible with other Windows SSH implementations or PuTTY <strong>.ppk</strong> files. You can find instructions on installing OpenSSH for Windows 10 <a href="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse">here</a>.</p>
 </div>
 <p>To connect to a remote machine, the <strong>--environment</strong> option should include the user and hostname of the machine to connect to, for example:</p>
-<div class="highlight"><pre><span></span><code>build-magic --verbose \
---runner remote \
---environment user@myhost \
-&quot;echo hello world&quot;
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  <span class="s2">&quot;echo hello world&quot;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello world</span>
+</code></pre></div>
+</div>
+</div>
 <p>Optionally, the port can also be given. By default, the port SSH will use is 22.</p>
-<div class="highlight"><pre><span></span><code>build-magic --verbose \
---runner remote \
---environment user@myhost:2222 \
-&quot;echo hello world&quot;
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost:2222 <span class="se">\</span>
+  <span class="s2">&quot;echo hello world&quot;</span>
 </code></pre></div>
-<h2 id="running-shell-commands">Running Shell Commands</h2>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost:2222</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello world</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="running-shell-commands">Running Shell Commands<a class="headerlink" href="#running-shell-commands" title="Permanent link">&para;</a></h2>
 <p>The <em>remote</em> Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner remote \
---environment user@myhost \
--c execute &#39;echo &quot;hello world&quot; &gt; hello.txt&#39; \
--c execute &#39;cat hello.txt&#39;
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  -c execute <span class="s1">&#39;echo &quot;hello world&quot; &gt; hello.txt&#39;</span> <span class="se">\</span>
+  -c execute <span class="s1">&#39;cat hello.txt&#39;</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner remote \
---environment user@myhost \
-&#39;ps -ef | grep python&#39;
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo &quot;hello world&quot; &gt; hello.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat hello.txt</span>
 </code></pre></div>
+</div>
+</div>
+<hr />
+<div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  <span class="s1">&#39;ps -ef | grep python&#39;</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ps -ef | grep python</span>
+</code></pre></div>
+</div>
+</div>
 <p>Environment variables can be included in commands by wrapping the command in single quotes:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --runner remote --environment user@myhost &#39;echo $SHELL&#39;
+<div class="tabbed-set" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><label for="__tabbed_5_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose -r remote -e user@myhost <span class="s1">&#39;echo $SHELL&#39;</span>
 </code></pre></div>
-<h2 id="setting-the-working-directory">Setting the Working Directory</h2>
+</div>
+<input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><label for="__tabbed_5_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="s">&#39;echo</span><span class="nv"> </span><span class="s">$SHELL&#39;</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="setting-the-working-directory">Setting the Working Directory<a class="headerlink" href="#setting-the-working-directory" title="Permanent link">&para;</a></h2>
 <p>The Working Directory is the path that build-magic operates from. By default, the Working Directory is the home directory of user used for logging into the remote machine.</p>
-<p>The Working Directory can be changed to any path the user has permission to read from with the <code>--wd</code> option.</p>
+<p>The Working Directory can be changed to any path the user has permission to read from with the <strong>--wd</strong> option.</p>
+<div class="tabbed-set" data-tabs="6:2"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio" /><label for="__tabbed_6_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic --runner remote --environment user@myhost --wd ~/myproject make
 </code></pre></div>
-<h2 id="copying-files-to-the-remote-machine">Copying Files To The Remote Machine</h2>
-<p>Individual files can be copied to the remote machine from a directory specified with the <strong>--copy</strong> option. If using the <strong>--copy</strong> option, the files to copy should be specified as arguments.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic \
---runner remote \
---environment user@myhost \
---copy /home/myproject \
---command execute ./configure \
---command build &#39;make&#39; \
-main.cpp plugins.cpp audio.cpp
+</div>
+<input id="__tabbed_6_2" name="__tabbed_6" type="radio" /><label for="__tabbed_6_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/myproject</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
 </code></pre></div>
-<h2 id="cleaning-up-new-files">Cleaning Up New Files</h2>
+</div>
+</div>
+<h2 id="copying-files-to-the-remote-machine">Copying Files To The Remote Machine<a class="headerlink" href="#copying-files-to-the-remote-machine" title="Permanent link">&para;</a></h2>
+<p>Individual files can be copied to the remote machine from a directory specified with the <strong>--copy</strong> option. If using the <strong>--copy</strong> option, the files to copy should be specified as arguments.</p>
+<div class="tabbed-set" data-tabs="7:2"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio" /><label for="__tabbed_7_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  --copy /home/myproject <span class="se">\</span>
+  --command execute ./configure <span class="se">\</span>
+  --command build <span class="s1">&#39;make&#39;</span> <span class="se">\</span>
+  main.cpp plugins.cpp audio.cpp
+</code></pre></div>
+</div>
+<input id="__tabbed_7_2" name="__tabbed_7" type="radio" /><label for="__tabbed_7_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">copy from directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+      <span class="nt">artifacts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">main.cpp</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">plugins.cpp</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">audio.cpp</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./configure</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="cleaning-up-new-files">Cleaning Up New Files<a class="headerlink" href="#cleaning-up-new-files" title="Permanent link">&para;</a></h2>
 <p>Compiling software into executables can often produce extra files that need to be manually deleted. Build-magic can clean up these newly created files on the remote machine with the <em>cleanup</em> Action.</p>
 <p>The <em>cleanup</em> Action will take a snapshot of every file and directory in the working directory on the remote machine before the Stage runs. At the end of the Stage, any files or directories that don't exist in the snapshot are deleted.</p>
 <p>If there are build artifacts that shouldn't be deleted, they should be moved or deployed before the Stage ends so that they aren't deleted. These build artifacts are typically binary executables, archives, or minified code and should be pushed to an artifactory, moved, or deployed before the Stage ends.</p>
-<p>The <em>cleanup</em> Action can be executed with the <code>--action</code> option.</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup \
---runner remote \
---environment user@myhost \
--c build &#39;python setup.py sdist bdist_wheel --universal&#39; \
--c release &#39;twine upload dist/*&#39;
+<p>The <em>cleanup</em> Action can be executed with the <strong>--action</strong> option.</p>
+<div class="tabbed-set" data-tabs="8:2"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio" /><label for="__tabbed_8_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --action cleanup <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  -c build <span class="s1">&#39;python setup.py sdist bdist_wheel --universal&#39;</span> <span class="se">\</span>
+  -c release <span class="s1">&#39;twine upload dist/*&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_8_2" name="__tabbed_8" type="radio" /><label for="__tabbed_8_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">python setup.py sdist bdist_wheel --universal</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">twine upload dist/*</span>
+</code></pre></div>
+</div>
+</div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>
 </div>
 <p>If using the <strong>--copy</strong> option to copy files to the working directory on the remote machine, these files are deleted along with any new files created during the Stage.</p>
-<h2 id="working-with-publicprivate-keypairs">Working with Public/Private Keypairs</h2>
+<h2 id="working-with-publicprivate-keypairs">Working with Public/Private Keypairs<a class="headerlink" href="#working-with-publicprivate-keypairs" title="Permanent link">&para;</a></h2>
 <p>The <em>remote</em> Command Runner uses SSH public/private keypairs to connect to remote machines and execute commands. By default, build-magic looks for the private key at <code>~/.ssh/id_rsa</code>. The path to the private key can be specified with <strong>--parameter keypath</strong>:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner remote \
---environment user@myhost \
---parameter keypath ~/ssh/keys/id_rsa \
---command execute &#39;echo hello world&#39;
+<div class="tabbed-set" data-tabs="9:2"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio" /><label for="__tabbed_9_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  --parameter keypath ~/.ssh/keys/id_rsa <span class="se">\</span>
+  --command execute <span class="s1">&#39;echo hello world&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_9_2" name="__tabbed_9" type="radio" /><label for="__tabbed_9_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">keypath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/.ssh/keys/id_rsa</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello world</span>
+</code></pre></div>
+</div>
+</div>
 <p>Build-magic supports several different SSH key types:</p>
 <ul>
 <li><em>rsa</em></li>
@@ -562,22 +683,53 @@ main.cpp plugins.cpp audio.cpp
 <li><em>ed25519</em></li>
 </ul>
 <p>The SSH key type can be specified with <strong>--parameter keytype</strong>:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner remote \
---environment user@myhost \
---parameter keytype ecdsa \
---parameter keypath ~/.ssh/id_ecdsa \
---command execute &#39;echo hello world&#39;
+<div class="tabbed-set" data-tabs="10:2"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio" /><label for="__tabbed_10_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  --parameter keytype ecdsa <span class="se">\</span>
+  --parameter keypath ~/.ssh/id_ecdsa <span class="se">\</span>
+  --command execute <span class="s1">&#39;echo hello world&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_10_2" name="__tabbed_10" type="radio" /><label for="__tabbed_10_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">keytype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ecdsa</span>
+        <span class="p p-Indicator">-</span> <span class="nt">keypath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/.ssh/id_ecdsa</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello world</span>
+</code></pre></div>
+</div>
+</div>
 <p>To use a private key protected by a passphrase, use <strong>--parameter keypass</strong>:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose \
---runner remote \
---environment user@myhost \
---parameter keytype ecdsa \
---parameter keypath ~/.ssh/id_ecdsa \
---parameter keypass secret \
---command execute &#39;echo hello world&#39;
+<div class="tabbed-set" data-tabs="11:2"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><label for="__tabbed_11_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="se">\</span>
+  --runner remote <span class="se">\</span>
+  --environment user@myhost <span class="se">\</span>
+  --parameter keytype ecdsa <span class="se">\</span>
+  --parameter keypath ~/.ssh/id_ecdsa <span class="se">\</span>
+  --parameter keypass secret <span class="se">\</span>
+  --command execute <span class="s1">&#39;echo hello world&#39;</span>
 </code></pre></div>
+</div>
+<input id="__tabbed_11_2" name="__tabbed_11" type="radio" /><label for="__tabbed_11_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">remote</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">user@myhost</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">keytype</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ecdsa</span>
+        <span class="p p-Indicator">-</span> <span class="nt">keypath</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/.ssh/id_ecdsa</span>
+        <span class="p p-Indicator">-</span> <span class="nt">keypass</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">secret</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello world</span>
+</code></pre></div>
+</div>
+</div>
                 
               
               

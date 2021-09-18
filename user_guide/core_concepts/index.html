@@ -14,7 +14,7 @@
     
     
       
-        <title>Basic Concepts - build-magic</title>
+        <title>Core Concepts - build-magic</title>
       
     
     
@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -63,7 +63,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#basic-concepts" class="md-skip">
+        <a href="#core-concepts" class="md-skip">
           Skip to content
         </a>
       
@@ -93,7 +93,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Basic Concepts
+              Core Concepts
             
           </span>
         </div>
@@ -236,12 +236,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Basic Concepts
+          Core Concepts
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Basic Concepts
+        Core Concepts
       </a>
       
         
@@ -310,6 +310,13 @@
         <li class="md-nav__item">
   <a href="#targets" class="md-nav__link">
     Targets
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variables" class="md-nav__link">
+    Variables
   </a>
   
 </li>
@@ -530,6 +537,13 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#variables" class="md-nav__link">
+    Variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#job" class="md-nav__link">
     Job
   </a>
@@ -563,92 +577,175 @@
               
                 
                 
-                <h1 id="basic-concepts">Basic Concepts</h1>
+                <h1 id="core-concepts">Core Concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h1>
 <p>To get the most out of build-magic, you should become familiar with build-magic's core concepts:</p>
 <ul>
-<li>Commands</li>
-<li>Directives</li>
-<li>Command Runners</li>
-<li>Output Formats</li>
-<li>Working Directory</li>
-<li>Stages</li>
-<li>Config File</li>
-<li>Targets</li>
-<li>Job</li>
-<li>Actions</li>
-<li>Parameters</li>
+<li><a href="./#commands">Commands</a></li>
+<li><a href="./#directives">Directives</a></li>
+<li><a href="./#command-runners">Command Runners</a></li>
+<li><a href="./#output-formats">Output Formats</a></li>
+<li><a href="./#working-directory">Working Directory</a></li>
+<li><a href="./#stages">Stages</a></li>
+<li><a href="./#config-file">Config File</a></li>
+<li><a href="./#targets">Targets</a></li>
+<li><a href="./#variables">Variables</a></li>
+<li><a href="./#job">Job</a></li>
+<li><a href="./#actions">Actions</a></li>
+<li><a href="./#parameters">Parameters</a></li>
 </ul>
-<p>Many of these terms will look familiar if you've used Jenkins or GitHub Actions, but the meaning of these terms can be quite different for build-magic.</p>
-<h2 id="commands">Commands</h2>
+<p>Many of these terms will look familiar if you've used Ansible, Jenkins or GitHub Actions, but the meaning of these terms can be quite different for build-magic.</p>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
 <p>Build-magic's primary focus is executing Commands. A Command is a valid command-line interface command that can be executed in a single line. Commands are executed by build-magic using the default shell of the machine the Command is executing on. Each Command that build-magic executes returns stdout, stderr, and an exit code. If a Command returns an exit code other than 0, build-magic will by default stop execution and display any error message from stderr.</p>
 <p>There are two ways to execute Commands with build-magic. The simplest way is to execute a single command as an argument to the <code>build-magic</code> command:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic make
+<div class="highlight"><pre><span></span><code>&gt; build-magic make clean
 </code></pre></div>
-<p>In this case, build-magic simply executes the <code>make</code> Command in the current directory.</p>
+<p>In this case, build-magic simply executes the <code>make clean</code> Command in the current directory.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>When using a command that has multiple arguments or makes use of shell operators such as redirection <code>&gt;</code> or piping <code>|</code> It will be necessary to wrap the command in single quotes so that the shell doesn't try to interpret the operator.</p>
+<p>When using a command that has multiple arguments or makes use of shell operators such as redirection <code>&gt;</code> or piping <code>|</code>, It will be necessary to wrap the command in single quotes so that the shell doesn't try to interpret the operator.</p>
 </div>
-<p>Build-magic can also execute multiple commands with the <code>--command</code> option in the order they are provided:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic \
---command execute &#39;tar -czf myfiles.tar.gz file1.txt file2.txt&#39; \
---command execute &#39;rm file1.txt file2.txt&#39;
+<p>Build-magic can also execute multiple commands with the <strong>--command</strong> option in the order they are provided:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+--command execute <span class="s1">&#39;tar -czf myfiles.tar.gz file1.txt file2.txt&#39;</span> <span class="se">\</span>
+--command execute <span class="s1">&#39;rm file1.txt file2.txt&#39;</span>
 </code></pre></div>
 <p>Note that the word "execute" is used before the commands. This is a Directive and is described below. Each command is also surrounded in quotes, otherwise build-magic gets confused and thinks you are trying to pass additional arguments.</p>
-<h2 id="directives">Directives</h2>
+<p>The build-magic Config File syntax is similar but does not require quotes around the command:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">commands</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myfiles.tar.gz file1.txt file2.txt</span>
+  <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rm file1.txt file2.txt</span>
+</code></pre></div>
+<h2 id="directives">Directives<a class="headerlink" href="#directives" title="Permanent link">&para;</a></h2>
 <p>Directives describe the type of Command being executed. All Commands that build-magic executes must have a Directive associated with them. Directives don't impart any special meaning to build-magic and are simply used to describe the command. Valid Directives that build-magic understands are:</p>
 <ul>
-<li>execute</li>
-<li>build</li>
-<li>test</li>
-<li>install</li>
-<li>release</li>
-<li>deploy</li>
+<li><em>execute</em></li>
+<li><em>build</em></li>
+<li><em>test</em></li>
+<li><em>install</em></li>
+<li><em>release</em></li>
+<li><em>deploy</em></li>
 </ul>
-<p>If only a single command is passed to build-magic without a Directive, the "execute" Directive is used by default.</p>
-<h2 id="command-runners">Command Runners</h2>
-<p>Build-magic can execute Commands on the local machine, in a container, in a virtual machine, or on a remote machine. You tell build-magic how you want to execute the Commands by specify a Command Runner with the <code>--runner</code> option. Valid Command Runners are:</p>
+<p>If only a single command is passed to build-magic on the command-line without a Directive, the <em>execute</em> Directive is used by default.</p>
+<h2 id="command-runners">Command Runners<a class="headerlink" href="#command-runners" title="Permanent link">&para;</a></h2>
+<p>Build-magic can execute Commands on the local machine, in a container, in a virtual machine, or on a remote machine. You tell build-magic how you want to execute the Commands by specify a Command Runner with the <strong>--runner</strong> option. Valid Command Runners are:</p>
 <ul>
 <li><em>local</em></li>
 <li><em>docker</em></li>
 <li><em>vagrant</em></li>
 <li><em>remote</em></li>
 </ul>
-<p>By default, the <em>local</em> Command Runner is used if the <code>--runner</code> option isn't provided.</p>
-<p>All Commands Runners except for the <em>local</em> Command Runner must also provide the <code>--environment</code> option. The environment depends on the Command Runner being used:</p>
+<p>By default, the <em>local</em> Command Runner is used if the <strong>--runner</strong> option isn't provided.</p>
+<p>All Command Runners except for the <em>local</em> Command Runner must also provide the <code>--environment</code> option. The environment depends on the Command Runner being used:</p>
 <ul>
 <li><em>docker</em>: The name of the Docker container - <code>ubuntu:latest</code></li>
 <li><em>vagrant</em>: The path to the Vagrantfile - <code>./Vagrantfile</code></li>
 <li><em>remote</em>: The username and hostname of the remote machine to connect to - <code>user@myhost</code></li>
 </ul>
 <p>Example:</p>
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic --runner docker --environment ubuntu:latest make
 </code></pre></div>
-<h2 id="output-formats">Output Formats</h2>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+    <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+    <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+    <span class="nt">commands</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h2>
 <p>Build-magic reports it's progress and status to stdout on a terminal. There are three different output format based on your preference and use case:</p>
 <ul>
-<li>fancy</li>
-<li>plain</li>
-<li>quiet</li>
+<li><em>fancy</em>: Nicely formatted text output</li>
+<li><em>plain</em>: Log friendly text output</li>
+<li><em>quiet</em>: No output</li>
 </ul>
-<h2 id="working-directory">Working Directory</h2>
-<p>The Working Directory is the path that build-magic operates from. Non-absolute paths in commands that build-magic executes are relative to the Working Directory.</p>
-<h2 id="stages">Stages</h2>
+<p>The default Output Format is <em>fancy</em> which is useful when using build-magic from a TTY (terminal) application. The <em>plain</em> Output Format is useful if build-magic is being used from a CI/CD tool or piped to a log file where a log-like output is preferred.</p>
+<p>Output Formats can only be set as a command-line option.</p>
+<h2 id="working-directory">Working Directory<a class="headerlink" href="#working-directory" title="Permanent link">&para;</a></h2>
+<p>The Working Directory is the path that build-magic operates from. Non-absolute paths in commands that build-magic executes are relative to the Working Directory. The default Working Directory is the current directory. The Working Directory can be set from the command-line with the <code>--wd /home/user</code> command or in a build-magic Config File with <code>working directory: /home/user</code>.</p>
+<h2 id="stages">Stages<a class="headerlink" href="#stages" title="Permanent link">&para;</a></h2>
 <p>A Stage is a collection of Commands. When you use build-magic from the command-line, all the Commands are gathered into a single stage and executed as a single collection. Build-magic can execute multiple Stages, but only by using a Config File.</p>
-<h2 id="config-file">Config File</h2>
-<p>A build-magic Config File is a YAML file that describes the Stages and Commands to run, and how to run them. The Config File consists of a list of Stages to be executed in order. Multiple Config Files can be provided, in which case the Stages are executed in the order they are provided in each Config File.</p>
-<h2 id="targets">Targets</h2>
-<p>A Target is a Stage name that can be used to run the corresponding Stage regardless of the Stage order in the Config file. Multiple Targets can be specified to reorder Stages at runtime. Targets can be used to filter the Stages to execute.</p>
-<h2 id="job">Job</h2>
+<h2 id="config-file">Config File<a class="headerlink" href="#config-file" title="Permanent link">&para;</a></h2>
+<p>A build-magic Config File is a YAML file that describes the Stages and Commands to run, and how to run them. The Config File consists of a list of Stages to be executed in order. Multiple Config Files can be provided, in which case the Stages are executed in the order they are provided in each Config File. Specific stages to execute can be selected from the command line using Targets which are described below.</p>
+<h2 id="targets">Targets<a class="headerlink" href="#targets" title="Permanent link">&para;</a></h2>
+<p>A Target is a Stage name that can be used to run the corresponding Stage regardless of the Stage order in a Config file. Multiple Targets can be specified to reorder Stages at runtime. Targets can be used to filter the Stages to execute. For example, assume you have the Config File below named <em>build-magic.yaml</em>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">unittests</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">pytest</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">documentation</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mkdocs build</span>
+        <span class="p p-Indicator">-</span> <span class="nt">deploy</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mkdocs gh-deploy</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">package</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">python setup.py sdist bdist_wheel --universal</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">twine upload dist/*</span>
+</code></pre></div>
+<p>To only run the <em>unittests</em> stage in this Config File, use the below command:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -t unittests
+</code></pre></div>
+<p>or if the stage name is a single word, the command can be shortened to:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic unittests
+</code></pre></div>
+<p>To run just the <em>unittests</em> and <em>documentation</em> stages, use:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -t unittests -t documentation
+</code></pre></div>
+<p>or:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic unittests documentation
+</code></pre></div>
+<p>To swap the order of the <em>documentation</em> and <em>package</em> stages, use:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic unittests package documentation
+</code></pre></div>
+<p>All stages in the Config File can be run with:</p>
+<div class="highlight"><pre><span></span><code>build-magic all
+</code></pre></div>
+<h2 id="variables">Variables<a class="headerlink" href="#variables" title="Permanent link">&para;</a></h2>
+<p>Variables are values that are substituted for placeholders in a Config File. Variables values and the corresponding placeholder name are specified at runtime as command-line arguments. The placeholders use a Jinja-like syntax of surrounding the placeholder name in <code>{{  }}</code>. The following Config File container placeholders intended for Variable substitution:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">package</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="c1"># Build the package</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rpmbuild -bb $HOME/rpmbuild/SPECS/app{{ version }}.spec</span>
+        <span class="c1"># Install and test the package</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dnf install -y $HOME/rpmbuild/RPMS/noarch/app{{ version }}.rpm</span>
+        <span class="c1"># Upload the package</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">scp app{{ version }}.rpm {{ user }}:{{ password }}@{{ host }}</span>
+</code></pre></div>
+<p>This Config File can be re-used by different users to release new versions of the <strong>app</strong> RPM package. The Variables can be assigned at runtime with the following command as an example:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -t package <span class="se">\</span>
+  --variable version <span class="m">3</span>.14.15 <span class="se">\</span>
+  --variable host myserver <span class="se">\</span>
+  --variable user myuser <span class="se">\</span>
+  --prompt password
+</code></pre></div>
+<p>The <strong>--variable</strong> option consists of the placeholder name followed by the value. The <strong>--prompt</strong> option will interactively prompt the user for input. This is the recommended way for providing secrets that shouldn't appear in the shell history.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <strong>--prompt</strong> option only works when using a TTY (terminal) interactively and will cause build-magic to hang if executed from a script.</p>
+</div>
+<h2 id="job">Job<a class="headerlink" href="#job" title="Permanent link">&para;</a></h2>
 <p>A Job is a collection of all the Stages that build-magic is going to execute. If more than one Config File is provided, the Job consists of every Stage from each Config File.</p>
-<h2 id="actions">Actions</h2>
+<h2 id="actions">Actions<a class="headerlink" href="#actions" title="Permanent link">&para;</a></h2>
 <p>Actions can be used to modify build-magic's default behavior by adding setup and teardown behavior to a Stage. Build-magic's Actions are:</p>
 <ul>
 <li>default: Start up and destroy the virtual machine or container when the docker or vagrant Command Runner is used by the Stage. No setup or teardown is performed for the local or remote Command Runners.</li>
 <li>persist: Don't destroy the virtual machine or container used by the Stage. Useful for debugging.</li>
 <li>cleanup: Delete any files created by a Stage.</li>
 </ul>
-<h2 id="parameters">Parameters</h2>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
 <p>Parameters are optional configurations that are specific to a particular Command Runner.</p>
 <table>
 <thead>

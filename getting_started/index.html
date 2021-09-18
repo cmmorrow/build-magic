@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="">
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -236,15 +236,49 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    Linux
+  </a>
+  
+    <nav class="md-nav" aria-label="Linux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debianubuntumint" class="md-nav__link">
+    Debian/Ubuntu/Mint
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fedoracentosred-hat" class="md-nav__link">
+    Fedora/CentOS/Red Hat
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-via-pipx" class="md-nav__link">
+    Install via pipx
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#installing-from-pypi" class="md-nav__link">
-    Installing From PyPI
+    Installing from PyPI
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#installing-from-source" class="md-nav__link">
-    Installing From Source
+    Installing from Source
   </a>
   
 </li>
@@ -332,8 +366,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../user_guide/basic_concepts/" class="md-nav__link">
-        Basic Concepts
+      <a href="../user_guide/core_concepts/" class="md-nav__link">
+        Core Concepts
       </a>
     </li>
   
@@ -485,15 +519,49 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    Linux
+  </a>
+  
+    <nav class="md-nav" aria-label="Linux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debianubuntumint" class="md-nav__link">
+    Debian/Ubuntu/Mint
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fedoracentosred-hat" class="md-nav__link">
+    Fedora/CentOS/Red Hat
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-via-pipx" class="md-nav__link">
+    Install via pipx
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#installing-from-pypi" class="md-nav__link">
-    Installing From PyPI
+    Installing from PyPI
   </a>
   
 </li>
         
           <li class="md-nav__item">
   <a href="#installing-from-source" class="md-nav__link">
-    Installing From Source
+    Installing from Source
   </a>
   
 </li>
@@ -557,53 +625,65 @@
               
                 
                 
-                <h1 id="getting-started">Getting Started</h1>
-<h2 id="requirements">Requirements</h2>
-<p>The build-magic project is written in Python and is cross-platform.</p>
+                <h1 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h1>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Operating System: MacOS, Windows, or Linux</li>
-<li>Python 3.6+</li>
+<li>Python 3.6+ (optional)</li>
 <li>Docker (optional)</li>
 <li>Vagrant (optional)</li>
 <li>OpenSSH (optional)</li>
 </ul>
-<h2 id="installation">Installation</h2>
-<h3 id="installing-from-pypi">Installing From PyPI</h3>
+<p>The build-magic project is cross-platform and will run on all recent OS versions. If build-magic isn't installed from a binary package, Python 3.6 or greater is required.</p>
+<p>To get the most out of build-magic, it is recommended to have OpenSSH, Docker, and Vagrant installed.</p>
+<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
+<h3 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h3>
+<p>The easiest way to install build-magic for Linux is by installing from a package.</p>
+<h4 id="debianubuntumint">Debian/Ubuntu/Mint<a class="headerlink" href="#debianubuntumint" title="Permanent link">&para;</a></h4>
+<!-- [build-magic-0.3.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build_magic-0.3.0_amd64.deb) -->
+
+<p>Compatible versions are Debian 10 (buster)+, Ubuntu 18.04 (bionic)+, or Mint Linux 19 (Tara)+.</p>
+<h4 id="fedoracentosred-hat">Fedora/CentOS/Red Hat<a class="headerlink" href="#fedoracentosred-hat" title="Permanent link">&para;</a></h4>
+<!-- [build-magic](https://github.com/cmmorrow/build-magic/releases/download/v0.2.0/build_magic-0.2.0-py2.py3-none-any.whl) -->
+
+<p>Compatible versions are CentOS 7 or newer.</p>
+<h3 id="install-via-pipx">Install via pipx<a class="headerlink" href="#install-via-pipx" title="Permanent link">&para;</a></h3>
+<p>If you have Python3 installed, the recommended way to install build-magic is into an isolated environment via <a href="https://pypa.github.io/pipx/">pipx</a>.</p>
+<div class="highlight"><pre><span></span><code>&gt; pipx install build-magic
+</code></pre></div>
+<h3 id="installing-from-pypi">Installing from PyPI<a class="headerlink" href="#installing-from-pypi" title="Permanent link">&para;</a></h3>
 <p>You can install build-magic using <a href="http://pip-installer.org/">pip</a> with the following command:</p>
-<div class="highlight"><pre><span></span><code>pip install build-magic
+<div class="highlight"><pre><span></span><code>&gt; pip install build-magic
 </code></pre></div>
-<p>Alternatively, if you want build-magic to run from an isolated environment, you can use:</p>
-<div class="highlight"><pre><span></span><code>pipx install build-magic
-</code></pre></div>
-<h3 id="installing-from-source">Installing From Source</h3>
+<h3 id="installing-from-source">Installing from Source<a class="headerlink" href="#installing-from-source" title="Permanent link">&para;</a></h3>
 <p>The build-magic project is written in Python. First, create a new virtual environment for development with:</p>
-<div class="highlight"><pre><span></span><code>python3 -m venv /path/to/new/virtual/environment
+<div class="highlight"><pre><span></span><code>&gt; python3 -m venv /path/to/new/virtual/environment
 </code></pre></div>
 <p>Alternatively, you can create a virtual environment with <code>conda</code> or <code>virtualenv</code>. Be sure to activate your virtual environment with:</p>
-<div class="highlight"><pre><span></span><code>source /path/to/new/virtual/environment/bin/activate
+<div class="highlight"><pre><span></span><code>&gt; <span class="nb">source</span> /path/to/new/virtual/environment/bin/activate
 </code></pre></div>
 <p>Next, navigate to the directory where you want to install build-magic and clone the <a href="https://github.com/cmmorrow/build-magic">repository</a> using HTTPS with:</p>
-<div class="highlight"><pre><span></span><code>git clone https://github.com/cmmorrow/build-magic.git
+<div class="highlight"><pre><span></span><code>&gt; git clone https://github.com/cmmorrow/build-magic.git
 </code></pre></div>
 <p>Or using SSH with:</p>
-<div class="highlight"><pre><span></span><code>git clone git@github.com:cmmorrow/build-magic.git
+<div class="highlight"><pre><span></span><code>&gt; git clone git@github.com:cmmorrow/build-magic.git
 </code></pre></div>
 <p>Or using the GitHub CLI with:</p>
-<div class="highlight"><pre><span></span><code>gh repo clone cmmorrow/build-magic
+<div class="highlight"><pre><span></span><code>&gt; gh repo clone cmmorrow/build-magic
 </code></pre></div>
-<h3 id="getting-the-most-out-of-build-magic-with-optional-command-runners">Getting The Most Out of build-magic With Optional Command Runners</h3>
+<h3 id="getting-the-most-out-of-build-magic-with-optional-command-runners">Getting The Most Out of build-magic With Optional Command Runners<a class="headerlink" href="#getting-the-most-out-of-build-magic-with-optional-command-runners" title="Permanent link">&para;</a></h3>
 <p>In addition to running commands on your machine, build-magic can also run commands in a virtual machine, a Docker container, or on a remote machine.</p>
-<h4 id="using-docker">Using Docker</h4>
+<h4 id="using-docker">Using Docker<a class="headerlink" href="#using-docker" title="Permanent link">&para;</a></h4>
 <p>To use build-magic to run commands in a container, you will need to have <a href="https://www.docker.com/">Docker</a> installed. Instructions on how to install Docker can be found <a href="https://docs.docker.com/get-docker/">here</a>.</p>
-<h4 id="using-a-virtual-machine">Using A Virtual Machine</h4>
+<h4 id="using-a-virtual-machine">Using A Virtual Machine<a class="headerlink" href="#using-a-virtual-machine" title="Permanent link">&para;</a></h4>
 <p>Build-magic can execute commands in a virtual machine via <a href="https://www.vagrantup.com/">Vagrant</a>. Vagrant is a command-line tool for controlling virtual machines. Instructions on how to install Vagrant can be found <a href="https://www.vagrantup.com/docs/installation">here</a>.</p>
-<h4 id="using-a-remote-machine">Using a Remote Machine</h4>
+<h4 id="using-a-remote-machine">Using a Remote Machine<a class="headerlink" href="#using-a-remote-machine" title="Permanent link">&para;</a></h4>
 <p>Build-magic can execute commands on a remote machine via <a href="https://www.openssh.com/">SSH</a>. To allow remote command execution, SSH client needs to be installed on the local machine and SSH server needs to be installed and running on the remote machine.</p>
 <p>If you're using MacOS or Linux, both SSH client and SSH server should be installed. If you are using Windows 10, SSH client and SSH server are installable features. Instructions for installing SSH on Windows 10 or Windows Server 2019 can be found <a href="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse">here</a>.</p>
 <p>Currently, build-magic only supports SSH connections via public/private key pairs for password-less login. Password-less login needs to be working before build-magic can make use of remote command execution. You can read more about how to configure public/private key pairs on <a href="https://www.ssh.com/ssh/key/">SSH.com</a>.</p>
-<h2 id="basic-usage">Basic Usage</h2>
+<h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
 <p>You can verify build-magic is install by running the following command from a command prompt:</p>
-<div class="highlight"><pre><span></span><code>build-magic --verbose &quot;echo &#39;hello world&#39;&quot;
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="s2">&quot;echo &#39;hello world&#39;&quot;</span>
 </code></pre></div>
 <p>You should see build-magic run and output <code>hello world</code></p>
 <p><img alt="build-magic" src="../build-magic.gif" /></p>
@@ -640,13 +720,13 @@
         </a>
       
       
-        <a href="../user_guide/basic_concepts/" class="md-footer__link md-footer__link--next" rel="next">
+        <a href="../user_guide/core_concepts/" class="md-footer__link md-footer__link--next" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Basic Concepts
+              Core Concepts
             </div>
           </div>
           <div class="md-footer__button md-icon">
