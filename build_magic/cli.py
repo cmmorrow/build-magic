@@ -212,7 +212,7 @@ def build_magic(
         if name:
             stages_[0].update(dict(name=name))
 
-    if config:
+    elif config:
         if prompt:
             variable = list(variable)
             for var in prompt:
