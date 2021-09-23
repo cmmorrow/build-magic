@@ -84,7 +84,10 @@ def current_file(magic_dir):
 @pytest.fixture
 def config_file(magic_dir):
     """Provides a config file in the temp directory."""
-    filename = 'config.yaml'
+    if os.sys.platform == 'win32':
+        filename = 'config_win.yaml'
+    else:
+        filename = 'config.yaml'
     config = magic_dir / filename
     content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
     config.write_text(content)
@@ -95,7 +98,10 @@ def config_file(magic_dir):
 @pytest.fixture
 def multi_config(magic_dir):
     """Provides a config file with multiple stage in the temp directory."""
-    filename = 'multi.yaml'
+    if os.sys.platform == 'win32':
+        filename = 'multi_win.yaml'
+    else:
+        filename = 'multi.yaml'
     config = magic_dir / filename
     content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
     config.write_text(content)
@@ -115,16 +121,15 @@ def targets_config(magic_dir):
 
 
 @pytest.fixture
-def default_config(magic_dir):
+def default_config():
     """Provides a default config file in the current directory."""
     filename = 'build-magic.yaml'
     current = Path().cwd().resolve()
     config = current / filename
     content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
     config.write_text(content)
-    yield magic_dir
-    os.chdir(str(current))
-    os.remove(filename)
+    yield config
+    os.remove(config)
 
 
 @pytest.fixture
@@ -149,8 +154,8 @@ def variable_and_default_config(default_config, variables_config):
     content = variables_config.read_text()
     config.write_text(content)
     yield magic_dir
-    os.chdir(str(current))
-    os.remove(filename)
+    # os.chdir(str(current))
+    os.remove(current / filename)
 
 
 @pytest.fixture
@@ -197,6 +202,33 @@ def prompt_config(magic_dir):
     config.write_text(content)
     yield config
     os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def ls():
+    """Provides the correct list command for the executing operating system."""
+    if os.sys.platform == 'win32':
+        return 'dir'
+    else:
+        return 'ls'
+
+
+@pytest.fixture
+def cat():
+    """Provides the correct cat command for the executing operating system."""
+    if os.sys.platform == 'win32':
+        return 'type'
+    else:
+        return 'cat'
+
+
+@pytest.fixture
+def cp():
+    """Provides the correct file copy command for the executing operating system."""
+    if os.sys.platform == 'win32':
+        return 'copy'
+    else:
+        return 'cp'
 
 
 def test_cli_no_options(cli):
@@ -272,21 +304,21 @@ def test_cli_single_command(cli):
     assert res.exit_code == ExitCode.PASSED
 
 
-def test_cli_multiple_commands(cli):
+def test_cli_multiple_commands(cli, ls):
     """Verify passing multiple commands with the -c and --command options works correctly."""
-    res = cli.invoke(build_magic, ['-c', 'execute', 'echo hello world', '-c', 'execute', 'ls'])
+    res = cli.invoke(build_magic, ['-c', 'execute', 'echo hello world', '-c', 'execute', f'{ls}'])
     assert res.exit_code == ExitCode.PASSED
 
-    res = cli.invoke(build_magic, ['--command', 'execute', 'echo hello world', '--command', 'execute', 'ls'])
+    res = cli.invoke(build_magic, ['--command', 'execute', 'echo hello world', '--command', 'execute', f'{ls}'])
     assert res.exit_code == ExitCode.PASSED
 
 
-def test_cli_runner(cli):
+def test_cli_runner(cli, ls):
     """Verify the local runner is used with -r and --runner options works correctly."""
-    res = cli.invoke(build_magic, ['-r', 'local', 'ls'])
+    res = cli.invoke(build_magic, ['-r', 'local', f'{ls}'])
     assert res.exit_code == ExitCode.PASSED
 
-    res = cli.invoke(build_magic, ['--runner', 'local', 'ls'])
+    res = cli.invoke(build_magic, ['--runner', 'local', f'{ls}'])
     assert res.exit_code == ExitCode.PASSED
 
 
@@ -401,25 +433,25 @@ build-magic interrupted and exiting....
     assert res.output == ref
 
 
-def test_cli_copy(cli, tmp_file):
+def test_cli_copy(cat, cli, tmp_file):
     """Verify the --copy option works correctly."""
-    res = cli.invoke(build_magic, ['--copy', str(tmp_file), '--verbose', '-c', 'execute', 'cat hello.txt', 'hello.txt'])
+    res = cli.invoke(build_magic, ['--copy', str(tmp_file), '--verbose', '-c', 'execute', f'{cat} hello.txt', 'hello.txt'])
     assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
 
 
-def test_cli_working_directory(cli, tmp_file):
+def test_cli_working_directory(cat, cli, tmp_file):
     """Verify the --wd option works correctly."""
-    res = cli.invoke(build_magic, ['--wd', str(tmp_file), '--verbose', '-c', 'execute', 'cat hello.txt'])
+    res = cli.invoke(build_magic, ['--wd', str(tmp_file), '--verbose', '-c', 'execute', f'{cat} hello.txt'])
     assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
 
 
-def test_cli_copy_working_directory(cli, current_file):
+def test_cli_copy_working_directory(cat, cli, current_file):
     """Verify the --copy and --wd options work together correctly."""
     res = cli.invoke(
         build_magic,
-        ['--copy', '.', '--wd', str(current_file), '--verbose', '-c', 'build', 'cat hello.txt', 'hello.txt'],
+        ['--copy', '.', '--wd', str(current_file), '--verbose', '-c', 'build', f'{cat} hello.txt', 'hello.txt'],
     )
     assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
@@ -432,11 +464,13 @@ def test_cli_continue_on_fail(cli):
     assert res.exit_code == ExitCode.FAILED
 
 
-def test_cli_stop_on_fail(cli):
+def test_cli_stop_on_fail(cli, cp):
     """Verify the --stop option works correctly."""
-    res = cli.invoke(build_magic, ['--verbose', '--stop', '-c', 'execute', 'cp', '-c', 'execute', 'echo hello'])
+    res = cli.invoke(build_magic, ['--verbose', '--stop', '-c', 'execute', f'{cp}', '-c', 'execute', 'echo hello'])
     if sys.platform == 'linux':
         assert 'cp: missing file operand' in res.output
+    elif sys.platform == 'win32':
+        assert 'The syntax of the command is incorrect.' in res.output
     else:
         assert 'usage: cp' in res.output or 'cp: missing file operand' in res.output
     assert 'OUTPUT: hello' not in res.output
@@ -494,13 +528,14 @@ def test_cli_template_permission_error(cli, mocker):
     assert res.output == "Cannot generate the config template because build-magic doesn't have permission.\n"
 
 
-def test_cli_config(cli, config_file):
+def test_cli_config(cli, config_file, ls):
     """Verify the --config option works correctly."""
     res = cli.invoke(build_magic, ['--config', str(config_file)])
+    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
     assert '( 1/2 ) EXECUTE : echo hello' in res.output
-    assert '( 2/2 ) EXECUTE : ls' in res.output
+    assert f'( 2/2 ) EXECUTE : {ls}' in res.output
     assert 'Stage 1: Test stage - finished with result DONE' in res.output
     assert 'build-magic finished in' in res.output
 
@@ -681,8 +716,8 @@ def test_cli_variable(cli, variables_config):
     res = cli.invoke(build_magic, ['-C', variables_config, '--variable', 'ARCH', 'arm64', '-v', 'OS', 'linux'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert "EXECUTE : export GOARCH=arm64" in out
-    assert "EXECUTE : export GOOS=linux" in out
+    assert "EXECUTE : echo GOARCH=arm64" in out
+    assert "EXECUTE : echo GOOS=linux" in out
 
 
 def test_cli_variable_not_found(cli, variables_config):
@@ -707,8 +742,8 @@ def test_cli_variables_with_two_config_files(cli, variable_and_default_config):
     res = cli.invoke(build_magic, ['-C', 'variables.yaml', '--variable', 'ARCH', 'arm64', '-v', 'OS', 'linux'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert "EXECUTE : export GOARCH=arm64" in out
-    assert "EXECUTE : export GOOS=linux" in out
+    assert "EXECUTE : echo GOARCH=arm64" in out
+    assert "EXECUTE : echo GOOS=linux" in out
 
     # Including the default config
     res = cli.invoke(
@@ -717,8 +752,8 @@ def test_cli_variables_with_two_config_files(cli, variable_and_default_config):
     )
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert "EXECUTE : export GOARCH=arm64" in out
-    assert "EXECUTE : export GOOS=linux" in out
+    assert "EXECUTE : echo GOARCH=arm64" in out
+    assert "EXECUTE : echo GOOS=linux" in out
 
 
 def test_cli_prompt_with_two_config_files(cli, prompt_and_default_config):

@@ -373,6 +373,12 @@ def delete_new_files(self):
                     current.append((file, hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
                 except IsADirectoryError:
                     continue
+                # Handle a Windows specific case where a PermissionError is raised instead of IsADirectoryError.
+                except PermissionError as error:
+                    if os.sys.platform == 'win32' and file.is_dir():
+                        continue
+                    else:
+                        raise error
             _, new_hashes = zip(*current)
             for file, hash_ in current:
                 # Don't delete anything in the .git directory.
@@ -426,6 +432,12 @@ def docker_delete_new_files(self):
                     current.append((file, hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
                 except IsADirectoryError:
                     continue
+                # Handle a Windows specific case where a PermissionError is raised instead of IsADirectoryError.
+                except PermissionError as error:
+                    if os.sys.platform == 'win32' and file.is_dir():
+                        continue
+                    else:
+                        raise error
             _, new_hashes = zip(*current)
             for file, hash_ in current:
                 # Don't delete anything in the .git directory.

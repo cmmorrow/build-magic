@@ -1,0 +1,10 @@
+build-magic:
+  - stage:
+      name: Stage A
+      commands:
+        - execute: dir
+        - build: copy nul >> hello.txt
+  - stage:
+      name: Stage B
+      commands:
+        - execute: dir hello.txt

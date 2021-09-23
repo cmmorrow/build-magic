@@ -55,7 +55,11 @@ def test_stage_setup(mocker):
 
 def test_stage_run():
     """Verify the Stage run() method works correctly."""
-    args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
+    if os.sys.platform == 'win32':
+        cmd = 'dir'
+    else:
+        cmd = 'ls'
+    args = (Local(), [Macro(cmd)], ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
     exit_code = stage.run()
@@ -66,7 +70,12 @@ def test_stage_run():
 
 def test_stage_run_multiple():
     """Verify the stage run() method works correctly with multiple commands."""
-    macros = [Macro('ls'), Macro(prefix='echo', command='hello'), Macro('ls')]
+    print(os.sys.platform)
+    if os.sys.platform == 'win32':
+        cmd = 'dir'
+    else:
+        cmd = 'ls'
+    macros = [Macro(cmd), Macro(prefix='echo', command='hello'), Macro(cmd)]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
@@ -105,7 +114,11 @@ def test_stage_run_fail():
 def test_stage_run_exception(mocker):
     """Test the case where the command raises an Exception."""
     mocker.patch('build_magic.runner.Local.execute', side_effect=RuntimeError)
-    args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
+    if os.sys.platform == 'win32':
+        cmd = 'dir'
+    else:
+        cmd = 'ls'
+    args = (Local(), [Macro(cmd)], ['execute'], 1, 'default')
     stage = Stage(*args)
     with pytest.raises(ExecutionError, match='Command execution error'):
         stage.run()
@@ -113,7 +126,11 @@ def test_stage_run_exception(mocker):
 
 def test_stage_run_multiple_fail():
     """Test the case where multiple commands are run and the last one returns a non-zero exit code."""
-    macros = [Macro('ls'), Macro(prefix='echo', command='hello'), Macro('cp')]
+    if os.sys.platform == 'win32':
+        cmd = 'dir'
+    else:
+        cmd = 'ls'
+    macros = [Macro(cmd), Macro(prefix='echo', command='hello'), Macro('cp')]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
@@ -124,7 +141,11 @@ def test_stage_run_multiple_fail():
 
 def test_stage_run_multiple_fail_2():
     """Test the case where multiple commands are run and execution halts with a command in the middle."""
-    macros = [Macro('ls'), Macro('cp'), Macro(prefix='echo', command='hello')]
+    if os.sys.platform == 'win32':
+        cmd = 'dir'
+    else:
+        cmd = 'ls'
+    macros = [Macro(cmd), Macro('cp'), Macro(prefix='echo', command='hello')]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False

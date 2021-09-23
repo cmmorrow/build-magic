@@ -1,0 +1,6 @@
+build-magic:
+  - stage:
+      name: Test stage
+      commands:
+        - execute: echo hello
+        - execute: dir

@@ -240,7 +240,7 @@ def test_local_execute(build_path, local_runner, tmp_path):
         assert status.stderr == b''
     else:
         assert status.stdout == b''
-        assert status.stderr == b'a hello.txt\n'
+        assert status.stderr == b'a hello.txt' + bytes(os.linesep, encoding='utf-8')
 
 
 def test_local_execute_fail(local_runner, tmp_path):
@@ -257,6 +257,11 @@ def test_local_execute_fail(local_runner, tmp_path):
         assert status.stderr == (
             b'tar: dummy.txt: Cannot stat: No such file or directory\n'
             b'tar: Exiting with failure status due to previous errors\n'
+        )
+    elif os.sys.platform == 'win32':
+        assert status.stderr == (
+            b"tar: dummy.txt: Couldn't find file: No such file or directory\r\n"
+            b'tar: Error exit delayed from previous errors.\r\n'
         )
     else:
         assert status.stderr == (
@@ -285,6 +290,11 @@ def test_docker_constructor():
     assert runner.host_wd == '.'
     assert runner.bind_path == '/build_magic'
 
+    if os.sys.platform == 'win32':
+        host_wd = 'C:\\my_repo'
+    else:
+        host_wd = '/my_repo'
+    
     runner = Docker(
         environment='python:3',
         working_dir='/app',
@@ -292,7 +302,7 @@ def test_docker_constructor():
         timeout=10,
         artifacts=['hello.txt'],
         parameters={
-            'hostwd': HostWorkingDirectory('/my_repo'),
+            'hostwd': HostWorkingDirectory(host_wd),
             'bind': BindDirectory('/opt'),
         }
     )
@@ -301,9 +311,14 @@ def test_docker_constructor():
     assert runner.copy_from_directory == '/other'
     assert runner.timeout == 10
     assert runner.artifacts == ['hello.txt']
-    assert runner.host_wd == '/my_repo'
+    assert runner.host_wd == host_wd
     assert runner.bind_path == '/opt'
-    assert runner.binding == {'ReadOnly': False, 'Source': '/my_repo', 'Target': '/opt', 'Type': 'bind'}
+    assert runner.binding == {
+        'ReadOnly': False, 
+        'Source': host_wd, 
+        'Target': '/opt', 
+        'Type': 'bind',
+    }
 
 
 def test_docker_prepare(docker_runner, build_path, mocker, tmp_path):
@@ -400,25 +415,32 @@ def test_vagrant_constructor():
     assert runner.bind_path == '/vagrant'
     assert os.environ.get('VAGRANT_CWD') is None
 
+    if os.sys.platform == 'win32':
+        host_wd = 'C:\\my_repo'
+        env = 'C:\\opt'
+    else:
+        host_wd = '/my_repo'
+        env = '/opt'
+
     runner = Vagrant(
-        environment='/opt',
+        environment=env,
         working_dir='/test',
         copy_dir='/other',
         timeout=10,
         artifacts=['hello.txt'],
         parameters={
-            'hostwd': HostWorkingDirectory('/my_repo'),
+            'hostwd': HostWorkingDirectory(host_wd),
             'bind': BindDirectory('/app'),
         }
     )
-    assert runner.environment == '/opt'
+    assert runner.environment == env
     assert runner.working_directory == '/test'
     assert runner.copy_from_directory == '/other'
     assert runner.timeout == 10
     assert runner.artifacts == ['hello.txt']
-    assert runner.host_wd == '/my_repo'
+    assert runner.host_wd == host_wd
     assert runner.bind_path == '/app'
-    assert os.environ.get('VAGRANT_CWD') == '/opt'
+    assert os.environ.get('VAGRANT_CWD') == env
 
     os.environ.pop('VAGRANT_CWD', '')
     runner = Vagrant(
@@ -430,7 +452,7 @@ def test_vagrant_constructor():
     runner = Vagrant(
         environment='/opt/Vagrantfile'
     )
-    assert os.environ.get('VAGRANT_CWD') == '/opt'
+    assert os.environ.get('VAGRANT_CWD') == env
     assert runner.environment == '/opt/'
 
 
