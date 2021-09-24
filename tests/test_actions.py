@@ -78,7 +78,7 @@ def generic_runner():
     class GenericRunner(CommandRunner):
 
         def execute(self, macro):
-            command = macro.as_list()
+            command = macro.as_string()
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
             return result.stdout, result.stderr, result.returncode
 
@@ -86,6 +86,33 @@ def generic_runner():
             return
 
     return GenericRunner('dummy')
+
+
+@pytest.fixture
+def cp():
+    """Provides the correct file copy command for the executing operating system."""
+    if os.sys.platform == 'win32':
+        return 'copy'
+    else:
+        return 'cp'
+
+
+@pytest.fixture
+def mv():
+    """Provides the correct file move command for the executing operating system."""
+    if os.sys.platform == 'win32':
+        return 'move'
+    else:
+        return 'mv'
+
+
+@pytest.fixture
+def touch():
+    """Provides the correct touch command for the executing operating system."""
+    if os.sys.platform == 'win32':
+        return 'type nul >>'
+    else:
+        return 'touch'
 
 
 def test_default_action():
@@ -353,15 +380,11 @@ def test_action_delete_new_files(build_hashes, build_path, generic_runner, mocke
     assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
 
-def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner, mocker):
+def test_action_delete_new_files_copy(build_hashes, build_path, cp, generic_runner, mocker):
     """Verify the delete_new_files() function works correctly with copies of existing files."""
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
 
-    if os.sys.platform == 'win32':
-        cp = 'copy'
-    else:
-        cp = 'cp'
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
@@ -390,15 +413,11 @@ def test_action_delete_new_files_copy(build_hashes, build_path, generic_runner, 
     assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(files)
 
 
-def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path, generic_runner, mocker):
+def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path, generic_runner, mocker, mv):
     """Verify that a renamed file isn't deleted by delete_new_files()."""
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
 
-    if os.sys.platform == 'win32':
-        mv = 'move'
-    else:
-        mv = 'mv'
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
@@ -423,15 +442,11 @@ def test_action_delete_new_files_preserve_renamed_file(build_hashes, build_path,
     assert sorted([str(file) for file in Path.cwd().resolve().rglob('*')]) == sorted(ref_files)
 
 
-def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path, generic_runner, mocker):
+def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path, generic_runner, mocker, mv):
     """Verify that a modified file isn't deleted by delete_new_files()."""
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
 
-    if os.sys.platform == 'win32':
-        mv = 'move'
-    else:
-        mv = 'mv'
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
@@ -497,15 +512,11 @@ def test_action_delete_new_files_no_existing(generic_runner, mocker):
     assert not generic_runner.teardown()
 
 
-def test_action_delete_nested_directories(build_hashes, build_path, generic_runner, mocker):
+def test_action_delete_nested_directories(build_hashes, build_path, generic_runner, mocker, touch):
     """Test the case where there are several new nested directories added that need to be removed."""
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
 
-    if os.sys.platform == 'win32':
-        touch = 'type nul >>'
-    else:
-        touch = 'touch'
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]
@@ -550,14 +561,10 @@ def test_action_delete_nested_directories(build_hashes, build_path, generic_runn
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 2
 
 
-def test_action_delete_dir_ignore_git(build_path, git_path, generic_runner, mocker):
+def test_action_delete_dir_ignore_git(build_path, git_path, generic_runner, mocker, touch):
     """Test the case where the a new file added to a .git directory isn't deleted."""
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
-    if os.sys.platform == 'win32':
-        touch = 'type nul >>'
-    else:
-        touch = 'touch'
     
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
