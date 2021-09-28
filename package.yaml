@@ -1,6 +1,6 @@
 build-magic:
   - stage:
-      name: Debian
+      name: debian
       runner: docker
       environment: debian:buster
       action: cleanup
@@ -19,10 +19,10 @@ build-magic:
             --clean
             --add-data build_magic/static:build_magic/static
             build_magic/__main__.py
-        - execute: &clean_pyinstall
+        - execute: &clean_pyinstaller
             rm -rf /usr/local/bin/*
-        - test: &test_build
-            dist/build-magic_{{ version }}/build-magic_{{ version }}
+        # - test: &test_build
+        #     dist/build-magic_{{ version }}/build-magic_{{ version }}
         # Prep
         - execute: mkdir -p $HOME/build-magic/usr/local/bin
         - execute: mkdir -p $HOME/build-magic/DEBIAN
@@ -35,11 +35,15 @@ build-magic:
         - execute: mv $HOME/build-magic.deb $HOME/build-magic-{{ version }}_amd64.deb
         # Install and test the package
         - install: dpkg --install $HOME/build-magic-{{ version }}_amd64.deb
-        - test: build-magic
+        # - test: build-magic
         # Upload the package to GitHub
         - execute: &get_release_id
             curl -s -u {{ user }}:{{ password }} https://api.github.com/repos/cmmorrow/build-magic/releases/tags/v{{ version }} | jq .id > RELEASE_ID
-        - execute: shasum -a 256 $HOME/build-magic-{{ version }}_amd64.deb > $HOME/build-magic-{{ version }}_amd64.hash
+        - execute: >
+            shasum -a 256 $HOME/build-magic-{{ version }}_amd64.deb 
+            | tr -s ' ' 
+            | cut -d ' ' -f 1 
+            > $HOME/build-magic-{{ version }}_amd64.hash
         - release: >
             curl -u {{ user }}:{{ password }}
             --data-binary @"$HOME/build-magic-{{ version }}_amd64.deb"
@@ -49,9 +53,9 @@ build-magic:
             curl -u {{ user }}:{{ password }}
             --data-binary @"$HOME/build-magic-{{ version }}_amd64.hash"
             -H "Content-Type: application/octet-stream"
-            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=build-magic{{ version }}_amd64.hash
+            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=build-magic-{{ version }}_amd64.hash
   - stage:
-      name: RHEL
+      name: centos
       runner: docker
       environment: centos:7
       action: cleanup
@@ -59,7 +63,7 @@ build-magic:
         # Install requirements
         - install: yum install -y rpmdevtools python3
         - install: yum install -y epel-release
-        - isntall: yum update
+        - install: yum update -y
         - install: yum install -y jq
         - install: pip3 install --upgrade pip
         - install: *install_repo
@@ -67,23 +71,33 @@ build-magic:
         # Build the application
         - build: *run_pyinstaller
         - execute: *clean_pyinstaller
-        - execute: export LC_ALL=en_US.utf8 LANG=en_US.utf8
-        - test: *test_build
+        # - execute: export LC_ALL=en_US.utf8 LANG=en_US.utf8
+        # - test: *test_build
         # Prep
         - execute: rpmdev-setuptree
         - execute: mkdir -p $HOME/rpmbuild/RPMS/x86_64
-        - execute: cp package/rhel/build-magic/build-magic.spec $HOME/rpmbuild/SPECS
+        - execute: cp package/centos/build-magic/build-magic.spec $HOME/rpmbuild/SPECS
         - execute: cp -r dist/build-magic_{{ version }}/ $HOME
         # Build the package
         - build: rpmbuild -bb --target x86_64 $HOME/rpmbuild/SPECS/build-magic.spec
         # Install and test the package
-        - install: ls -d ~/rpmbuild/RPMS/x86_64/* | xargs yum install -y
-        - test: build-magic
+        - install: ls -d $HOME/rpmbuild/RPMS/x86_64/* | xargs yum install -y
+        # - test: build-magic
         # Upload the package
         - execute: *get_release_id
+        - execute: >
+            shasum -a 256 $HOME/rpmbuild/RPMS/x86_64/build-magic*
+            | tr -s ' '
+            | cut -d ' ' -f 1
+            > $HOME/$(basename $HOME/rpmbuild/RPMS/x86_64/build-magic* .rpm).hash
         - release: >
             curl -u {{ user }}:{{ password }}
-            --data-binary @$(ls ~/rpmbuild/RPMS/x86_64/*)
+            --data-binary @$(ls $HOME/build-magic*.hash)
             -H "Content-Type: application/octet-stream"
-            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=$(ls ~/rpmbuild/RPMS/x86_64/* | xargs basename)
+            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=$(ls $HOME/build-magic*.hash | xargs basename)
+        - release: >
+            curl -u {{ user }}:{{ password }}
+            --data-binary @$(ls $HOME/rpmbuild/RPMS/x86_64/*)
+            -H "Content-Type: application/octet-stream"
+            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=$(ls $HOME/rpmbuild/RPMS/x86_64/* | xargs basename)
 
