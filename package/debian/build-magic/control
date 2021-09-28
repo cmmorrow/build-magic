@@ -1,0 +1,10 @@
+Package: build-magic
+Version: 0.3.0rc1
+Section: utils
+Priority: optional
+Architecture: amd64
+Essential: no
+Maintainer: cmmorrow@gmail.com
+Description: An un-opinionated build automation tool.
+Homepage: https://github.com/cmmorrow/build-magic
+Source: build-magic
