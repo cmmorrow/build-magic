@@ -9,8 +9,6 @@ from colorama import Cursor, Fore, init, Style
 from build_magic import __version__ as version
 from build_magic.reference import OutputMethod
 
-from yaspin import yaspin
-
 
 class Output:
     """Interface for defining output methods."""
@@ -294,16 +292,18 @@ class Tty(Output):
         :return: None
         """
         width = self.get_width()
+        command = command.strip()
         status = Fore.YELLOW + Style.BRIGHT + 'RUNNING' + Style.RESET_ALL
         seq_length = len(str(total))
         seq = f'( {sequence:>{seq_length}}/{total:>{seq_length}} )'
         spacing = width - 23 - len(command) - len(seq)
-        if len(command) + 12 + len(seq) > width - 11:
-            command = command[:width - 24 - len(seq)] + '....'
         if not command:
             message = f'{directive.upper()} {"." * spacing}'
+        elif len(command) + 12 + len(seq) > width - 11:
+            command = command[:width - 27 - len(seq)] + ' ....'
+            message = f'{seq} {directive.upper():<8}: {command} {status:<8}'
         else:
-            message = f'{seq} {directive.upper():<8}: {command} {"." * spacing} {status}'
+            message = f'{seq} {directive.upper():<8}: {command} {"." * spacing} {status:<8}'
         self._display(message)
 
     def macro_status(self, directive='', command='', status_code=0, sequence=1, total=1):
@@ -349,7 +349,8 @@ class Tty(Output):
         message = 'OUTPUT: {}'.format(msg)
         self._display(message)
 
-    def process_spinner(self, spinner, process_active=False):
+    @staticmethod
+    def process_spinner(spinner, process_active=False):
         """Indicates whether a process is underway.
 
         :param yaspin  spinner: Yaspin spinner object.
