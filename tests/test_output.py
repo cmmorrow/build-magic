@@ -303,6 +303,22 @@ def test_tty_macro_start(capsys):
     captured = capsys.readouterr()
     assert captured.out == 'EXECUTE ..................................................\n'
 
+    output.log(OutputMethod.MACRO_START, 'execute', f'echo {"-" * 46}')
+    captured = capsys.readouterr()
+    assert captured.out == '( 1/1 ) EXECUTE : echo ----------------------------------------- .... RUNNING\n'
+
+    output.log(OutputMethod.MACRO_START, 'execute', f'echo {"-" * 45}')
+    captured = capsys.readouterr()
+    assert captured.out == '( 1/1 ) EXECUTE : echo ---------------------------------------------  RUNNING\n'
+
+    output.log(OutputMethod.MACRO_START, 'execute', f'echo {"-" * 44}')
+    captured = capsys.readouterr()
+    assert captured.out == '( 1/1 ) EXECUTE : echo -------------------------------------------- . RUNNING\n'
+
+    output.log(OutputMethod.MACRO_START, 'execute', 'echo |\n')
+    captured = capsys.readouterr()
+    assert captured.out == '( 1/1 ) EXECUTE : echo | ............................................ RUNNING\n'
+
 
 def test_tty_macro_status(capsys):
     """Verify the macro_status() method works correctly."""

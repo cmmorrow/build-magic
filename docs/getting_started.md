@@ -22,13 +22,13 @@ The easiest way to install build-magic for Linux is by installing from a package
 
 <!-- [build-magic-0.3.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build_magic-0.3.0_amd64.deb) -->
 
-Compatible versions are Debian 10 (buster)+, Ubuntu 18.04 (bionic)+, or Mint Linux 19 (Tara)+.
+Minimum compatible versions are Debian 10 (buster), Ubuntu 20.04 (focal fossa), or Mint Linux 19 (Tara).
 
 #### Fedora/CentOS/Red Hat
 
-<!-- [build-magic](https://github.com/cmmorrow/build-magic/releases/download/v0.2.0/build_magic-0.2.0-py2.py3-none-any.whl) -->
+[build-magic-0.3.0rc1-0.el7.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0rc1/build-magic-0.3.0rc1-0.el7.x86_64.rpm)
 
-Compatible versions are CentOS 7 or newer.
+Minimum compatible versions are CentOS/RHEL 7.9 and Fedora 33.
 
 ### Install via pipx
 
