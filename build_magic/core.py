@@ -431,6 +431,7 @@ class Stage:
 
         :param bool continue_on_fail: If True, keep running commands even if the last command failed. Default is False.
         :param bool verbose: If True, print the stdout from each Macro status.
+        :param yaspin spinner: The yaspin spinner object to use.
         :return: The highest Stage result.
         """
         # Setup if not already setup.
@@ -440,6 +441,10 @@ class Stage:
         # Call the provision method.
         try:
             result = self._command_runner.provision()
+        except KeyboardInterrupt:
+            if spinner is not None:
+                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+            raise KeyboardInterrupt
         except Exception as err:
             if spinner is not None:
                 _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
