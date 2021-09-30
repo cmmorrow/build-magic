@@ -7,6 +7,8 @@
 * Added the `--prompt` option to interactively prompt the user for a value to substitute with `--prompt VARIABLE`.
 * Fixed a bug in the cleanup action that caused directories to not be properly deleted on Windows.
 * Fixed a bug where open default config files were not being properly closed on Windows.
+* Fixed a bug affecting commands displayed that are too long for the terminal or end in a new line character.
+* Fixed a bug where the spinner continued to run after a keyboard interrupt was received.
 * Bug fixes.
 
 ## Version 0.2.0
