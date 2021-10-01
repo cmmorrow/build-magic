@@ -221,7 +221,7 @@ def build_magic(
             variable = list(variable)
             for var in prompt:
                 value = click.prompt(f'{var}', hide_input=True)
-                variable.append((var, value))
+                variable.append((var, reference.PromptSequence.START + value + reference.PromptSequence.END))
         for cfg in config:
             stages = get_stages_from_config(cfg, dict(variable))
             stage_names = [stg.get('name') for stg in stages if stg.get('name')]
