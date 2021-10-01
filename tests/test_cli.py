@@ -733,7 +733,7 @@ def test_cli_prompt(cli, prompt_config):
     res = cli.invoke(build_magic, ['-C', prompt_config, '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n')
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'EXECUTE : echo elle:secret' in out
+    assert 'EXECUTE : echo elle:******' in out
 
 
 def test_cli_variables_with_two_config_files(cli, variable_and_default_config):
@@ -759,16 +759,21 @@ def test_cli_variables_with_two_config_files(cli, variable_and_default_config):
 def test_cli_prompt_with_two_config_files(cli, prompt_and_default_config):
     """Verify using prompt still works when there is one config file with placeholders and one without."""
     # Without the default config
-    res = cli.invoke(build_magic, ['-C', 'prompt.yaml', '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n')
+    res = cli.invoke(
+        build_magic,
+        ['-C', 'prompt.yaml', '-v', 'user', 'elle', '--prompt', 'password'],
+        input='secret\n',
+    )
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'EXECUTE : echo elle:secret' in out
+    assert 'EXECUTE : echo elle:******' in out
 
     # Including the default config
     res = cli.invoke(
         build_magic,
-        ['-C', 'prompt.yaml', '-C', 'build-magic.yaml', '-v', 'user', 'elle', '--prompt', 'password'], input='secret\n',
+        ['-C', 'prompt.yaml', '-C', 'build-magic.yaml', '-v', 'user', 'elle', '--prompt', 'password'],
+        input='secret\n',
     )
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'EXECUTE : echo elle:secret' in out
+    assert 'EXECUTE : echo elle:******' in out

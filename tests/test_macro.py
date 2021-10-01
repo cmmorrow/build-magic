@@ -2,6 +2,7 @@
 
 import pytest
 
+from build_magic.reference import PromptSequence
 from build_magic.macro import MacroFactory, Macro
 
 
@@ -28,6 +29,7 @@ def test_macro_create(cmd):
     macro = Macro(cmd)
     assert macro.sequence == 0
     assert macro._command == cmd
+    assert macro.command == cmd
     assert not macro.prefix
     assert not macro.suffix
     assert macro.as_string() == 'ls'
@@ -39,6 +41,7 @@ def test_macro_create_with_prefix(cmd, prefix):
     macro = Macro(cmd, prefix=prefix)
     assert macro.sequence == 0
     assert macro._command == 'ls'
+    assert macro.command == cmd
     assert macro.prefix == 'cd /tmp;'
     assert not macro.suffix
     assert macro.as_string() == 'cd /tmp; ls'
@@ -50,6 +53,7 @@ def test_macro_create_suffix(cmd, suffix):
     macro = Macro(cmd, suffix=suffix)
     assert macro.sequence == 0
     assert macro._command == 'ls'
+    assert macro.command == cmd
     assert not macro.prefix
     assert macro.suffix == '-ltr'
     assert macro.as_string() == 'ls -ltr'
@@ -61,6 +65,7 @@ def test_macro_create_prefix_suffix(cmd, prefix, suffix):
     macro = Macro(cmd, prefix=prefix, suffix=suffix)
     assert macro.sequence == 0
     assert macro._command == 'ls'
+    assert macro.command == cmd
     assert macro.prefix == 'cd /tmp;'
     assert macro.suffix == '-ltr'
     assert macro.as_string() == 'cd /tmp; ls -ltr'
@@ -97,6 +102,19 @@ def test_macro_add_suffix(cmd, suffix):
     assert macro.suffix == '-ltr'
     assert macro.as_string() == 'ls -ltr'
     assert macro.as_list() == ['ls', '-ltr']
+
+
+def test_macro_prompted_command():
+    """Verify prompted commands are handled correctly."""
+    cmd = f'echo {PromptSequence.START}secret{PromptSequence.END}'
+    macro = Macro(cmd)
+    assert macro.sequence == 0
+    assert macro._command == cmd
+    assert macro.command == f'echo {PromptSequence.HIDDEN}'
+    assert not macro.prefix
+    assert not macro.suffix
+    assert macro.as_string() == 'echo secret'
+    assert macro.as_list() == ['echo', 'secret']
 
 
 def test_macro_invalid_command():

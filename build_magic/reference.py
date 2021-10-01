@@ -269,6 +269,15 @@ class OutputMethod(enum.Enum):
     PROCESS_SPINNER = 'process_spinner'
 
 
+@unique
+class PromptSequence(str, enum.Enum):
+    """Provides the prefix, suffix, and hidden strings that indicate a prompted variable."""
+
+    START = '<^^^^'
+    END = 'vvvv>'
+    HIDDEN = '******'
+
+
 class KeyTypes(EnumExt):
     """Valid public/private key types."""
 
