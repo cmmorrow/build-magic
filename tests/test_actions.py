@@ -345,17 +345,25 @@ def test_action_capture_dir_empty(empty_path, generic_runner, mocker):
 
 def test_action_capture_dir_error(build_path, generic_runner, mocker):
     """Test the case where capture_dir() raises an error."""
+    errors = (
+        IsADirectoryError,
+        PermissionError,
+        IsADirectoryError,
+        PermissionError,
+    )
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_up', return_value=True)
     # Local capture
-    mocker.patch('pathlib.Path.resolve', side_effect=IsADirectoryError)
+    mocker.patch('pathlib.Path.resolve', side_effect=errors)
     generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
-    assert not generic_runner.provision()
+    assert not generic_runner.provision()  # IsADirectoryError
+    assert not generic_runner.provision()  # PermissionError
 
     # Docker capture
     generic_runner.host_wd = '.'
     generic_runner.provision = types.MethodType(actions.docker_capture_dir, generic_runner)
-    assert not generic_runner.provision()
+    assert not generic_runner.provision()  # IsADirectoryError
+    assert not generic_runner.provision()  # PermissionError
 
 
 def test_action_delete_new_files(build_hashes, build_path, generic_runner, mocker):

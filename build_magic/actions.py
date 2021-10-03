@@ -168,6 +168,8 @@ def _get_local_files_and_directories(files):
             file_hashes.append((str(file), hashlib.sha1(pathlib.Path(file).read_bytes()).hexdigest()))
         except IsADirectoryError:
             dirs.append(str(file))
+        except PermissionError:
+            continue
     return file_hashes, dirs
 
 
