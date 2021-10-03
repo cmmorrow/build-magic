@@ -358,6 +358,25 @@ def test_action_capture_dir_error(build_path, generic_runner, mocker):
     assert not generic_runner.provision()
 
 
+def test_action_capture_dir_permission_error(build_path, generic_runner, mocker):
+    """Test the case where a PermissionError is raised when trying to get the hash for a file."""
+    os.chdir(str(build_path))
+    mocker.patch('build_magic.actions.container_up', return_value=True)
+    mocker.patch('pathlib.Path.read_bytes', side_effect=PermissionError)
+    # Local capture
+    generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
+    assert generic_runner.provision()
+    assert hasattr(generic_runner, '_existing_files')
+    assert len(generic_runner._existing_files) == 0
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.provision = types.MethodType(actions.capture_dir, generic_runner)
+    assert generic_runner.provision()
+    assert hasattr(generic_runner, '_existing_files')
+    assert len(generic_runner._existing_files) == 0
+
+
 def test_action_delete_new_files(build_hashes, build_path, generic_runner, mocker):
     """Verify the delete_new_files() function works correctly."""
     os.chdir(str(build_path))
