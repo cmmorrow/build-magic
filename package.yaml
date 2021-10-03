@@ -86,7 +86,7 @@ build-magic:
         # Upload the package
         - execute: *get_release_id
         - execute: >
-            shasum -a 256 $HOME/rpmbuild/RPMS/x86_64/build-magic*
+            sha256sum $HOME/rpmbuild/RPMS/x86_64/build-magic*
             | tr -s ' '
             | cut -d ' ' -f 1
             > $HOME/$(basename $HOME/rpmbuild/RPMS/x86_64/build-magic* .rpm).hash
