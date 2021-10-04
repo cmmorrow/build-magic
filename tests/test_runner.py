@@ -370,10 +370,9 @@ def test_docker_execute(docker_runner, mocker):
         'stdout': True,
         'stderr': True,
         'tty': True,
-        'demux': True,
     }
     container = mocker.patch('docker.models.containers.Container')
-    run = mocker.patch('docker.models.containers.Container.exec_run', return_value=(0, ('hello', None)))
+    run = mocker.patch('docker.models.containers.Container.exec_run', return_value=(0, b'hello'))
     cmd = Macro('echo hello')
     docker_runner.container = container
     status = docker_runner.execute(cmd)
@@ -383,6 +382,19 @@ def test_docker_execute(docker_runner, mocker):
     assert status.exit_code == 0
     assert status.stdout == 'hello'
     assert not status.stderr
+
+
+def test_docker_command_fail(docker_runner, mocker):
+    """Test the case where executing a command with the Docker runner fails."""
+    cmd = Macro('hello')
+    error = b'/bin/sh: hello: not found'
+    container = mocker.patch('docker.models.containers.Container')
+    mocker.patch('docker.models.containers.Container.exec_run', return_value=(127, error))
+    docker_runner.container = container
+    status = docker_runner.execute(cmd)
+    assert status.exit_code == 127
+    assert not status.stdout
+    assert status.stderr == '/bin/sh: hello: not found'
 
 
 def test_docker_execute_fail(docker_runner, mocker):

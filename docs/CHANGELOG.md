@@ -9,7 +9,8 @@
 * Fixed a bug where open default config files were not being properly closed on Windows.
 * Fixed a bug affecting commands displayed that are too long for the terminal or end in a new line character.
 * Fixed a bug where the spinner continued to run after a keyboard interrupt was received.
-* Bug fixes.
+* Fixed a bug where using the cleanup action on Windows would cause a job to fail on startup if a file or directory raised a permission error.
+* Fixed a bug that prevented stderr from a command executed in a Docker container from being displayed properly.
 
 ## Version 0.2.0
 

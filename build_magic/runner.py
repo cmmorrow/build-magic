@@ -541,14 +541,18 @@ class Docker(CommandRunner):
         if not self.container:
             self.provision()
         try:
-            code, (out, err) = self.container.exec_run(
+            code, out = self.container.exec_run(
                 cmd=command,
                 stdout=True,
                 stderr=True,
                 tty=True,
-                demux=True,
             )
-            status = Status(stdout=out, stderr=err, exit_code=code)
+            if out:
+                out = out.decode('utf-8')
+            if code > 0:
+                status = Status(stdout='', stderr=out, exit_code=code)
+            else:
+                status = Status(stdout=out, stderr='', exit_code=code)
         except ContainerError as err:
             status = Status('', stderr=str(err), exit_code=1)
         return status
