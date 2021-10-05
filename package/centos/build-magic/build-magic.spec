@@ -18,6 +18,8 @@ exit
 
 %files
 /usr/local/bin/build-magic_%{version}/*
+/usr/local/bin/build_magic_%{version}
+/usr/local/bin/build_magic
 
 %clean
 rm -rf $RPM_BUILD_ROOT/*
