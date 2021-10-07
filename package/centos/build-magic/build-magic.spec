@@ -1,5 +1,5 @@
 Name: build-magic
-Version: 0.3.0rc3
+Version: 0.3.0
 Release: 0%{?dist}
 Summary: An un-opinionated build automation tool.
 BuildArch: x86_64
@@ -17,13 +17,15 @@ cp -r $HOME/build-magic_%{version}/* $RPM_BUILD_ROOT/usr/local/bin/build-magic_%
 exit
 
 %files
+%dir /usr/local/bin/build-magic_%{version}
 /usr/local/bin/build-magic_%{version}/*
-/usr/local/bin/build_magic_%{version}
-/usr/local/bin/build_magic
 
 %clean
 rm -rf $RPM_BUILD_ROOT/*
 
 %post
 ln -s /usr/local/bin/build-magic_%{version}/build-magic_%{version} /usr/local/bin/build-magic
+
+%preun
+unlink /usr/local/bin/build-magic
 

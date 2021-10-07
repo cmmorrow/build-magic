@@ -1,5 +1,9 @@
 # What's New
 
+## Version 0.3.1
+
+* Updated dependency versions.
+
 ## Version 0.3.0
 
 * Added the `--template` option for generating an example Config File named build-magic_template.yaml.

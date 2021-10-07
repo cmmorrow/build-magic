@@ -249,8 +249,8 @@ def test_cli_help(cli):
   1. If the --copy option is used, each argument in ARGS is a file name in the
   copy from directory to copy to the working directory.
 
-  2. If there is a config file named build-magic.yaml in the working
-  directory, ARGS is the name of a stage to execute.
+  2. If there is a config file named build-magic.yaml in the working directory,
+  ARGS is the name of a stage to execute.
 
   3. ARGS are considered a single command to execute if the --command option
   isn't used.
@@ -268,28 +268,22 @@ Options:
   --name TEXT                     The stage name to use.
   -t, --target TEXT               Run a particular stage in a config file by
                                   name.
-
   --template                      Generates a config file template in the
                                   current directory.
-
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   -p, --parameter <TEXT TEXT>...  Space separated key/value used for runner
                                   specific settings.
-
   -v, --variable <TEXT TEXT>...   Space separated key/value config file
                                   variables.
-
   --prompt TEXT                   Config file variable with prompt for value.
   --action [default|cleanup|persist]
                                   The setup and teardown action to perform.
   --plain / --fancy               Enables basic output. Ideal for logging and
                                   automation.
-
   --quiet                         Suppresses all output from build-magic.
   --verbose                       Verbose output -- stdout from executed
                                   commands will be printed when complete.
-
   --version                       Show the version and exit.
   --help                          Show this message and exit.
 """
@@ -340,7 +334,7 @@ def test_cli_invalid_runner(cli):
     ref = """Usage: build-magic [OPTIONS] [ARGS]...
 Try 'build-magic --help' for help.
 
-Error: Invalid value for '--runner' / '-r': invalid choice: dummy. (choose from local, remote, vagrant, docker)
+Error: Invalid value for '--runner' / '-r': 'dummy' is not one of 'local', 'remote', 'vagrant', 'docker'.
 """
     res = cli.invoke(build_magic, ['-r', 'dummy', 'ls'])
     assert res.exit_code == ExitCode.INPUT_ERROR
