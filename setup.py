@@ -40,7 +40,7 @@ setup(
         'cryptography==3.4.7',
         'jsonschema==3.2.0',
         'docker==5.0.2',
-        'nltk==3.6.3',
+        'nltk==3.6.4',
         'paramiko==2.7.2',
         'python-vagrant==0.5.15',
         'PyYAML==5.4.1',
