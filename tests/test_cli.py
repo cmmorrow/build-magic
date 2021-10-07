@@ -6,11 +6,13 @@ import sys
 from unittest.mock import MagicMock
 
 from click.testing import CliRunner
+from docker.errors import APIError
 import paramiko
 import pytest
 
 from build_magic import __version__ as version
 from build_magic.cli import build_magic
+from build_magic.exc import DockerDaemonError
 from build_magic.reference import ExitCode
 
 
@@ -348,6 +350,20 @@ def test_cli_docker_missing_environment(cli):
     res = cli.invoke(build_magic, ['-r', 'docker', 'ls'])
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert res.output == ref
+
+
+def test_cli_docker_not_found(cli, mocker):
+    """Test the case where Docker isn't running or isn't installed."""
+    mocker.patch('docker.from_env', side_effect=DockerDaemonError)
+    res = cli.invoke(build_magic, ['-r', 'docker', '-e', 'alpine:latest', 'echo', '"hello world"'])
+    assert 'Setup failed: Cannot connect to Docker daemon. Is Docker installed and running?.' in res.output
+
+
+def test_cli_vagrant_not_found(cli, mocker):
+    """Test the case where Vagrant isn't found or installed."""
+    mocker.patch('vagrant.which', return_value=None)
+    res = cli.invoke(build_magic, ['-r', 'vagrant', '-e', 'files/Vagrantfile', 'echo', '"hello world"'])
+    assert 'The Vagrant executable cannot be found. Please check if it is in the system path.' in res.output
 
 
 def test_cli_vagrant_missing_environment(cli):

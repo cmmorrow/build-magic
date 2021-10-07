@@ -8,8 +8,10 @@ import shutil
 import subprocess
 
 import docker
-from docker.errors import APIError, ImageLoadError
+from docker.errors import APIError, DockerException, ImageLoadError
 import vagrant
+
+from build_magic.exc import DockerDaemonError, VagrantNotFoundError
 
 
 LOCAL = 'local'
@@ -334,6 +336,8 @@ def vm_up(self):
     try:
         self._vm.up()
     except subprocess.CalledProcessError as err:
+        if 'Vagrant executable cannot be found' in str(err):
+            raise VagrantNotFoundError
         print(str(err))
         self.teardown()
         return False
@@ -670,7 +674,10 @@ def remote_delete_files(self):
 
 def container_up(self):
     """Starts up a new container based on the image set in self.environment."""
-    self.client = docker.from_env()
+    try:
+        self.client = docker.from_env()
+    except DockerException:
+        raise DockerDaemonError
     try:
         self.container = self.client.containers.run(
             self.environment,

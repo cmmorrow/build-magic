@@ -48,3 +48,16 @@ class ValidationError(BuildMagicException):
     """Parameter validation failed."""
 
     msg = 'Validation failed'
+
+
+class DockerDaemonError(BuildMagicException):
+    """The Docker daemon isn't running or Docker isn't installed."""
+
+    msg = 'Cannot connect to Docker daemon. Is Docker installed and running?'
+
+
+class VagrantNotFoundError(BuildMagicException):
+    """The Vagrant executable was not found in the system path."""
+
+    msg = 'Cannot find Vagrant in the system path. Is it installed?'
+

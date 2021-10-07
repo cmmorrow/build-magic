@@ -3,6 +3,7 @@
 ## Version 0.3.1
 
 * Updated dependency versions.
+* Improved the error message when Docker or Vagrant isn't installed.
 
 ## Version 0.3.0
 
