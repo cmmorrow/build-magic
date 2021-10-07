@@ -19,7 +19,7 @@ importlib-metadata==3.7.3
 iniconfig==1.1.1
 Jinja2==2.11.3
 joblib==1.0.1
-jsonschema==4.0.1
+jsonschema==3.2.0
 keyring==23.0.0
 livereload==2.6.3
 lunr==0.5.8
