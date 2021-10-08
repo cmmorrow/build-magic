@@ -17,7 +17,7 @@ class BuildMagicException(Exception):
         elif message:
             super().__init__(f'{self.msg}: {message}')
         else:
-            super().__init__(f'{self.msg}.')
+            super().__init__(f'{self.msg}')
 
 
 class ExecutionError(BuildMagicException):
@@ -54,6 +54,12 @@ class DockerDaemonError(BuildMagicException):
     """The Docker daemon isn't running or Docker isn't installed."""
 
     msg = 'Cannot connect to Docker daemon. Is Docker installed and running?'
+
+
+class ContainerExistsError(BuildMagicException):
+    """The build-magic container is already running."""
+
+    msg = 'A build-magic container is already running. Please stop and remove it to continue.'
 
 
 class VagrantNotFoundError(BuildMagicException):
