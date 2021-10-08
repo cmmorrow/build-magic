@@ -11,7 +11,7 @@ import docker
 from docker.errors import APIError, DockerException, ImageLoadError, ImageNotFound
 import vagrant
 
-from build_magic.exc import DockerDaemonError, VagrantNotFoundError
+from build_magic.exc import ContainerExistsError, DockerDaemonError, VagrantNotFoundError
 
 
 LOCAL = 'local'
@@ -678,6 +678,9 @@ def container_up(self):
         self.client = docker.from_env()
     except DockerException:
         raise DockerDaemonError
+    running = self.client.containers.list(filters=dict(name='build-magic'))
+    if running:
+        raise ContainerExistsError
     try:
         self.container = self.client.containers.run(
             self.environment,

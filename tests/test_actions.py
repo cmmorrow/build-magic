@@ -8,12 +8,13 @@ import types
 from unittest.mock import MagicMock
 
 import docker
-from docker.errors import APIError, ImageLoadError
+from docker.errors import APIError, ImageLoadError, ImageNotFound
 import paramiko
 import pytest
 import vagrant
 
 from build_magic import actions
+from build_magic.exc import ContainerExistsError
 from build_magic.macro import Macro
 from build_magic.runner import CommandRunner
 
@@ -237,6 +238,7 @@ def test_action_vm_destroy_error(generic_runner, mocker):
 def test_action_container_up(generic_runner, mocker):
     """Verify the container_up() function works correctly."""
     mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.list', return_value=[])
     run = mocker.patch('docker.client.DockerClient.containers.run')
     ref = {
         'detach': True,
@@ -271,6 +273,7 @@ def test_action_container_up(generic_runner, mocker):
 def test_action_container_up_error(generic_runner, mocker):
     """Test the case where an error is raised when starting the container."""
     mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.list', return_value=[])
     mocker.patch(
         'docker.client.DockerClient.containers.run',
         side_effect=(APIError('error'), ImageLoadError, AttributeError),
@@ -285,6 +288,39 @@ def test_action_container_up_error(generic_runner, mocker):
     assert not generic_runner.provision()
     assert not generic_runner.provision()
     assert not generic_runner.provision()
+
+
+def test_action_container_up_container_exists(generic_runner, mocker):
+    """Test the case where a build-magic container is already running."""
+    mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.list', return_value=[MagicMock])
+    generic_runner.binding = {
+        'dir': {
+            'bind': '/build_magic',
+            'mode': 'rw',
+        }
+    }
+    generic_runner.working_directory = '/build_magic'
+    generic_runner.provision = types.MethodType(actions.container_up, generic_runner)
+    with pytest.raises(ContainerExistsError):
+        generic_runner.provision()
+
+
+def test_action_container_up_image_not_found(generic_runner, mocker):
+    """Test the case where an image/environment cannot be found."""
+    mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.list', return_value=[])
+    mocker.patch('docker.client.DockerClient.containers.run', side_effect=ImageNotFound('Not found'))
+    generic_runner.binding = {
+        'dir': {
+            'bind': '/build_magic',
+            'mode': 'rw',
+        }
+    }
+    generic_runner.working_directory = '/build_magic'
+    generic_runner.provision = types.MethodType(actions.container_up, generic_runner)
+    with pytest.raises(ImageNotFound):
+        generic_runner.provision()
 
 
 def test_action_container_destroy(generic_runner):

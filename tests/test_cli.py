@@ -355,16 +355,25 @@ def test_cli_docker_missing_environment(cli):
 def test_cli_docker_environment_not_found(cli, mocker):
     """Test the case where the requested image is not found."""
     mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.list', return_value=[])
     mocker.patch('docker.client.DockerClient.containers.run', side_effect=ImageNotFound('Not Found'))
     res = cli.invoke(build_magic, ['-r', 'docker', '-e', 'centos:7', 'echo', '"hello world"'])
     assert 'Setup failed: Not Found' in res.output
+
+
+def test_cli_docker_container_already_running(cli, mocker):
+    """Test the case where a build-magic container is already running."""
+    mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.list', return_value=[MagicMock])
+    res = cli.invoke(build_magic, ['-r', 'docker', '-e', 'centos:7', 'echo', '"hello world"'])
+    assert 'Setup failed: A build-magic container is already running.' in res.output
 
 
 def test_cli_docker_not_found(cli, mocker):
     """Test the case where Docker isn't running or isn't installed."""
     mocker.patch('docker.from_env', side_effect=DockerDaemonError)
     res = cli.invoke(build_magic, ['-r', 'docker', '-e', 'alpine:latest', 'echo', '"hello world"'])
-    assert 'Setup failed: Cannot connect to Docker daemon. Is Docker installed and running?.' in res.output
+    assert 'Setup failed: Cannot connect to Docker daemon. Is Docker installed and running?' in res.output
 
 
 def test_cli_vagrant_not_found(cli, mocker):

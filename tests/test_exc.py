@@ -7,7 +7,7 @@ from build_magic.exc import BuildMagicException, ExecutionError, NoJobs, SetupEr
 
 def test_base_exception():
     """Verify the BuildMagicException works correctly."""
-    with pytest.raises(BuildMagicException, match='build-magic error.'):
+    with pytest.raises(BuildMagicException, match='build-magic error'):
         raise BuildMagicException
 
     with pytest.raises(BuildMagicException, match='build-magic error: test error'):
@@ -24,7 +24,7 @@ def test_base_exception():
 
 def test_execution_error():
     """Verify the ExecutionError works correctly."""
-    with pytest.raises(ExecutionError, match='Command execution error.'):
+    with pytest.raises(ExecutionError, match='Command execution error'):
         raise ExecutionError
 
     with pytest.raises(ExecutionError, match='Command execution error: test error'):
@@ -41,7 +41,7 @@ def test_execution_error():
 
 def test_setup_error():
     """Verify the SetupError works correctly."""
-    with pytest.raises(SetupError, match='Setup failed.'):
+    with pytest.raises(SetupError, match='Setup failed'):
         raise SetupError
 
     with pytest.raises(SetupError, match='Setup failed: test error'):
@@ -58,7 +58,7 @@ def test_setup_error():
 
 def test_teardown_error():
     """Verify the TeardownError works correctly."""
-    with pytest.raises(TeardownError, match='Teardown failed.'):
+    with pytest.raises(TeardownError, match='Teardown failed'):
         raise TeardownError
 
     with pytest.raises(TeardownError, match='Teardown failed: test error'):
@@ -75,7 +75,7 @@ def test_teardown_error():
 
 def test_no_jobs_error():
     """Verify the NoJobs error works correctly."""
-    with pytest.raises(NoJobs, match='No jobs to execute.'):
+    with pytest.raises(NoJobs, match='No jobs to execute'):
         raise NoJobs
 
     with pytest.raises(NoJobs, match='No jobs to execute: test error'):
