@@ -450,6 +450,8 @@ class Stage:
                 _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
             raise SetupError(exception=err)
         if not result:
+            if spinner is not None:
+                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
             raise SetupError
 
         # Call the command runner's prepare function.
