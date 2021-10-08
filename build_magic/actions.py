@@ -8,7 +8,7 @@ import shutil
 import subprocess
 
 import docker
-from docker.errors import APIError, DockerException, ImageLoadError
+from docker.errors import APIError, DockerException, ImageLoadError, ImageNotFound
 import vagrant
 
 from build_magic.exc import DockerDaemonError, VagrantNotFoundError
@@ -688,6 +688,8 @@ def container_up(self):
             mounts=[self.binding],
             name='build-magic',
         )
+    except ImageNotFound as err:
+        raise err
     except (APIError, AttributeError, ImageLoadError):
         return False
     return True

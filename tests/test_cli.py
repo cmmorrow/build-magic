@@ -6,7 +6,7 @@ import sys
 from unittest.mock import MagicMock
 
 from click.testing import CliRunner
-from docker.errors import APIError
+from docker.errors import ImageNotFound
 import paramiko
 import pytest
 
@@ -350,6 +350,14 @@ def test_cli_docker_missing_environment(cli):
     res = cli.invoke(build_magic, ['-r', 'docker', 'ls'])
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert res.output == ref
+
+
+def test_cli_docker_environment_not_found(cli, mocker):
+    """Test the case where the requested image is not found."""
+    mocker.patch('docker.client.DockerClient.containers', new_callable=mocker.PropertyMock)
+    mocker.patch('docker.client.DockerClient.containers.run', side_effect=ImageNotFound('Not Found'))
+    res = cli.invoke(build_magic, ['-r', 'docker', '-e', 'centos:7', 'echo', '"hello world"'])
+    assert 'Setup failed: Not Found' in res.output
 
 
 def test_cli_docker_not_found(cli, mocker):

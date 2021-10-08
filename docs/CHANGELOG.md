@@ -4,6 +4,8 @@
 
 * Updated dependency versions.
 * Improved the error message when Docker or Vagrant isn't installed.
+* Fixed a bug that caused the spinner to continue running if the environment is a docker container that cannot be found.
+* Improved error handling in the case a docker container cannot be found.
 
 ## Version 0.3.0
 
