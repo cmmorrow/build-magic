@@ -1,6 +1,6 @@
 Name: build-magic
 Version: 0.3.0
-Release: 0%{?dist}
+Release: 0%{?dist}.9
 Summary: An un-opinionated build automation tool.
 BuildArch: x86_64
 

@@ -1,5 +1,5 @@
 Package: build-magic
-Version: 0.3.0
+Version: 0.3.1rc0
 Section: utils
 Priority: optional
 Architecture: amd64

@@ -3,22 +3,26 @@ build-magic:
       name: debian
       runner: docker
       environment: debian:buster
-      action: cleanup
+      working directory: /app
       commands:
         # Install requirements
         - execute: apt update
-        - install: apt install -y python3 python3-dev python3-pip zlib1g-dev gpg curl jq libdigest-sha-perl
-        - install: &install_repo
-            pip3 install .
+        - install: apt install -y python3 python3-dev python3-pip zlib1g-dev gpg curl jq libdigest-sha-perl git
         - install: &install_pyinstaller
             pip3 install pyinstaller
+        # Clone the repo
+        - execute: &clone_repo
+            git clone --depth 1 --branch v{{ version }} https://github.com/cmmorrow/build-magic.git
+        # Install the repo
+        - install: &install_repo
+            pip3 install build-magic
         # Build the application
         - build: &run_pyinstaller >
             pyinstaller
             -n "build-magic_{{ version }}" -D
             --clean
-            --add-data build_magic/static:build_magic/static
-            build_magic/__main__.py
+            --add-data build-magic/build_magic/static:build_magic/static
+            build-magic/build_magic/__main__.py
         - execute: &clean_pyinstaller
             rm -rf /usr/local/bin/*
         # - test: &test_build
@@ -26,7 +30,8 @@ build-magic:
         # Prep
         - execute: mkdir -p $HOME/build-magic/usr/local/bin
         - execute: mkdir -p $HOME/build-magic/DEBIAN
-        - execute: cp package/debian/build-magic/control $HOME/build-magic/DEBIAN
+        - execute: cp build-magic/package/debian/build-magic/control $HOME/build-magic/DEBIAN
+        - execute: sed -i 's/Version\x3a .*/Version\x3a {{ version }}/g' $HOME/build-magic/DEBIAN/control
         - execute: cp -r dist/build-magic_{{ version }}/ $HOME/build-magic/usr/local/bin/
         - execute: ln -s /usr/local/bin/build-magic_{{ version }}/build-magic_{{ version }} /usr/local/bin/build-magic
         - execute: mv /usr/local/bin/build-magic $HOME/build-magic/usr/local/bin
@@ -58,16 +63,18 @@ build-magic:
       name: centos
       runner: docker
       environment: centos:7
-      action: cleanup
+      working directory: /app
       commands:
         # Install requirements
-        - install: yum install -y rpmdevtools python3
+        - install: yum install -y rpmdevtools python3 git
         - install: yum install -y epel-release
         - install: yum update -y
         - install: yum install -y jq
         - install: pip3 install --upgrade pip
-        - install: *install_repo
         - install: *install_pyinstaller
+        # Clone the repo
+        - execute: *clone_repo
+        - install: *install_repo
         # Build the application
         - build: *run_pyinstaller
         - execute: *clean_pyinstaller
@@ -76,7 +83,8 @@ build-magic:
         # Prep
         - execute: rpmdev-setuptree
         - execute: mkdir -p $HOME/rpmbuild/RPMS/x86_64
-        - execute: cp package/centos/build-magic/build-magic.spec $HOME/rpmbuild/SPECS
+        - execute: cp build-magic/package/centos/build-magic/build-magic.spec $HOME/rpmbuild/SPECS
+        - execute: sed -i 's/Version\x3a .*/Version\x3a {{ version }}/g' $HOME/rpmbuild/SPECS/build-magic.spec
         - execute: cp -r dist/build-magic_{{ version }}/ $HOME
         # Build the package
         - build: rpmbuild -bb --target x86_64 $HOME/rpmbuild/SPECS/build-magic.spec
