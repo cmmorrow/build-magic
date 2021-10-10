@@ -11,6 +11,7 @@ import paramiko
 import pytest
 import vagrant
 
+from build_magic.exc import HostWorkingDirectoryNotFound
 from build_magic.macro import Macro
 from build_magic.reference import BindDirectory, HostWorkingDirectory, KeyPassword, KeyPath, KeyType
 from build_magic.runner import CommandRunner, Docker, Local, Remote, Status, Vagrant
@@ -270,8 +271,9 @@ def test_local_execute_fail(local_runner, tmp_path):
         )
 
 
-def test_docker_constructor():
+def test_docker_constructor(mocker):
     """Verify the Docker command runner constructor works correctly."""
+    mocker.patch('pathlib.Path.exists', return_value=True)
     runner = Docker()
     assert runner.environment == 'alpine'
     assert runner.working_directory == '/build_magic'
@@ -319,6 +321,13 @@ def test_docker_constructor():
         'Target': '/opt', 
         'Type': 'bind',
     }
+
+
+def test_docker_host_wd_not_found(mocker):
+    """Test the case where the host working directory isn't found."""
+    mocker.patch('pathlib.Path.exists', return_value=False)
+    with pytest.raises(HostWorkingDirectoryNotFound):
+        assert Docker()
 
 
 def test_docker_prepare(docker_runner, build_path, mocker, tmp_path):
@@ -412,8 +421,9 @@ def test_docker_execute_fail(docker_runner, mocker):
     assert status.stderr == "Command 'cat' in image 'alpine' returned non-zero exit status 1: "
 
 
-def test_vagrant_constructor():
+def test_vagrant_constructor(mocker):
     """Verify the Vagrant command runner constructor works correctly."""
+    mocker.patch('pathlib.Path.exists', return_value=True)
     runner = Vagrant()
     assert runner.environment == '.'
     assert runner.working_directory == '/home/vagrant'
@@ -425,7 +435,6 @@ def test_vagrant_constructor():
     assert runner.name == 'vagrant'
     assert runner.host_wd == '.'
     assert runner.bind_path == '/vagrant'
-    # assert os.environ.get('VAGRANT_CWD') is None
 
     if os.sys.platform == 'win32':
         host_wd = 'C:\\my_repo'
@@ -466,6 +475,13 @@ def test_vagrant_constructor():
     )
     assert os.environ.get('VAGRANT_CWD') == env
     assert runner.environment == '/opt/'
+
+
+def test_vagrant_host_wd_not_found(mocker):
+    """Test the case where the host working directory isn't found."""
+    mocker.patch('pathlib.Path.exists', return_value=False)
+    with pytest.raises(HostWorkingDirectoryNotFound):
+        assert Vagrant()
 
 
 def test_vagrant_prepare(build_path, mocker, tmp_path, vagrant_runner):

@@ -14,7 +14,7 @@ logging.disable(logging.WARNING)
 
 from build_magic import __version__ as ver
 from build_magic import core
-from build_magic.exc import ExecutionError, NoJobs, SetupError, TeardownError
+from build_magic.exc import ExecutionError, HostWorkingDirectoryNotFound, NoJobs, SetupError, TeardownError
 from build_magic import reference
 
 # Get a list of command runners.
@@ -346,7 +346,7 @@ def build_stages(args):
     for stage in args:
         try:
             stages.append(core.build_stage(**stage))
-        except (NotADirectoryError, ValueError, reference.ValidationError) as err:
+        except (NotADirectoryError, ValueError, reference.ValidationError, HostWorkingDirectoryNotFound) as err:
             click.secho(str(err), fg='red', err=True)
             sys.exit(reference.ExitCode.INPUT_ERROR)
     return stages

@@ -376,11 +376,28 @@ def test_cli_docker_not_found(cli, mocker):
     assert 'Setup failed: Cannot connect to Docker daemon. Is Docker installed and running?' in res.output
 
 
+def test_cli_docker_hostwd_not_found(cli, mocker):
+    """Test the case where the hostwd doesn't exist."""
+    mocker.patch('pathlib.Path.exists', return_value=False)
+    res = cli.invoke(build_magic, ['-p', 'hostwd', 'fake', '-r', 'docker', '-e', 'alpine:latest', 'echo', 'hello'])
+    assert res.output == 'The host working directory was not found.\n'
+    assert res.exit_code == ExitCode.INPUT_ERROR.value
+
+
 def test_cli_vagrant_not_found(cli, mocker):
     """Test the case where Vagrant isn't found or installed."""
     mocker.patch('vagrant.which', return_value=None)
+    mocker.patch('pathlib.Path.exists', return_value=True)
     res = cli.invoke(build_magic, ['-r', 'vagrant', '-e', 'files/Vagrantfile', 'echo', '"hello world"'])
     assert 'The Vagrant executable cannot be found. Please check if it is in the system path.' in res.output
+
+
+def test_cli_vagrant_hostwd_not_found(cli, mocker):
+    """Test the case where the hostwd doesn't exist."""
+    mocker.patch('pathlib.Path.exists', return_value=False)
+    res = cli.invoke(build_magic, ['-r', 'vagrant', '-e', 'fake/Vagrantfile', 'echo', '"hello world"'])
+    assert res.output == 'The host working directory was not found.\n'
+    assert res.exit_code == ExitCode.INPUT_ERROR.value
 
 
 def test_cli_vagrant_missing_environment(cli):
