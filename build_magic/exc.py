@@ -50,6 +50,12 @@ class ValidationError(BuildMagicException):
     msg = 'Validation failed'
 
 
+class HostWorkingDirectoryNotFound(BuildMagicException):
+    """The specified host working directory doesn't exist."""
+
+    msg = 'The host working directory was not found.'
+
+
 class DockerDaemonError(BuildMagicException):
     """The Docker daemon isn't running or Docker isn't installed."""
 

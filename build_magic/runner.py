@@ -12,6 +12,7 @@ from docker.errors import ContainerError
 import paramiko
 from scp import SCPClient
 
+from build_magic.exc import HostWorkingDirectoryNotFound
 from build_magic.reference import BindDirectory, HostWorkingDirectory
 
 
@@ -452,6 +453,8 @@ class Vagrant(CommandRunner):
             os.environ.pop('VAGRANT_CWD', '')
             os.environ['VAGRANT_CWD'] = str(Path(self.environment).resolve())
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory(self.environment)).value
+        if not Path(self.host_wd).exists():
+            raise HostWorkingDirectoryNotFound
         self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
 
     def prepare(self):
@@ -503,6 +506,8 @@ class Docker(CommandRunner):
         if self.working_directory == '.':
             self.working_directory = '/build_magic'
         self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
+        if not Path(self.host_wd).exists():
+            raise HostWorkingDirectoryNotFound
         self.bind_path = self.parameters.get('bind', BindDirectory()).value
         self.binding = Mount(
             target=self.bind_path,
