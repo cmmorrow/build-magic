@@ -7,6 +7,7 @@
 * Fixed a bug that caused the spinner to continue running if the environment is a Docker container that cannot be found.
 * Improved error handling in the case a Docker container cannot be found.
 * Added a check for if a build-magic container is already running and raises an exception if so.
+* Added a check to make sure the provided host working directory exists for the Docker and Vagrant runners.
 
 ## Version 0.3.0
 

@@ -7,3 +7,4 @@ build_magic/__pycache__
 /build/
 /site/
 .idea
+*.key
