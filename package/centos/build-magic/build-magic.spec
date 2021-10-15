@@ -24,8 +24,12 @@ exit
 rm -rf $RPM_BUILD_ROOT/*
 
 %post
+if [ -f /usr/local/bin/build-magic ]; then
+    unlink /usr/local/bin/build-magic
+fi
 ln -s /usr/local/bin/build-magic_%{version}/build-magic_%{version} /usr/local/bin/build-magic
 
-%preun
-unlink /usr/local/bin/build-magic
-
+%postun
+if [ ! -d /usr/local/bin/build-magic_%{version} ]; then
+    unlink /usr/local/bin/build-magic
+fi

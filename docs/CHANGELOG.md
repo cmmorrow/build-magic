@@ -1,5 +1,9 @@
 # What's New
 
+## Version 0.3.2
+
+* Updated dependencies to newer versions.
+
 ## Version 0.3.1
 
 * Updated dependency versions.

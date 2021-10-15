@@ -8,6 +8,8 @@ build-magic:
         # Install requirements
         - execute: apt update
         - install: apt install -y python3 python3-dev python3-pip zlib1g-dev gpg curl jq libdigest-sha-perl git
+        - install: &upgrade_pip
+            pip3 install --upgrade pip
         - install: &install_pyinstaller
             pip3 install pyinstaller
         # Clone the repo
@@ -60,7 +62,7 @@ build-magic:
             -H "Content-Type: application/octet-stream"
             https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=build-magic-{{ version }}_amd64.hash
   - stage:
-      name: centos
+      name: centos7
       runner: docker
       environment: centos:7
       working directory: /app
@@ -70,10 +72,11 @@ build-magic:
         - install: yum install -y epel-release
         - install: yum update -y
         - install: yum install -y jq
-        - install: pip3 install --upgrade pip
+        - install: *upgrade_pip
         - install: *install_pyinstaller
         # Clone the repo
         - execute: *clone_repo
+        - execute: cp /build_magic/setup.py /app/build-magic
         - install: *install_repo
         # Build the application
         - build: *run_pyinstaller
@@ -85,6 +88,57 @@ build-magic:
         - execute: mkdir -p $HOME/rpmbuild/RPMS/x86_64
         - execute: cp build-magic/package/centos/build-magic/build-magic.spec $HOME/rpmbuild/SPECS
         - execute: sed -i 's/Version\x3a .*/Version\x3a {{ version }}/g' $HOME/rpmbuild/SPECS/build-magic.spec
+        - execute: cp -r dist/build-magic_{{ version }}/ $HOME
+        # Build the package
+        - build: rpmbuild -bb --target x86_64 $HOME/rpmbuild/SPECS/build-magic.spec
+        # Install and test the package
+        - install: ls -d $HOME/rpmbuild/RPMS/x86_64/* | xargs yum install -y
+        # - test: build-magic
+        # Upload the package
+        - execute: *get_release_id
+        - execute: >
+            sha256sum $HOME/rpmbuild/RPMS/x86_64/build-magic*
+            | tr -s ' '
+            | cut -d ' ' -f 1
+            > $HOME/$(basename $HOME/rpmbuild/RPMS/x86_64/build-magic* .rpm).hash
+        - release: >
+            curl -u {{ user }}:{{ password }}
+            --data-binary @$(ls $HOME/build-magic*.hash)
+            -H "Content-Type: application/octet-stream"
+            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=$(ls $HOME/build-magic*.hash | xargs basename)
+        - release: >
+            curl -u {{ user }}:{{ password }}
+            --data-binary @$(ls $HOME/rpmbuild/RPMS/x86_64/*)
+            -H "Content-Type: application/octet-stream"
+            https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=$(ls $HOME/rpmbuild/RPMS/x86_64/* | xargs basename)
+  - stage:
+      name: centos8
+      runner: docker
+      environment: centos:8
+      working directory: /app
+      commands:
+        # Install requirements
+        - install: yum install -y rpmdevtools python3 git
+        - install: yum install -y epel-release
+        - install: yum update -y
+        - install: yum install -y jq
+        - install: *upgrade_pip
+        - install: *install_pyinstaller
+        # Clone the repo
+        - execute: *clone_repo
+        - execute: cp /build_magic/setup.py /app/build-magic
+        - install: *install_repo
+        # Build the application
+        - build: *run_pyinstaller
+        - execute: *clean_pyinstaller
+        # - execute: export LC_ALL=en_US.utf8 LANG=en_US.utf8
+        # - test: *test_build
+        # Prep
+        - execute: rpmdev-setuptree
+        - execute: mkdir -p $HOME/rpmbuild/RPMS/x86_64
+        - execute: cp build-magic/package/centos/build-magic/build-magic.spec $HOME/rpmbuild/SPECS
+        - execute: sed -i 's/Version\x3a .*/Version\x3a {{ version }}/g' $HOME/rpmbuild/SPECS/build-magic.spec
+        - execute: sed -i 's/Release\x3a 0\%\{\?dist\}\.9/Release\x3a 0\%\{\?dist\}g' $HOME/rpmbuild/SPECS/build-magic.spec
         - execute: cp -r dist/build-magic_{{ version }}/ $HOME
         # Build the package
         - build: rpmbuild -bb --target x86_64 $HOME/rpmbuild/SPECS/build-magic.spec
