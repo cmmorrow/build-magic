@@ -1,6 +1,7 @@
 Name: build-magic
 Version: 0.3.1
-Release: 0%{?dist}.9
+%{?el7:Release: 0%{?dist}.9}
+%{?el8:Release: 0%{?dist}.4}
 Summary: An un-opinionated build automation tool.
 BuildArch: x86_64
 
@@ -12,24 +13,26 @@ Packager: Chris Morrow
 A general purpose build/install/deploy tool.
 
 %prep
-mkdir -p $RPM_BUILD_ROOT/usr/local/bin/build-magic_%{version}
-cp -r $HOME/build-magic_%{version}/* $RPM_BUILD_ROOT/usr/local/bin/build-magic_%{version}
+mkdir -p $RPM_BUILD_ROOT/usr/local/bin/%{name}_%{version}
+cp -r $HOME/%{name}_%{version}/* $RPM_BUILD_ROOT/usr/local/bin/%{name}_%{version}
 exit
 
 %files
-%dir /usr/local/bin/build-magic_%{version}
-/usr/local/bin/build-magic_%{version}/*
+%dir /usr/local/bin/%{name}_%{version}
+/usr/local/bin/%{name}_%{version}/*
 
 %clean
 rm -rf $RPM_BUILD_ROOT/*
 
-%post
-if [ -f /usr/local/bin/build-magic ]; then
-    unlink /usr/local/bin/build-magic
+%triggerin -- %{name}
+ln -sf /usr/local/bin/%{name}_%{version}/%{name}_%{version} /usr/local/bin/%{name}
+
+%triggerun -- %{name}
+if [ -f /usr/local/bin/%{name}_%{version}/%{name}_%{version} ]; then
+    ln -sf /usr/local/bin/%{name}_%{version}/%{name}_%{version} /usr/local/bin/%{name}
+else
+    unlink /usr/local/bin/%{name}
 fi
-ln -s /usr/local/bin/build-magic_%{version}/build-magic_%{version} /usr/local/bin/build-magic
 
 %postun
-if [ ! -d /usr/local/bin/build-magic_%{version} ]; then
-    unlink /usr/local/bin/build-magic
-fi
+unlink /usr/local/bin/%{name}
