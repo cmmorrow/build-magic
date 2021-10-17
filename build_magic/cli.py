@@ -378,15 +378,19 @@ def get_config_params(stage, seq=1):
 def get_stages_from_config(cfg, variables):
     """Read a config YAML file and extract the stages.
 
-    :param bytes|IO[bytes]|Text|IO[Text]: The config file object.
+    :param bytes|IO[bytes]|Text|IO[Text] cfg: The config file object.
     :param dict variables: Variables to substitute into the config file.
     :rtype: list[dict]
     :return: The extracted stages.
     """
     # Read the config YAML file.
-    obj = yaml.safe_load(cfg)
-    if isinstance(cfg, TextIOWrapper):
-        cfg.close()
+    try:
+        obj = yaml.safe_load(cfg)
+        if isinstance(cfg, TextIOWrapper):
+            cfg.close()
+    except yaml.YAMLError as err:
+        click.secho(str(err), fg='red', err=True)
+        sys.exit(reference.ExitCode.INPUT_ERROR)
 
     # Parse the YAML file and set the options.
     try:

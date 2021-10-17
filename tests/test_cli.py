@@ -9,6 +9,7 @@ from click.testing import CliRunner
 from docker.errors import ImageNotFound
 import paramiko
 import pytest
+from yaml.composer import ComposerError
 
 from build_magic import __version__ as version
 from build_magic.cli import build_magic
@@ -575,7 +576,6 @@ def test_cli_template_permission_error(cli, mocker):
 def test_cli_config(cli, config_file, ls):
     """Verify the --config option works correctly."""
     res = cli.invoke(build_magic, ['--config', str(config_file)])
-    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: Test stage' in res.output
     assert '( 1/2 ) EXECUTE : echo hello' in res.output
@@ -637,6 +637,16 @@ def test_cli_invalid_target(cli, targets_config):
     out = res.output
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert out == "Target blarg not found among ['Stage A', 'Stage B', 'Stage C', 'Stage D'].\n"
+
+
+def test_cli_yaml_parsing_error(cli, config_file, mocker):
+    """Test the case where there's an error when parsing a config file."""
+    yaml_load = mocker.patch('yaml.safe_load', side_effect=ComposerError('YAML error'))
+    res = cli.invoke(build_magic, ['-C', str(config_file)])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == 'YAML error\n'
+    assert yaml_load.call_count == 1
 
 
 def test_cli_default_config_all_stages(cli, default_config):

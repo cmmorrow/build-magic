@@ -1,5 +1,9 @@
 # What's New
 
+## Version 0.3.3
+
+* Fixed a bug where an error when parsing a YAML file was not caught and handled.
+
 ## Version 0.3.2
 
 * Updated dependencies to newer versions.
