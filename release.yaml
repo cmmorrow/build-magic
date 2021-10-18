@@ -2,6 +2,7 @@ build-magic:
   - stage:
       name: Run Tests
       commands:
+        - execute: flake8 --count --show-source --statistics
         - test: pytest tests/test* --cov=build_magic --cov-report term-missing
   - stage:
       name: Build Documentation

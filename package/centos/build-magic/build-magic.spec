@@ -24,15 +24,8 @@ exit
 %clean
 rm -rf $RPM_BUILD_ROOT/*
 
-%triggerin -- %{name}
+%post
 ln -sf /usr/local/bin/%{name}_%{version}/%{name}_%{version} /usr/local/bin/%{name}
-
-%triggerun -- %{name}
-if [ -f /usr/local/bin/%{name}_%{version} ]; then
-    ln -sf /usr/local/bin/%{name}_%{version}/%{name}_%{version} /usr/local/bin/%{name}
-else
-    unlink /usr/local/bin/%{name}
-fi
 
 %postun
 if [ ! -f /usr/local/bin/%{name}_%{version} ]; then

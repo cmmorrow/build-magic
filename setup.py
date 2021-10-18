@@ -51,6 +51,7 @@ setup(
     tests_require=[
         'pytest',
         'freezegun',
+        'flake8',
     ],
     classifers=[
         'Development Status :: 4 - Beta',

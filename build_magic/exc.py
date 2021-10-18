@@ -72,4 +72,3 @@ class VagrantNotFoundError(BuildMagicException):
     """The Vagrant executable was not found in the system path."""
 
     msg = 'Cannot find Vagrant in the system path. Is it installed?'
-

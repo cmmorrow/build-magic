@@ -578,8 +578,8 @@ def test_action_delete_nested_directories(build_hashes, build_path, generic_runn
     generic_runner._existing_files = list(zip(files, build_hashes))
     dirs = []
     generic_runner._existing_dirs = dirs
-    generic_runner.execute(Macro(f'mkdir dir1'))
-    generic_runner.execute(Macro(f'mkdir dir2'))
+    generic_runner.execute(Macro('mkdir dir1'))
+    generic_runner.execute(Macro('mkdir dir2'))
     generic_runner.execute(Macro(f'mkdir dir1{os.sep}dir3'))
     generic_runner.execute(Macro(f'mkdir dir1{os.sep}dir4'))
     generic_runner.execute(Macro(f'mkdir dir1{os.sep}dir3{os.sep}dir5'))
@@ -600,8 +600,8 @@ def test_action_delete_nested_directories(build_hashes, build_path, generic_runn
     generic_runner._existing_files = list(zip(files, build_hashes))
     dirs = []
     generic_runner._existing_dirs = dirs
-    generic_runner.execute(Macro(f'mkdir dir1'))
-    generic_runner.execute(Macro(f'mkdir dir2'))
+    generic_runner.execute(Macro('mkdir dir1'))
+    generic_runner.execute(Macro('mkdir dir2'))
     generic_runner.execute(Macro(f'mkdir dir1{os.sep}dir3'))
     generic_runner.execute(Macro(f'mkdir dir1{os.sep}dir4'))
     generic_runner.execute(Macro(f'mkdir dir1{os.sep}dir3{os.sep}dir5'))
@@ -620,7 +620,7 @@ def test_action_delete_dir_ignore_git(build_path, git_path, generic_runner, mock
     """Test the case where the a new file added to a .git directory isn't deleted."""
     os.chdir(str(build_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
-    
+
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     files = [str(file) for file in Path.cwd().resolve().rglob('*')]

@@ -296,7 +296,7 @@ def test_docker_constructor(mocker):
         host_wd = 'C:\\my_repo'
     else:
         host_wd = '/my_repo'
-    
+
     runner = Docker(
         environment='python:3',
         working_dir='/app',
@@ -316,9 +316,9 @@ def test_docker_constructor(mocker):
     assert runner.host_wd == host_wd
     assert runner.bind_path == '/opt'
     assert runner.binding == {
-        'ReadOnly': False, 
-        'Source': host_wd, 
-        'Target': '/opt', 
+        'ReadOnly': False,
+        'Source': host_wd,
+        'Target': '/opt',
         'Type': 'bind',
     }
 
@@ -648,7 +648,7 @@ def test_remote_passphrase_key_fail(ssh_key_with_password):
 def test_remote_key_file_not_found():
     """Test the case where the private key file doesn't exist."""
     params = {
-        'keypath': KeyPath(f'/zztle3aw399cx/id_rsa'),
+        'keypath': KeyPath('/zztle3aw399cx/id_rsa'),
     }
     with pytest.raises(ValueError):
         Remote('user@myhost', parameters=params)
@@ -774,4 +774,3 @@ def test_copy_to_working_directory_fail(tmp_path_factory, local_runner):
     assert dir2.joinpath('main.cpp').exists()
     assert not dir2.joinpath('audio.cpp').exists()
     assert not dir2.joinpath('plugins.cpp').exists()
-
