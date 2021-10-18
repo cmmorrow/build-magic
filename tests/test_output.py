@@ -168,11 +168,6 @@ def test_basic_macro_status(capsys):
     captured = capsys.readouterr()
     assert captured.out == '2021-01-02T01:06:34 build-magic [ FAIL  ] ( 1/1 ) BUILD    : tar -czf hello.tar.gz\n'
 
-
-@freeze_time('2021-01-02 01:06:34')
-def test_basic_macro_status(capsys):
-    """Verify the basic macro_status() method works as expected."""
-    output = Basic()
     # Sequence of 12.
     output.log(OutputMethod.MACRO_STATUS, directive='BUILD', command='tar -czf hello.tar.gz', sequence=12)
     captured = capsys.readouterr()
@@ -244,7 +239,7 @@ def test_tty_start_job(capsys):
     output.log(OutputMethod.JOB_START)
     captured = capsys.readouterr()
     assert f'build-magic {version}' in captured.out
-    assert f'Start time Sat Jan  2 01:06:34 2021' in captured.out
+    assert 'Start time Sat Jan  2 01:06:34 2021' in captured.out
 
 
 @freeze_time('2021-01-02 01:06:34')

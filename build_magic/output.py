@@ -126,7 +126,6 @@ class Basic(Output):
             message = f'{message}: {name}'
         self._display(message)
 
-
     def end_stage(self, stage_number=1, status_code=0, name=None):
         """Indicates the end of a stage.
 

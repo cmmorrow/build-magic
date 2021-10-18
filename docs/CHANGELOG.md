@@ -3,6 +3,7 @@
 ## Version 0.3.3
 
 * Fixed a bug where an error when parsing a YAML file was not caught and handled.
+* Code cleanup and style enforcement with Flake8.
 
 ## Version 0.3.2
 

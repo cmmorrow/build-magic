@@ -361,7 +361,7 @@ def capture_dir(self):
         pwd = pathlib.Path(self.working_directory).resolve()
         matches = pwd.rglob('*')
         self._existing_files, self._existing_dirs = _get_local_files_and_directories(matches)
-    except:
+    except (NotADirectoryError, Exception):
         return False
     return True
 
@@ -420,7 +420,7 @@ def docker_capture_dir(self):
         pwd = pathlib.Path(self.host_wd).resolve()
         matches = pwd.rglob('*')
         self._existing_files, self._existing_dirs = _get_local_files_and_directories(matches)
-    except:
+    except (NotADirectoryError, Exception):
         return False
     return container_up(self)
 

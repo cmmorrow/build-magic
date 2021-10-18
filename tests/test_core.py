@@ -70,7 +70,6 @@ def test_stage_run():
 
 def test_stage_run_multiple():
     """Verify the stage run() method works correctly with multiple commands."""
-    print(os.sys.platform)
     if os.sys.platform == 'win32':
         cmd = 'dir'
     else:
@@ -156,7 +155,13 @@ def test_stage_run_multiple_fail_2():
 
 def test_stage_run_multiple_continue_on_fail():
     """Test the case where multiple commands are run, one fails, but execution continues."""
-    macros = [Macro('ls'), Macro('cp'), Macro(prefix='echo', command='hello')]
+    if os.sys.platform == 'win32':
+        ls = 'dir'
+        cp = 'copy'
+    else:
+        ls = 'ls'
+        cp = 'cp'
+    macros = [Macro(ls), Macro(cp), Macro(prefix='echo', command='hello')]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
@@ -252,7 +257,7 @@ def test_stagefactory_build_parameters():
         'keytype': KeyType('ECDSAKey'),
         'keypath': KeyPath('$HOME/.ssh/key_ecdsa'),
     }
-    params = [('keypath', f'$HOME/.ssh/key_ecdsa'), ('keytype', 'ecdsa')]
+    params = [('keypath', '$HOME/.ssh/key_ecdsa'), ('keytype', 'ecdsa')]
     out = StageFactory._build_parameters(params)
     assert out == ref
 

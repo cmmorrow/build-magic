@@ -207,7 +207,6 @@ class Engine:
                 status_code = exit_code
             _output.log(mode.STAGE_END, stage.sequence, exit_code, stage.name)
 
-        # TODO: This is the wrong status code - fix it.
         _output.log(mode.JOB_END)
         return status_code
 

@@ -55,16 +55,16 @@ Examples:
 
 * Archive two files on the local machine and delete the original files.
     build-magic -c build "tar -czf myfiles.tar.gz file1.txt file2.txt" -c execute "rm file1.txt file2.txt"
-    
+
 * Copy two files to a remote machine and archive them.
     build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
 
 * Build a project in a Linux container.
     build-magic -r docker -e Ubuntu:latest -c execute "configure" -c build "make all"
-    
+
 * Execute multiple commands in a config file.
     build-magic -C myconfig.yaml
-    
+
 * Execute a particular stage in a config file.
     build-magic -C myconfig.yaml -t build
 

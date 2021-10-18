@@ -151,8 +151,6 @@ class CommandRunner:
         self.artifacts = [] if not artifacts else artifacts
         self.parameters = {} if not parameters else parameters
 
-        # TODO: Need to validate the types for artifacts and parameters.
-
     @staticmethod
     def cd(directory):
         """Changes the current working directory.
