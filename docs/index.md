@@ -8,11 +8,11 @@ Build-magic is a command-line application for automating build, test, install, a
 
 ![build-magic](build-magic.gif)
 
-Using build-magic is as simple as:
+Using build-magic can be as simple as:
 
     > build-magic echo hello world!
 
-but can support complex build automation with multiple steps on the command-line or in a Config File.
+or can support complex build automation with multiple steps on the command-line or in a Config File.
 
 === "Command-line"
 
@@ -31,10 +31,14 @@ but can support complex build automation with multiple steps on the command-line
 
 === "Config File"
 
+    ```bash
+    > build-magic -C myapp.yaml
+    > cat myapp.yaml
+    ```
     ```yaml
     build-magic:
       - stage:
-          name: release 
+          name: release
           runner: docker
           environment: ubuntu:latest
           action: cleanup
@@ -48,9 +52,9 @@ but can support complex build automation with multiple steps on the command-line
 
 Build-magic can execute a batch of commands in a Config File with:
 
-    > build-magic -C release.yaml
+    > build-magic -C myapp.yaml
 
-Or, if the Config File is named `build-magic.yaml`, can be run similar to the `make` command with:
+Or, if the Config File is named `build-magic.yaml`, can be run similar to a Makefile with:
 
     > build-magic release
 

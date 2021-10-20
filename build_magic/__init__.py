@@ -5,7 +5,7 @@
     * CommandRunner - An abstract class for defining methods for executing commands.
 """
 
-__version__ = '0.3.3rc0'
+__version__ = '0.3.3'
 
 __all__ = [
     'cli',

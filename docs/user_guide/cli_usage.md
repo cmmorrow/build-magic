@@ -117,6 +117,12 @@ Execute multiple stages with multiple commands using a Config File. For example:
 > build-magic --config my_config.yaml
 ```
 
+Alternatively, `-C` (uppercase c) can be used instead of `--config`.
+
+```bash
+> build-magic -C my_config.yaml
+```
+
 A Config File in a different directory can also be used by providing the relative or absolute path to the config file:
 
 ```bash
@@ -139,6 +145,12 @@ Multiple targets can be specified to change the stage execution order of a Confi
 
 ```bash
 > build-magic --config my_config.yaml --target test --target build
+```
+
+Alternatively, `-t` can be used instead of `--target`.
+
+```bash
+> build-magic -C my_config.yaml -t test -t build
 ```
 
 Named stages in a Config File can also be run similar to a Makefile by specifying the stage name:
