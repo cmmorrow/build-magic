@@ -551,10 +551,10 @@
 <p>Build-magic is a command-line application for automating build, test, install, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.</p>
 <hr />
 <p><img alt="build-magic" src="build-magic.gif" /></p>
-<p>Using build-magic is as simple as:</p>
+<p>Using build-magic can be as simple as:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic echo hello world!
 </code></pre></div>
-<p>but can support complex build automation with multiple steps on the command-line or in a Config File.</p>
+<p>or can support complex build automation with multiple steps on the command-line or in a Config File.</p>
 <div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
   --runner docker <span class="se">\</span>
@@ -569,9 +569,12 @@
 </code></pre></div>
 </div>
 <input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<p><div class="highlight"><pre><span></span><code>&gt; build-magic -C myapp.yaml
+&gt; cat myapp.yaml
+</code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
-      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">release</span> 
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">release</span>
       <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
       <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
@@ -581,13 +584,13 @@
         <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
         <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myapp.tar.gz build/*</span>
         <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload myapp.tar.gz my-artifactory</span>
-</code></pre></div>
+</code></pre></div></p>
 </div>
 </div>
 <p>Build-magic can execute a batch of commands in a Config File with:</p>
-<div class="highlight"><pre><span></span><code>&gt; build-magic -C release.yaml
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C myapp.yaml
 </code></pre></div>
-<p>Or, if the Config File is named <code>build-magic.yaml</code>, can be run similar to the <code>make</code> command with:</p>
+<p>Or, if the Config File is named <code>build-magic.yaml</code>, can be run similar to a Makefile with:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic release
 </code></pre></div>
 <hr />

@@ -644,10 +644,10 @@
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Operating System: MacOS, Windows, or Linux</li>
-<li>Python 3.6+ (optional)</li>
-<li>Docker (optional)</li>
-<li>Vagrant (optional)</li>
-<li>OpenSSH (optional)</li>
+<li><strong>(optional)</strong> Python 3.6+</li>
+<li><strong>(optional)</strong> Docker</li>
+<li><strong>(optional)</strong> Vagrant</li>
+<li><strong>(optional)</strong> OpenSSH</li>
 </ul>
 <p>The build-magic project is cross-platform and will run on all recent OS versions. If build-magic isn't installed from a binary package, Python 3.6 or greater is required.</p>
 <p>To get the most out of build-magic, it is recommended to have OpenSSH, Docker, and Vagrant installed.</p>
@@ -655,12 +655,65 @@
 <h3 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h3>
 <p>The easiest way to install build-magic for Linux is by installing from a package.</p>
 <h4 id="debianubuntumint">Debian/Ubuntu/Mint<a class="headerlink" href="#debianubuntumint" title="Permanent link">&para;</a></h4>
-<!-- [build-magic-0.3.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build_magic-0.3.0_amd64.deb) -->
-
 <p>Minimum compatible versions are Debian 10 (buster), Ubuntu 20.04 (focal fossa), or Mint Linux 19 (Tara).</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+<th>SHA256 Hash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2_amd64.deb">build-magic-0.3.2_amd64.deb</a></td>
+<td>0.3.2</td>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2_amd64.hash">build-magic-0.3.2_amd64.hash</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.1/build-magic-0.3.1_amd64.deb">build-magic-0.3.1_amd64.deb</a></td>
+<td>0.3.1</td>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.1/build-magic-0.3.1_amd64.hash">build-magic-0.3.1_amd64.hash</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build_magic-0.3.0_amd64.deb">build-magic-0.3.0_amd64.deb</a></td>
+<td>0.3.0</td>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build-magic-0.3.0_amd64.hash">build-magic-0.3.0_amd64.hash</a></td>
+</tr>
+</tbody>
+</table>
+<p>Instructions:</p>
+<ol>
+<li>Download the build-magic package from the link above.</li>
+<li><strong>(Optional)</strong> Download the SHA256 hash file to compare with with the hash of the downloaded package.</li>
+<li><strong>(Optional)</strong> If you downloaded the hash file, you can view the hash with <code>cat build-magic-(version)_amd64.hash</code>, where <code>(version)</code> matches the version in the downloaded hash file. Next, compare the SHA256 hash of the downloaded package with <code>shasum -a 256 build-magic-(version)_amd64.deb</code>. If the hash matches the content of the downloaded hash file, the package hasn't been altered since it was built.</li>
+<li>Install the downloaded package with <code>sudo dpkg --install build-magic-(version)_amd64.deb</code>, where <code>(version)</code> matches the version in the downloaded package.</li>
+</ol>
 <h4 id="fedoracentosred-hat">Fedora/CentOS/Red Hat<a class="headerlink" href="#fedoracentosred-hat" title="Permanent link">&para;</a></h4>
-<p><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.0rc1/build-magic-0.3.0rc1-0.el7.x86_64.rpm">build-magic-0.3.0rc1-0.el7.x86_64.rpm</a></p>
 <p>Minimum compatible versions are CentOS/RHEL 7.9 and Fedora 33.</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+<th>SHA256 Hash</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2-0.el7.9.x86_64.rpm">build-magic-0.3.2-0.el7.9.x86_64.rpm</a></td>
+<td>0.3.0</td>
+<td><a href="https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2-0.el7.9.x86_64.hash">build-magic-0.3.2-0.el7.9.x86_64.hash</a></td>
+</tr>
+</tbody>
+</table>
+<p>Instructions:</p>
+<ol>
+<li>Download the build-magic package from the link above.</li>
+<li><strong>(Optional)</strong> Download the SHA256 hash file to compare with with the hash of the downloaded package.</li>
+<li><strong>(Optional)</strong> If you downloaded the hash file, you can view the hash with <code>cat build-magic-(version)-0.el7.9.x86_64.hash</code>, where <code>(version)</code> matches the version in the downloaded hash file. Next, compare the SHA256 hash of the downloaded package with <code>sha256sum build-magic-(version).el7.9.x86_64.rpm</code>. If the hash matches the content of the downloaded hash file, the package hasn't been altered since it was built.</li>
+<li>Install the downloaded package with <code>sudo yum install build-magic-(version).el7.9.x86_64.rpm.deb</code>, where <code>(version)</code> matches the version in the downloaded package.</li>
+</ol>
 <h3 id="install-via-pipx">Install via pipx<a class="headerlink" href="#install-via-pipx" title="Permanent link">&para;</a></h3>
 <p>If you have Python3 installed, the recommended way to install build-magic is into an isolated environment via <a href="https://pypa.github.io/pipx/">pipx</a>.</p>
 <div class="highlight"><pre><span></span><code>&gt; pipx install build-magic
