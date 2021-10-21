@@ -42,6 +42,25 @@
         "build-magic"
     ],
     "properties": {
+        "prepare": {
+            "$id": "#/properties/prepare",
+            "type": "array",
+            "title": "The prepare schema",
+            "description": "An optional section for defining YAML anchors.",
+            "default": [],
+            "additionalItems": true,
+            "items": {
+                "$id": "#/properties/prepare/items",
+                "anyOf": [
+                    {
+                        "$id": "#/properties/prepare/items/anyOf/0",
+                        "type": "string",
+                        "title": "general purpose anchor",
+                        "description": "A general purpose anchor for reusing commands."
+                    }
+                ]
+            }
+        },
         "build-magic": {
             "$id": "#/properties/build-magic",
             "type": "array",
@@ -330,72 +349,87 @@
                                     },
                                     "parameters": {
                                         "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters",
-                                        "type": "array",
+                                        "type": "object",
                                         "title": "The commands schema",
                                         "description": "An explanation about the purpose of this instance.",
-                                        "default": [],
+                                        "default": {},
+                                        "examples": [
+                                            {
+                                                "keytype": "dsa",
+                                                "keypath": "~/.ssh/id_dsa",
+                                                "keypass": "mypass"
+                                            }
+                                        ],
                                         "additionalItems": true,
-                                        "items": {
-                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items",
-                                            "anyOf": [
-                                                {
-                                                    "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0",
-                                                    "type": "object",
-                                                    "default": {},
-                                                    "examples": [
-                                                        {
-                                                            "keytype": "rsa"
-                                                        }
-                                                    ],
-                                                    "properties": {
-                                                        "keytype": {
-                                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keytype",
-                                                            "type": "string",
-                                                            "default": "",
-                                                            "enum": [
-                                                                "dsa",
-                                                                "dss",
-                                                                "rsa",
-                                                                "ecdsa",
-                                                                "ed25519",
-                                                                "DSSKey",
-                                                                "RSAKey",
-                                                                "ECDSAKey",
-                                                                "Ed25519Key"
-                                                            ],
-                                                            "examples": [
-                                                                "rsa",
-                                                                "ecdsa",
-                                                                "RSAKey",
-                                                                "ECDSAKey"
-                                                            ]
-                                                        },
-                                                        "keypath": {
-                                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keypath",
-                                                            "type": "string",
-                                                            "default": "",
-                                                            "examples": [
-                                                                "~/.ssh/id_rsa"
-                                                            ]
-                                                        },
-                                                        "keypass": {
-                                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keypass",
-                                                            "type": "string",
-                                                            "description": "The password for the SSH private key if required.",
-                                                            "default": ""
-                                                        },
-                                                        "key_password": {
-                                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/key_password",
-                                                            "type": "string",
-                                                            "description": "The password for the SSH private key if required.",
-                                                            "default": ""
-                                                        }
-                                                    },
-                                                    "additionalProperties": true
-                                                }
-                                            ]
+                                        "properties": {
+                                            "hostwd": {
+                                                "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/hostwd",
+                                                "type": "object",
+                                                "title": "hostwd",
+                                                "description": "The host working directory",
+                                                "default": "",
+                                                "examples": [
+                                                    "~/myproject/src",
+                                                    "/usr/src/myproject"
+                                                ]
+                                            },
+                                            "bind": {
+                                                "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/bind",
+                                                "type": "object",
+                                                "title": "bind",
+                                                "description": "The directory in the guest machine that is bound to the host machine.",
+                                                "default": "",
+                                                "examples": [
+                                                    "/build_magic",
+                                                    "/vagrant",
+                                                    "/app"
+                                                ]
+                                            },
+                                            "keytype": {
+                                                "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keytype",
+                                                "type": "string",
+                                                "default": "",
+                                                "enum": [
+                                                    "dsa",
+                                                    "dss",
+                                                    "rsa",
+                                                    "ecdsa",
+                                                    "ed25519",
+                                                    "DSSKey",
+                                                    "RSAKey",
+                                                    "ECDSAKey",
+                                                    "Ed25519Key"
+                                                ],
+                                                "examples": [
+                                                    "rsa",
+                                                    "ecdsa",
+                                                    "RSAKey",
+                                                    "ECDSAKey"
+                                                ]
+                                            },
+                                            "keypath": {
+                                                "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keypath",
+                                                "type": "string",
+                                                "default": "",
+                                                "examples": [
+                                                    "~/.ssh/id_rsa"
+                                                ]
+                                            },
+                                            "keypass": {
+                                                "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/keypass",
+                                                "type": "string",
+                                                "description": "The password for the SSH private key if required.",
+                                                "default": ""
+                                            },
+                                            "key_password": {
+                                                "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/key_password",
+                                                "type": "string",
+                                                "description": "The password for the SSH private key if required.",
+                                                "default": ""
+                                            }
                                         }
-                                    }
+                                    },
+                                    "additionalProperties": true
                                 },
                                 "additionalProperties": false
                             }

@@ -110,8 +110,8 @@ def config_parser(config):
         stage['directives'] = directives
 
         # Set the parameters.
-        parameters = data.get('parameters', [])
-        stage['parameters'] = [tuple(param.items())[0] for param in parameters]
+        parameters = data.get('parameters', {})
+        stage['parameters'] = list(parameters.items())
         stages.append(stage)
 
     return stages

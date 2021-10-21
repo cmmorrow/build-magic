@@ -401,11 +401,11 @@ def test_config_parser_with_parameters():
                 'stage': {
                     'runner': 'remote',
                     'environment': 'user@myhost:2222',
-                    'parameters': [
-                        {'keytype': 'ecdsa'},
-                        {'keypath': '$HOME/user/.ssh/key_ecdsa'},
-                        {'keypass': '"1234"'},
-                    ],
+                    'parameters': {
+                        'keytype': 'ecdsa',
+                        'keypath': '$HOME/user/.ssh/key_ecdsa',
+                        'keypass': '"1234"',
+                    },
                     'commands': [
                         {'test': 'ls'},
                     ]

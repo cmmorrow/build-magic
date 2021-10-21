@@ -28,6 +28,6 @@ rm -rf $RPM_BUILD_ROOT/*
 ln -sf /usr/local/bin/%{name}_%{version}/%{name}_%{version} /usr/local/bin/%{name}
 
 %postun
-if [ ! -f /usr/local/bin/%{name}_%{version} ]; then
+if [ ! -f /usr/local/bin/%{name}_* ]; then
     unlink /usr/local/bin/%{name}
 fi

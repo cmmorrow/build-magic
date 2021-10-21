@@ -1,0 +1,19 @@
+prepare:
+  - &echo_hello
+      echo hello
+  - &echo_name
+      echo spam
+  - &echo_bye
+      echo goodbye
+build-magic:
+  - stage:
+      name: test1
+      commands:
+        - execute: *echo_hello
+        - execute: *echo_name
+        - execute: *echo_bye
+  - stage:
+      name: test2
+      commands:
+        - execute: *echo_bye
+        - execute: *echo_name
