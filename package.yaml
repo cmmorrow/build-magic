@@ -1,3 +1,22 @@
+prepare:
+  - &upgrade_pip
+      pip3 install --upgrade pip
+  - &install_pyinstaller
+      pip3 install pyinstaller
+  - &clone_repo
+      git clone --depth 1 --branch v{{ version }} https://github.com/cmmorrow/build-magic.git
+  - &install_repo
+      pip3 install ./build-magic
+  - &run_pyinstaller >
+      pyinstaller
+      -n "build-magic_{{ version }}" -D
+      --clean
+      --add-data build-magic/build_magic/static:build_magic/static
+      build-magic/build_magic/__main__.py
+  - &clean_pyinstaller
+      rm -rf /usr/local/bin/*
+  - &get_release_id
+      curl -s -u {{ user }}:{{ password }} https://api.github.com/repos/cmmorrow/build-magic/releases/tags/v{{ version }} | jq .id > RELEASE_ID
 build-magic:
   - stage:
       name: debian
@@ -8,25 +27,15 @@ build-magic:
         # Install requirements
         - execute: apt update
         - install: apt install -y python3 python3-dev python3-pip zlib1g-dev gpg curl jq libdigest-sha-perl git
-        - install: &upgrade_pip
-            pip3 install --upgrade pip
-        - install: &install_pyinstaller
-            pip3 install pyinstaller
+        - install: *upgrade_pip
+        - install: *install_pyinstaller
         # Clone the repo
-        - execute: &clone_repo
-            git clone --depth 1 --branch v{{ version }} https://github.com/cmmorrow/build-magic.git
+        - execute: *clone_repo
         # Install the repo
-        - install: &install_repo
-            pip3 install ./build-magic
+        - install: *install_repo
         # Build the application
-        - build: &run_pyinstaller >
-            pyinstaller
-            -n "build-magic_{{ version }}" -D
-            --clean
-            --add-data build-magic/build_magic/static:build_magic/static
-            build-magic/build_magic/__main__.py
-        - execute: &clean_pyinstaller
-            rm -rf /usr/local/bin/*
+        - build: *run_pyinstaller
+        - execute: *clean_pyinstaller
         # - test: &test_build
         #     dist/build-magic_{{ version }}/build-magic_{{ version }}
         # Prep
@@ -44,8 +53,7 @@ build-magic:
         - install: dpkg --install $HOME/build-magic-{{ version }}_amd64.deb
         # - test: build-magic
         # Upload the package to GitHub
-        - execute: &get_release_id
-            curl -s -u {{ user }}:{{ password }} https://api.github.com/repos/cmmorrow/build-magic/releases/tags/v{{ version }} | jq .id > RELEASE_ID
+        - execute: *get_release_id
         - execute: >
             shasum -a 256 $HOME/build-magic-{{ version }}_amd64.deb 
             | tr -s ' ' 

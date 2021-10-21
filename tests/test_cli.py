@@ -157,7 +157,6 @@ def variable_and_default_config(default_config, variables_config):
     content = variables_config.read_text()
     config.write_text(content)
     yield magic_dir
-    # os.chdir(str(current))
     os.remove(current / filename)
 
 
@@ -200,6 +199,17 @@ def variables_config(magic_dir):
 def prompt_config(magic_dir):
     """Provides a config file with a prompt for variable input in the temp directory."""
     filename = 'prompt.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def prepare_config(magic_dir):
+    """Provides a config file with a prepare section in the temp directory."""
+    filename = 'prepare.yaml'
     config = magic_dir / filename
     content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
     config.write_text(content)
@@ -615,6 +625,7 @@ def test_cli_config_parameters(cli, mocker, parameters_config):
     )
     mocker.patch('paramiko.SSHClient.close')
     res = cli.invoke(build_magic, ['--config', str(parameters_config)])
+    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert "Starting Stage 1" in res.output
     assert "( 1/1 ) EXECUTE : echo hello ........................................ RUNNING" in res.output
@@ -834,3 +845,15 @@ def test_cli_prompt_with_two_config_files(cli, prompt_and_default_config):
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert 'EXECUTE : echo elle:******' in out
+
+
+def test_cli_config_with_prepare(cli, prepare_config):
+    """Verify a config file with a prepare section works correctly."""
+    res = cli.invoke(build_magic, ['-C', prepare_config])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert '( 1/3 ) EXECUTE : echo hello' in out
+    assert '( 2/3 ) EXECUTE : echo spam' in out
+    assert '( 3/3 ) EXECUTE : echo goodbye' in out
+    assert '( 1/2 ) EXECUTE : echo goodbye' in out
+    assert '( 2/2 ) EXECUTE : echo spam' in out

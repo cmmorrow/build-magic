@@ -24,13 +24,14 @@ Minimum compatible versions are Debian 10 (buster), Ubuntu 20.04 (focal fossa), 
 
 | Package | Version | SHA256 Hash |
 |---------|---------|-------------|
+|[build-magic-0.3.3_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3_amd64.deb)| 0.3.3 | [build-magic-0.3.3_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3_amd64.hash)|
 |[build-magic-0.3.2_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2_amd64.deb)| 0.3.2 | [build-magic-0.3.2_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2_amd64.hash)|
 |[build-magic-0.3.1_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.1/build-magic-0.3.1_amd64.deb)| 0.3.1 |[build-magic-0.3.1_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.1/build-magic-0.3.1_amd64.hash)|
 |[build-magic-0.3.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build_magic-0.3.0_amd64.deb)| 0.3.0 | [build-magic-0.3.0_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.0/build-magic-0.3.0_amd64.hash)|
 
 Instructions:
 
-1. Download the build-magic package from the link above.
+1. Download the build-magic package from the link above using a web browser or from the command line using `wget` or `curl`.
 2. **(Optional)** Download the SHA256 hash file to compare with with the hash of the downloaded package.
 3. **(Optional)** If you downloaded the hash file, you can view the hash with `cat build-magic-(version)_amd64.hash`, where `(version)` matches the version in the downloaded hash file. Next, compare the SHA256 hash of the downloaded package with `shasum -a 256 build-magic-(version)_amd64.deb`. If the hash matches the content of the downloaded hash file, the package hasn't been altered since it was built.
 4. Install the downloaded package with `sudo dpkg --install build-magic-(version)_amd64.deb`, where `(version)` matches the version in the downloaded package.
@@ -41,11 +42,12 @@ Minimum compatible versions are CentOS/RHEL 7.9 and Fedora 33.
 
 | Package | Version | SHA256 Hash |
 |---------|---------|-------------|
-|[build-magic-0.3.2-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2-0.el7.9.x86_64.rpm)| 0.3.0 | [build-magic-0.3.2-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2-0.el7.9.x86_64.hash)|
+|[build-magic-0.3.3-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3-0.el7.9.x86_64.rpm)| 0.3.3 |[build-magic-0.3.3-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3-0.el7.9.x86_64.hash)|
+|[build-magic-0.3.2-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2-0.el7.9.x86_64.rpm)| 0.3.2 | [build-magic-0.3.2-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.2/build-magic-0.3.2-0.el7.9.x86_64.hash)|
 
 Instructions:
 
-1. Download the build-magic package from the link above.
+1. Download the build-magic package from the link above using a web browser or from the command line using `wget` or `curl`.
 2. **(Optional)** Download the SHA256 hash file to compare with with the hash of the downloaded package.
 3. **(Optional)** If you downloaded the hash file, you can view the hash with `cat build-magic-(version)-0.el7.9.x86_64.hash`, where `(version)` matches the version in the downloaded hash file. Next, compare the SHA256 hash of the downloaded package with `sha256sum build-magic-(version).el7.9.x86_64.rpm`. If the hash matches the content of the downloaded hash file, the package hasn't been altered since it was built.
 4. Install the downloaded package with `sudo yum install build-magic-(version).el7.9.x86_64.rpm.deb`, where `(version)` matches the version in the downloaded package.

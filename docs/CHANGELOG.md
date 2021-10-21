@@ -1,5 +1,7 @@
 # What's New
 
+## Version 0.4.0 (Unreleased)
+
 ## Version 0.3.3 (Newest)
 
 * Fixed a bug where an error when parsing a YAML file was not caught and handled.
