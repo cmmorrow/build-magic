@@ -1,3 +1,5 @@
+maintainer: Chris Morrow <cmmorrow@gmail.com>
+version: 1.0.4
 prepare:
   - &upgrade_pip
       pip3 install --upgrade pip

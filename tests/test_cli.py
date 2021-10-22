@@ -218,6 +218,17 @@ def prepare_config(magic_dir):
 
 
 @pytest.fixture
+def meta_config(magic_dir):
+    """Provides a config file with meta data in the temp directory."""
+    filename = 'meta.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
 def ls():
     """Provides the correct list command for the executing operating system."""
     if os.sys.platform == 'win32':
@@ -857,3 +868,11 @@ def test_cli_config_with_prepare(cli, prepare_config):
     assert '( 3/3 ) EXECUTE : echo goodbye' in out
     assert '( 1/2 ) EXECUTE : echo goodbye' in out
     assert '( 2/2 ) EXECUTE : echo spam' in out
+
+
+def test_cli_config_with_metadata(cli, meta_config):
+    """Verify a config file with metadata works correctly."""
+    res = cli.invoke(build_magic, ['-C', meta_config])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert '( 1/1 ) EXECUTE : echo "hello world"' in out

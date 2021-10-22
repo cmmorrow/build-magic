@@ -464,6 +464,24 @@ def test_config_parser_with_parameters_validation_fail():
         config_parser(config)
 
 
+def test_config_invalid_meta():
+    """Test the case where invalid metadata is set."""
+    config = {
+        'blah': 'blah',
+        'build-magic': [
+            {
+                'stage': {
+                    'commands': [
+                        {'execute': '"hello world"'}
+                    ]
+                }
+            }
+        ]
+    }
+    with pytest.raises(ValueError):
+        config_parser(config)
+
+
 def test_config_parser_validation_fail():
     """Test the case where config file schema validation fails."""
     config = {

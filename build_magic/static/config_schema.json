@@ -42,6 +42,45 @@
         "build-magic"
     ],
     "properties": {
+        "version": {
+            "$id": "#/properties/version",
+            "type": "string",
+            "description": "The user-defined config file version.",
+            "default": "",
+            "examples": [
+                "0.1.0",
+                "3.1.4",
+                "v42"
+            ]
+        },
+        "author": {
+            "$id": "#/properties/author",
+            "type": "string",
+            "description": "The config file author name and/or email address.",
+            "default": ""
+        },
+        "maintainer": {
+            "$id": "#/properties/maintainer",
+            "type": "string",
+            "description": "The config file maintainer name and/or email address.",
+            "default": "",
+            "examples": [
+                "Beckett Mariner",
+                "Brad Boimler <b.boymler@usscerritos.sf>"
+            ]
+        },
+        "created": {
+            "$id": "#/properties/created",
+            "type": "string",
+            "description": "The creation date of the config file.",
+            "default": ""
+        },
+        "modified": {
+            "$id": "#/properties/modified",
+            "type": "string",
+            "description": "The modification date of the config file.",
+            "default": ""
+        },
         "prepare": {
             "$id": "#/properties/prepare",
             "type": "array",
