@@ -1,0 +1,10 @@
+maintainer: Brad Boimler
+author: Beckett Mariner
+version: 0.1.0
+created: 04/17/2382
+modified: 06/02/2382
+build-magic:
+  - stage:
+      name: Test
+      commands:
+        - execute: echo "hello world"

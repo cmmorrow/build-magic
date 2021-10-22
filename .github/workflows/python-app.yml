@@ -34,7 +34,7 @@ jobs:
         flake8 --count --show-source --statistics --ignore=C901,E402 --max-line-length=120
     - name: Test with pytest
       run: |
-        pytest tests/test* --cov=build_magic --cov-report term-missing
+        pytest tests/test* --cov=build_magic --cov-report xml:coverage.xml
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
@@ -42,6 +42,5 @@ jobs:
         env_vars: OS,PYTHON
         name: codecov-umbrella
         fail_ci_if_error: false
-        files: .coverage
-#        path_to_write_report: ./coverage/codecov_report.txt
+        files: ./coverage.xml
         verbose: true
