@@ -7,6 +7,9 @@ import re
 from build_magic.exc import ValidationError
 
 
+VARIABLE_PATTERN = r'({{\s?\w+\s?}})'
+
+
 class EnumExt(Enum):
     """Extension for the builtin Enum class."""
 
