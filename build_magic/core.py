@@ -13,6 +13,7 @@ from yaspin import yaspin
 from build_magic import actions, output, runner
 from build_magic.exc import ExecutionError, NoJobs, SetupError, TeardownError
 from build_magic.macro import MacroFactory
+from build_magic.reference import VARIABLE_PATTERN
 from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
 from build_magic.reference import BindDirectory, HostWorkingDirectory, KeyPassword, KeyPath, KeyType
 
@@ -125,12 +126,11 @@ def parse_variables(config, variables):
     :rtype: dict
     :return: The resulting config after variable substitution.
     """
-    pattern = r'({{\s?\w+\s?}})'
     matched = False
     config_string = json.dumps(config)
     if variables:
-        if re.search(pattern, json.dumps(config)):
-            matches = re.findall(pattern, json.dumps(config))
+        if re.search(VARIABLE_PATTERN, json.dumps(config)):
+            matches = re.findall(VARIABLE_PATTERN, json.dumps(config))
             if matches:
                 for key, value in variables.items():
                     for match in matches:

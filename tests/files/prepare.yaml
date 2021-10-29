@@ -1,10 +1,10 @@
 prepare:
   - &echo_hello
-      echo hello
+    echo hello
   - &echo_name
-      echo spam
+    echo spam
   - &echo_bye
-      echo goodbye
+    echo goodbye
 build-magic:
   - stage:
       name: test1

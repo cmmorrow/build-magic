@@ -1,8 +1,10 @@
 """Click CLI for running build-magic."""
 
 from io import TextIOWrapper
+import json
 import logging
 import pathlib
+import re
 import shlex
 import sys
 
@@ -80,6 +82,8 @@ CONFIG_HELP = 'The config file to load parameters from.'
 CONTINUE_HELP = 'Continue to run after failure if True.'
 COPY_HELP = 'Copy files from the specified path.'
 ENVIRONMENT_HELP = 'The command runner environment to use.'
+FANCY_HELP = 'Enables output with colors. Ideal for an interactive terminal session.'
+INFO_HELP = 'Display config file metadata, variables, and stage names.'
 NAME_HELP = 'The stage name to use.'
 PARAMETER_HELP = 'Space separated key/value used for runner specific settings.'
 PLAIN_HELP = 'Enables basic output. Ideal for logging and automation.'
@@ -93,29 +97,167 @@ VERBOSE_HELP = 'Verbose output -- stdout from executed commands will be printed 
 WD_HELP = 'The working directory to run commands from.'
 
 
+def read_config_file(cfg):
+    """Loads a config yaml file.
+
+    :param TextIOWrapper cfg: The config file to read.
+    :rtype: dict
+    :return: A dictionary representing the the loaded config.
+    """
+    try:
+        obj = yaml.safe_load(cfg)
+        if isinstance(cfg, TextIOWrapper):
+            cfg.close()
+    except yaml.YAMLError as err:
+        click.secho(str(err), fg='red', err=True)
+        sys.exit(reference.ExitCode.INPUT_ERROR)
+    return obj
+
+
+def get_config_info(cfg, show_filename=False):
+    """Writes relevant info in a config file to stdout.
+
+    :param TextIOWrapper cfg: The config file to read and display info of.
+    :param bool show_filename: If True, display the filename of the config file.
+    :return: None
+    """
+    def add_output(label_, val):
+        spacing.append(len(label_))
+        output.append((label_, val))
+
+    obj = read_config_file(cfg)
+    filename = f'{cfg.name}  ' if show_filename else ''
+
+    version = obj.get('version')
+    author = obj.get('author')
+    maintainer = obj.get('maintainer')
+    created = obj.get('created')
+    modified = obj.get('modified')
+
+    variables = []
+    if re.search(reference.VARIABLE_PATTERN, json.dumps(obj)):
+        variables = re.findall(reference.VARIABLE_PATTERN, json.dumps(obj))
+        variables = set(variables)
+        variables = sorted([var.strip('{{').strip('}}').strip() for var in variables])
+
+    stages = [stg.get('stage') for stg in obj['build-magic']]
+    stage_names = [stage.get('name') for stage in stages if stage.get('name')]
+
+    spacing = []
+    output = []
+
+    if version:
+        add_output('version', version)
+    if author:
+        add_output('author', author)
+    if maintainer:
+        add_output('maintainer', maintainer)
+    if created:
+        add_output('created', created)
+    if modified:
+        add_output('modified', modified)
+
+    for variable in variables:
+        add_output('variable', variable)
+
+    for name in stage_names:
+        add_output('stage', name)
+
+    space = max(spacing) + 1
+    for label, value in output:
+        click.echo(f'{filename}{label + ":":<{space}}  {value}')
+
+
+def get_template(ctx, _, value):
+    """Callback that generates a build-magic config file template and exits.
+
+    :param click.Context ctx: The context of the click command.
+    :param click.Parameter _: The template parameter object.
+    :param bool value: True if the --template flag is set.
+    :return: None
+    """
+    if not value:
+        return
+    try:
+        core.generate_config_template()
+        sys.exit(0)
+    except FileExistsError:
+        click.secho('Cannot generate the config template because it already exists!', fg='red', err=True)
+        sys.exit(reference.ExitCode.INPUT_ERROR)
+    except PermissionError:
+        click.secho(
+            "Cannot generate the config template because build-magic doesn't have permission.",
+            fg='red',
+            err=True,
+        )
+        ctx.exit(reference.ExitCode.INPUT_ERROR)
+
+
+def set_silent(_, param, value):
+    """Callback that sets the quiet output type.
+
+    :param click.Context _: The context of the click command.
+    :param click.Parameter param: The quiet parameter object.
+    :param bool value: True if the --quiet flag is set.
+    :rtype: str
+    :return: The build-magic Silent output type.
+    """
+    if value or param.default is True:
+        return reference.OutputTypes.SILENT
+
+
+def set_basic(_, param, value):
+    """Callback that sets the plain output type.
+
+    :param click.Context _: The context of the click command.
+    :param click.Parameter param: The plain parameter object.
+    :param bool value: True if the --plain flag is set.
+    :rtype: str
+    :return: The build-magic Basic output type.
+    """
+    if value or param.default is True:
+        return reference.OutputTypes.BASIC
+
+
+def set_tty(_, param, value):
+    """Callback that sets the fancy output type.
+
+    :param click.Context _: The context of the click command.
+    :param click.Parameter param: The fancy parameter object.
+    :param bool value: True if the --fancy flag is set.
+    :rtype: str
+    :return: The build-magic TTY output type.
+    """
+    if value or param.default is True:
+        return reference.OutputTypes.TTY
+
+
 @click.command()
 @click.option('--command', '-c', help=COMMAND_HELP, multiple=True, type=(str, str))
 @click.option('--config', '-C', help=CONFIG_HELP, multiple=True, type=CONFIG)
+@click.option('--info', help=INFO_HELP, is_flag=True)
 @click.option('--copy', help=COPY_HELP, default='', type=str)
 @click.option('--environment', '-e', help=ENVIRONMENT_HELP, default='', type=str)
 @click.option('--runner', '-r', help=RUNNER_HELP, type=RUNNERS)
 @click.option('--name', help=NAME_HELP, type=str)
 @click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
-@click.option('--template', help=TEMPLATE_HELP, is_flag=True)
+@click.option('--template', help=TEMPLATE_HELP, is_flag=True, is_eager=True, expose_value=False, callback=get_template)
 @click.option('--wd', help=WD_HELP, default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help=CONTINUE_HELP, default=False)
 @click.option('--parameter', '-p', help=PARAMETER_HELP, multiple=True, type=(str, str))
 @click.option('--variable', '-v', help=VARIABLE_HELP, multiple=True, type=(str, str))
 @click.option('--prompt', help=PROMPT_HELP, multiple=True, type=str)
 @click.option('--action', help=ACTION_HELP, type=ACTIONS)
-@click.option('--plain/--fancy', help=PLAIN_HELP, default=False)
-@click.option('--quiet', help=QUIET_HELP, is_flag=True)
+@click.option('--plain', help=PLAIN_HELP, is_flag=True, default=False, callback=set_basic)
+@click.option('--fancy', help=FANCY_HELP, is_flag=True, default=True, callback=set_tty)
+@click.option('--quiet', help=QUIET_HELP, is_flag=True, default=False, callback=set_silent)
 @click.option('--verbose', help=VERBOSE_HELP, is_flag=True)
 @click.version_option(version=ver, message='%(version)s')
 @click.argument('args', nargs=-1)
 def build_magic(
         command,
         config,
+        info,
         copy,
         continue_,
         environment,
@@ -127,10 +269,10 @@ def build_magic(
         runner,
         name,
         target,
-        template,
         wd,
         plain,
         quiet,
+        fancy,
         verbose,
 ):
     """An un-opinionated build automation tool.
@@ -148,28 +290,10 @@ def build_magic(
     Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
     """
 
-    if template:
-        try:
-            core.generate_config_template()
-            sys.exit(0)
-        except FileExistsError:
-            click.secho('Cannot generate the config template because it already exists!', fg='red', err=True)
-            sys.exit(reference.ExitCode.INPUT_ERROR)
-        except PermissionError:
-            click.secho(
-                "Cannot generate the config template because build-magic doesn't have permission.",
-                fg='red',
-                err=True,
-            )
-            sys.exit(reference.ExitCode.INPUT_ERROR)
+    ctx = click.get_current_context()
 
     # Get the output type.
-    if plain:
-        out = reference.OutputTypes.BASIC
-    elif quiet:
-        out = reference.OutputTypes.SILENT
-    else:
-        out = reference.OutputTypes.TTY
+    out = quiet or plain or fancy
 
     stages_ = []
     all_stage_names = []
@@ -180,7 +304,7 @@ def build_magic(
     default_configs = DEFAULT_CONFIG_NAMES & set([path.name for path in pathlib.Path.cwd().iterdir()])
     if len(default_configs) > 1:
         click.secho(f'More than one config file found: {default_configs}', fg='red', err=True)
-        sys.exit(reference.ExitCode.INPUT_ERROR)
+        ctx.exit(reference.ExitCode.INPUT_ERROR)
 
     # Add the default config to the list of configs.
     if len(default_configs) == 1:
@@ -190,6 +314,15 @@ def build_magic(
             config.insert(0, config_file)
         else:
             config_file.close()
+
+    if info:
+        if not config:
+            click.secho('No config files specified.', fg='red', err=True)
+            ctx.exit(reference.ExitCode.INPUT_ERROR)
+        show_filenames = True if len(config) > 1 else False
+        for cfg in config:
+            get_config_info(cfg, show_filename=show_filenames)
+        ctx.exit()
 
     # Set the commands from the command line.
     if command:
@@ -292,9 +425,9 @@ def build_magic(
     if not stages_:
         if target:
             click.secho(f'Target {target[0]} not found among {all_stage_names}.', fg='red', err=True)
-            sys.exit(reference.ExitCode.INPUT_ERROR)
+            ctx.exit(reference.ExitCode.INPUT_ERROR)
         click.echo(USAGE)
-        sys.exit(reference.ExitCode.NO_TESTS)
+        ctx.exit(reference.ExitCode.NO_TESTS)
 
     # Override values in the config file with options set at the command line.
     for stage in stages_:
@@ -313,7 +446,7 @@ def build_magic(
     engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
     code = execute_stages(engine)
 
-    sys.exit(code)
+    ctx.exit(code)
 
 
 def execute_stages(engine):
@@ -323,16 +456,16 @@ def execute_stages(engine):
     :rtype: int
     :return: The highest exit code from the executed stages.
     """
+    ctx = click.get_current_context()
     try:
-        code = engine.run()
+        return engine.run()
     except NoJobs:
-        sys.exit(reference.ExitCode.NO_TESTS)
+        ctx.exit(reference.ExitCode.NO_TESTS)
     except (ExecutionError, SetupError, TeardownError):
-        sys.exit(reference.ExitCode.INTERNAL_ERROR)
+        ctx.exit(reference.ExitCode.INTERNAL_ERROR)
     except KeyboardInterrupt:
         click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)
-        sys.exit(reference.ExitCode.INTERRUPTED)
-    return code
+        ctx.exit(reference.ExitCode.INTERRUPTED)
 
 
 def build_stages(args):
@@ -342,13 +475,14 @@ def build_stages(args):
     :rtype: list[Stage]
     :return: A list of corresponding Stage objects.
     """
+    ctx = click.get_current_context()
     stages = []
     for stage in args:
         try:
             stages.append(core.build_stage(**stage))
         except (NotADirectoryError, ValueError, reference.ValidationError, HostWorkingDirectoryNotFound) as err:
             click.secho(str(err), fg='red', err=True)
-            sys.exit(reference.ExitCode.INPUT_ERROR)
+            ctx.exit(reference.ExitCode.INPUT_ERROR)
     return stages
 
 
@@ -383,20 +517,15 @@ def get_stages_from_config(cfg, variables):
     :rtype: list[dict]
     :return: The extracted stages.
     """
+    ctx = click.get_current_context()
+
     # Read the config YAML file.
-    try:
-        obj = yaml.safe_load(cfg)
-        if isinstance(cfg, TextIOWrapper):
-            cfg.close()
-    except yaml.YAMLError as err:
-        click.secho(str(err), fg='red', err=True)
-        sys.exit(reference.ExitCode.INPUT_ERROR)
+    obj = read_config_file(cfg)
 
     # Parse the YAML file and set the options.
     try:
         obj = core.parse_variables(obj, variables)
-        stages = core.config_parser(obj)
+        return core.config_parser(obj)
     except ValueError as err:
         click.secho(str(err), fg='red', err=True)
-        sys.exit(reference.ExitCode.INPUT_ERROR)
-    return stages
+        ctx.exit(reference.ExitCode.INPUT_ERROR)

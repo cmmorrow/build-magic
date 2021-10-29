@@ -285,6 +285,8 @@ def test_cli_help(cli):
 Options:
   -c, --command <TEXT TEXT>...    A directive, command pair to execute.
   -C, --config FILENAME           The config file to load parameters from.
+  --info                          Display config file metadata, variables, and
+                                  stage names.
   --copy TEXT                     Copy files from the specified path.
   -e, --environment TEXT          The command runner environment to use.
   -r, --runner [local|remote|vagrant|docker]
@@ -303,8 +305,10 @@ Options:
   --prompt TEXT                   Config file variable with prompt for value.
   --action [default|cleanup|persist]
                                   The setup and teardown action to perform.
-  --plain / --fancy               Enables basic output. Ideal for logging and
+  --plain                         Enables basic output. Ideal for logging and
                                   automation.
+  --fancy                         Enables output with colors. Ideal for an
+                                  interactive terminal session.
   --quiet                         Suppresses all output from build-magic.
   --verbose                       Verbose output -- stdout from executed
                                   commands will be printed when complete.
@@ -478,6 +482,79 @@ def test_cli_quiet(cli):
 
     res = cli.invoke(build_magic, ['--quiet', 'cp'])
     assert res.exit_code == ExitCode.FAILED
+    assert not res.output
+
+
+def test_cli_fancy(cli):
+    """Verify the --fancy option works correctly."""
+    ref = """( 1/1 ) EXECUTE : echo hello world ."""
+    res = cli.invoke(build_magic, ['--fancy', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert ref in res.output
+
+    res = cli.invoke(build_magic, ['echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert ref in res.output
+
+
+def test_cli_plain_and_fancy(cli):
+    """Test the case where both --plain and --fancy options are provided."""
+    ref = """[ DONE  ] ( 1/1 ) EXECUTE  : echo hello world"""
+    res = cli.invoke(build_magic, ['--plain', '--fancy', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert ref in res.output
+
+    res = cli.invoke(build_magic, ['--fancy', '--plain', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert ref in res.output
+
+
+def test_cli_plain_quiet(cli):
+    """Test the case where both --plain and --quiet options are provided."""
+    res = cli.invoke(build_magic, ['--plain', '--quiet', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--quiet', '--plain', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+
+def test_cli_fancy_quiet(cli):
+    """Test the case where both --fancy and --quiet options are provided."""
+    res = cli.invoke(build_magic, ['--fancy', '--quiet', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--quiet', '--fancy', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+
+def test_cli_fancy_plain_quiet(cli):
+    """Test the case where --fancy, --plain, and --quiet are provided."""
+    res = cli.invoke(build_magic, ['--fancy', '--plain', '--quiet', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--plain', '--quiet', '--fancy', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--quiet', '--fancy', '--plain', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--fancy', '--quiet', '--plain', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--quiet', '--plain', '--fancy', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
+    assert not res.output
+
+    res = cli.invoke(build_magic, ['--plain', '--fancy', '--quiet', 'echo hello world'])
+    assert res.exit_code == ExitCode.PASSED
     assert not res.output
 
 
@@ -876,3 +953,68 @@ def test_cli_config_with_metadata(cli, meta_config):
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert '( 1/1 ) EXECUTE : echo "hello world"' in out
+
+
+def test_cli_info_no_config(cli):
+    """Test the case where the --info option is used with a config file."""
+    ref = """No config files specified.\n"""
+    res = cli.invoke(build_magic, ['--info'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == ref
+
+
+def test_cli_info(cli, meta_config):
+    """Verify the --info option works correctly with one config file."""
+    ref = """version:     0.1.0
+author:      Beckett Mariner
+maintainer:  Brad Boimler
+created:     04/17/2382
+modified:    06/02/2382
+stage:       Test
+"""
+    res = cli.invoke(build_magic, ['--info', '-C', meta_config])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == ref
+
+
+def test_cli_info_two_configs(cli):
+    """Verify the --info option works correctly with more than one config file."""
+    meta = Path(__file__).parent / 'files' / 'meta.yaml'
+    variables = Path(__file__).parent / 'files' / 'variables.yaml'
+    ref = f"""{meta}  version:     0.1.0
+{meta}  author:      Beckett Mariner
+{meta}  maintainer:  Brad Boimler
+{meta}  created:     04/17/2382
+{meta}  modified:    06/02/2382
+{meta}  stage:       Test
+{variables}  variable:  ARCH
+{variables}  variable:  OS
+{variables}  stage:     Variable Test
+"""
+    res = cli.invoke(build_magic, ['--info', '-C', meta, '-C', variables])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == ref
+
+
+def test_cli_info_extra_options_and_args(cli):
+    """Verify the --info option works with extra options and args."""
+    meta = Path(__file__).parent / 'files' / 'meta.yaml'
+    targets = Path(__file__).parent / 'files' / 'targets.yaml'
+    ref = f"""{meta}  version:     0.1.0
+{meta}  author:      Beckett Mariner
+{meta}  maintainer:  Brad Boimler
+{meta}  created:     04/17/2382
+{meta}  modified:    06/02/2382
+{meta}  stage:       Test
+{targets}  stage:  Stage A
+{targets}  stage:  Stage B
+{targets}  stage:  Stage C
+{targets}  stage:  Stage D
+"""
+    res = cli.invoke(build_magic, ['--info', '-C', meta, '-C', targets, '--verbose', 'echo hello world'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == ref
