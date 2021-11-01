@@ -16,6 +16,11 @@ from build_magic.exc import HostWorkingDirectoryNotFound
 from build_magic.reference import BindDirectory, HostWorkingDirectory
 
 
+HOST_WD = 'hostwd'
+BIND_DIR = 'bind'
+CWD = '.'
+
+
 class Status:
     """The captured output of a command executed by a CommandRunner."""
 
@@ -142,7 +147,16 @@ class CommandRunner:
         - teardown()
     """
 
-    def __init__(self, environment, working_dir='', copy_dir='', timeout=30, artifacts=None, parameters=None):
+    def __init__(
+            self,
+            environment,
+            working_dir='',
+            copy_dir='',
+            timeout=30,
+            artifacts=None,
+            parameters=None,
+            envs=None,
+    ):
         """Instantiate a new CommandRunner object."""
         self.environment = environment
         self.working_directory = working_dir
@@ -150,6 +164,13 @@ class CommandRunner:
         self.timeout = timeout
         self.artifacts = [] if not artifacts else artifacts
         self.parameters = {} if not parameters else parameters
+        self.envs = {} if not envs else envs
+
+    def _merge_envs(self):
+        """"""
+        envs = os.environ
+        envs.update(self.envs)
+        self.envs = envs
 
     @staticmethod
     def cd(directory):
@@ -179,9 +200,10 @@ class CommandRunner:
         """
         if not self.artifacts:
             return False
+
         if src and dst:
             for artifact in self.artifacts:
-                if src == '.':
+                if src == CWD:
                     src = Path.cwd().resolve()
                 source = Path(src) / artifact
                 try:
@@ -236,9 +258,18 @@ class CommandRunner:
 class Local(CommandRunner):
     """Manages macros executed on the local host machine."""
 
-    def __init__(self, environment='', working_dir='', copy_dir='', timeout=30, artifacts=None, parameters=None):
+    def __init__(
+            self,
+            environment='',
+            working_dir='',
+            copy_dir='',
+            timeout=30,
+            artifacts=None,
+            parameters=None,
+            envs=None,
+    ):
         """Instantiates a new Local command runner object."""
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters, envs)
 
     def prepare(self):
         """Changes to the specified working directory and copies artifacts if necessary.
@@ -248,8 +279,10 @@ class Local(CommandRunner):
         """
         if self.copy_from_directory:
             self.copy(self.copy_from_directory, self.working_directory)
+
         if self.working_directory:
             self.cd(self.working_directory)
+
         return True
 
     def execute(self, macro):
@@ -260,13 +293,15 @@ class Local(CommandRunner):
         :return: A Status object reflecting the results of the macro.
         """
         command = macro.as_string()
+
         result = subprocess.run(
             command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            # timeout=self.timeout,
+            env=self._merge_envs(),
             shell=True,
         )
+
         return Status(result.stdout, result.stderr, result.returncode)
 
 
@@ -284,12 +319,13 @@ class Remote(CommandRunner):
             timeout=30,
             artifacts=None,
             parameters=None,
+            envs=None,
     ):
         """Instantiates a new Remote command runner object."""
-        if working_dir == '.':
+        if working_dir == CWD:
             working_dir = ''
 
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters, envs)
 
         self.user = None
         self.host = None
@@ -348,10 +384,12 @@ class Remote(CommandRunner):
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
         conn_args = dict(hostname=self.host, pkey=self.key)
+
         if self.port:
             conn_args.update(dict(port=self.port))
         if self.user:
             conn_args.update(dict(username=self.user))
+
         try:
             ssh.connect(**conn_args)
         except socket.gaierror:
@@ -369,6 +407,7 @@ class Remote(CommandRunner):
         # Add the absolute path to each artifact.
         src = Path(src)
         files = []
+
         for artifact in self.artifacts:
             files.append(str(src / artifact))
 
@@ -414,8 +453,14 @@ class Remote(CommandRunner):
         command = macro.as_string()
 
         ssh = self.connect()
+
         try:
-            stdin_, stdout_, stderr_ = ssh.exec_command(command, timeout=self.timeout)
+            stdin_, stdout_, stderr_ = ssh.exec_command(
+                command,
+                timeout=self.timeout,
+                get_pty=True,
+                environment=self.envs,
+            )
             stdout = stdout_.readlines()
             stderr = stderr_.readlines()
             exit_code = stdout_.channel.recv_exit_status()
@@ -425,35 +470,50 @@ class Remote(CommandRunner):
             )
         finally:
             ssh.close()
+
         return Status(stdout=''.join(stdout), stderr=''.join(stderr), exit_code=exit_code)
 
 
 class Vagrant(CommandRunner):
     """Manages macros executed executed in a guest virtual machine managed by Vagrant."""
 
+    vagrantfile_name = 'Vagrantfile'
+    vagrant_cwd_env = 'VAGRANT_CWD'
+    default_home_dir = '/home/vagrant'
+    default_bind_dir = '/vagrant'
+
     def __init__(
             self,
-            environment='.',
-            working_dir='/home/vagrant',
+            environment=CWD,
+            working_dir='',
             copy_dir='',
             timeout=30,
             artifacts=None,
             parameters=None,
+            envs=None,
     ):
         """Instantiates a new Vagrant command runner object."""
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
+        if not working_dir:
+            working_dir = self.default_home_dir
+
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters, envs)
+
         self._vm = None
-        if self.environment == 'Vagrantfile':
-            self.environment = '.'
-        if self.environment != '.':
-            if 'Vagrantfile' in self.environment:
-                self.environment = self.environment.split('Vagrantfile')[0]
-            os.environ.pop('VAGRANT_CWD', '')
-            os.environ['VAGRANT_CWD'] = str(Path(self.environment).resolve())
-        self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory(self.environment)).value
+
+        if self.environment == self.vagrantfile_name:
+            self.environment = CWD
+
+        if self.environment != CWD:
+            if self.vagrantfile_name in self.environment:
+                self.environment = self.environment.split(self.vagrantfile_name)[0]
+            os.environ.pop(self.vagrant_cwd_env, '')
+            os.environ[self.vagrant_cwd_env] = str(Path(self.environment).resolve())
+
+        self.host_wd = self.parameters.get(HOST_WD, HostWorkingDirectory(self.environment)).value
         if not Path(self.host_wd).exists():
             raise HostWorkingDirectoryNotFound
-        self.bind_path = self.parameters.get('bind', BindDirectory('/vagrant')).value
+
+        self.bind_path = self.parameters.get(BIND_DIR, BindDirectory(self.default_bind_dir)).value
 
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""
@@ -462,6 +522,7 @@ class Vagrant(CommandRunner):
                 self._vm.ssh(command=f'sudo mkdir {self.working_directory}')
             except subprocess.CalledProcessError:
                 return False
+
         if self.copy_from_directory and len(self.artifacts) > 0:
             self.copy(Path(self.copy_from_directory).resolve(), Path(self.host_wd).resolve())
             try:
@@ -477,9 +538,11 @@ class Vagrant(CommandRunner):
         :param Macro macro: The Macro object to execute.
         :return: The Status of the executed Macro.
         """
-        if self.working_directory != '/home/vagrant':
+        if self.working_directory != self.default_home_dir:
             macro.prefix = f'cd {self.working_directory};'
+
         cmd = macro.as_string()
+
         try:
             out = self._vm.ssh(command=cmd)
         except subprocess.CalledProcessError as err:
@@ -490,27 +553,33 @@ class Vagrant(CommandRunner):
 class Docker(CommandRunner):
     """Manages macros executed in a Docker container."""
 
+    default_working_dir = '/build_magic'
+
     def __init__(
             self,
             environment='alpine',
-            working_dir='/build_magic',
+            working_dir='',
             copy_dir='',
             timeout=30,
             artifacts=None,
-            parameters=None
+            parameters=None,
+            envs=None,
     ):
         """Instantiates a new Docker command runner object."""
-        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters)
-        if self.working_directory == '.':
-            self.working_directory = '/build_magic'
-        self.host_wd = self.parameters.get('hostwd', HostWorkingDirectory('.')).value
+        if not working_dir or working_dir == CWD:
+            working_dir = self.default_working_dir
+
+        super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters, envs)
+
+        self.host_wd = self.parameters.get(HOST_WD, HostWorkingDirectory(CWD)).value
         if not Path(self.host_wd).exists():
             raise HostWorkingDirectoryNotFound
-        self.bind_path = self.parameters.get('bind', BindDirectory()).value
+
+        self.bind_path = self.parameters.get(BIND_DIR, BindDirectory()).value
         self.binding = Mount(
             target=self.bind_path,
             source=str(Path(self.host_wd).resolve()),
-            type='bind',
+            type=BIND_DIR,
         )
         self.client = None
         self.container = None
@@ -549,6 +618,7 @@ class Docker(CommandRunner):
                 stdout=True,
                 stderr=True,
                 tty=True,
+                environment=self.envs,
             )
             if out:
                 out = out.decode('utf-8')

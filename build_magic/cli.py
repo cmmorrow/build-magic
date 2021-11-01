@@ -81,6 +81,7 @@ COMMAND_HELP = 'A directive, command pair to execute.'
 CONFIG_HELP = 'The config file to load parameters from.'
 CONTINUE_HELP = 'Continue to run after failure if True.'
 COPY_HELP = 'Copy files from the specified path.'
+DOTENV_HELP = 'Provide a dotenv file to set additional environment variables.'
 ENVIRONMENT_HELP = 'The command runner environment to use.'
 FANCY_HELP = 'Enables output with colors. Ideal for an interactive terminal session.'
 INFO_HELP = 'Display config file metadata, variables, and stage names.'
@@ -235,15 +236,16 @@ def set_tty(_, param, value):
 @click.command()
 @click.option('--command', '-c', help=COMMAND_HELP, multiple=True, type=(str, str))
 @click.option('--config', '-C', help=CONFIG_HELP, multiple=True, type=CONFIG)
-@click.option('--info', help=INFO_HELP, is_flag=True)
 @click.option('--copy', help=COPY_HELP, default='', type=str)
 @click.option('--environment', '-e', help=ENVIRONMENT_HELP, default='', type=str)
 @click.option('--runner', '-r', help=RUNNER_HELP, type=RUNNERS)
-@click.option('--name', help=NAME_HELP, type=str)
-@click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
-@click.option('--template', help=TEMPLATE_HELP, is_flag=True, is_eager=True, expose_value=False, callback=get_template)
 @click.option('--wd', help=WD_HELP, default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help=CONTINUE_HELP, default=False)
+@click.option('--name', help=NAME_HELP, type=str)
+@click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
+@click.option('--info', help=INFO_HELP, is_flag=True)
+@click.option('--dotenv', help=DOTENV_HELP, type=CONFIG, default=None)
+@click.option('--template', help=TEMPLATE_HELP, is_flag=True, is_eager=True, expose_value=False, callback=get_template)
 @click.option('--parameter', '-p', help=PARAMETER_HELP, multiple=True, type=(str, str))
 @click.option('--variable', '-v', help=VARIABLE_HELP, multiple=True, type=(str, str))
 @click.option('--prompt', help=PROMPT_HELP, multiple=True, type=str)
@@ -258,6 +260,7 @@ def build_magic(
         command,
         config,
         info,
+        dotenv,
         copy,
         continue_,
         environment,
@@ -341,6 +344,7 @@ def build_magic(
                 copy=copy,
                 wd=wd,
                 parameters=parameter,
+                envs=parse_dotenv_file(dotenv),
             )
         )
         if name:
@@ -390,6 +394,7 @@ def build_magic(
                                 copy=copy,
                                 wd=wd,
                                 parameters=parameter,
+                                envs=parse_dotenv_file(dotenv),
                             )
                         )
                         if name:
@@ -417,6 +422,7 @@ def build_magic(
                 copy=copy,
                 wd=wd,
                 parameters=parameter,
+                envs=parse_dotenv_file(dotenv),
             )
         )
         if name:
@@ -506,6 +512,7 @@ def get_config_params(stage, seq=1):
         wd=stage.get('wd'),
         name=stage.get('name'),
         parameters=stage.get('parameters'),
+        envs=parse_dotenv_file(stage.get('dotenv')),
     )
 
 
@@ -529,3 +536,39 @@ def get_stages_from_config(cfg, variables):
     except ValueError as err:
         click.secho(str(err), fg='red', err=True)
         ctx.exit(reference.ExitCode.INPUT_ERROR)
+
+
+def parse_dotenv_file(dotenv):
+    """Read a dotenv file and parse each line of environment variables into a dictionary.
+
+    Line starting with "#" are ignored by the parser.
+
+    Only the first "=" in a line is used to split a variable from it's value.
+
+    Uncommented lines without a "=" are ignored.
+
+    :param io.TextIOWrapper dotenv: The dotenv file to read and parse.
+    :rtype: dict
+    :return: A dictionary of the parsed variables.
+    """
+    ctx = click.get_current_context()
+
+    if not dotenv:
+        return {}
+
+    if '.env' not in dotenv.name:
+        resume = click.confirm('The provided dotenv file does not have a .env extension. Continue anyway?')
+        if not resume:
+            ctx.exit(reference.ExitCode.INPUT_ERROR)
+
+    envs = {}
+    for line in dotenv.readlines():
+        if line.startswith('#'):
+            continue
+        if '=' not in line:
+            continue
+        env, val = line.split('=', maxsplit=1)
+        envs.update({env.strip(): val.strip()})
+
+    dotenv.close()
+    return envs

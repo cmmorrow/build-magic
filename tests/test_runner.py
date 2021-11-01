@@ -271,6 +271,22 @@ def test_local_execute_fail(local_runner, tmp_path):
         )
 
 
+def test_local_envs(local_runner):
+    """Verify envs passed to the Local runner are included in execute()."""
+    envs = {
+        'HELLO': 'world',
+        'FOO': 'bar',
+    }
+    cmd = 'env'
+    macro = Macro(cmd)
+    local_runner.envs = envs
+    status = local_runner.execute(macro)
+    assert status.exit_code == 0
+    for key, value in envs.items():
+        assert f'{key}={value}' in str(status.stdout)
+    assert len(status.stdout) > 20
+
+
 def test_docker_constructor(mocker):
     """Verify the Docker command runner constructor works correctly."""
     mocker.patch('pathlib.Path.exists', return_value=True)
@@ -291,6 +307,7 @@ def test_docker_constructor(mocker):
     assert runner.name == 'docker'
     assert runner.host_wd == '.'
     assert runner.bind_path == '/build_magic'
+    assert runner.envs == {}
 
     if os.sys.platform == 'win32':
         host_wd = 'C:\\my_repo'
@@ -306,6 +323,10 @@ def test_docker_constructor(mocker):
         parameters={
             'hostwd': HostWorkingDirectory(host_wd),
             'bind': BindDirectory('/opt'),
+        },
+        envs={
+            'HELLO': 'world',
+            'FOO': 'bar',
         }
     )
     assert runner.environment == 'python:3'
@@ -320,6 +341,10 @@ def test_docker_constructor(mocker):
         'Source': host_wd,
         'Target': '/opt',
         'Type': 'bind',
+    }
+    assert runner.envs == {
+        'HELLO': 'world',
+        'FOO': 'bar',
     }
 
 
@@ -376,6 +401,7 @@ def test_docker_execute(docker_runner, mocker):
             '-c',
             'echo hello',
         ],
+        'environment': {},
         'stdout': True,
         'stderr': True,
         'tty': True,
@@ -421,6 +447,22 @@ def test_docker_execute_fail(docker_runner, mocker):
     assert status.stderr == "Command 'cat' in image 'alpine' returned non-zero exit status 1: "
 
 
+def test_docker_envs(docker_runner, mocker):
+    """Verify environment variables are executed by Docker's execute() method."""
+    container = mocker.patch('docker.models.containers.Container')
+    execute = mocker.patch('docker.models.containers.Container.exec_run', return_value=(0, b'blah'))
+
+    envs = {
+        'HELLO': 'world',
+        'FOO': 'bar',
+    }
+    macro = Macro('env')
+    docker_runner.container = container
+    docker_runner.envs = envs
+    docker_runner.execute(macro)
+    assert execute.call_args[1].get('environment', {}) == envs
+
+
 def test_vagrant_constructor(mocker):
     """Verify the Vagrant command runner constructor works correctly."""
     mocker.patch('pathlib.Path.exists', return_value=True)
@@ -435,6 +477,7 @@ def test_vagrant_constructor(mocker):
     assert runner.name == 'vagrant'
     assert runner.host_wd == '.'
     assert runner.bind_path == '/vagrant'
+    assert runner.envs == {}
 
     if os.sys.platform == 'win32':
         host_wd = 'C:\\my_repo'
@@ -452,6 +495,10 @@ def test_vagrant_constructor(mocker):
         parameters={
             'hostwd': HostWorkingDirectory(host_wd),
             'bind': BindDirectory('/app'),
+        },
+        envs={
+            'HELLO': 'world',
+            'FOO': 'bar',
         }
     )
     assert runner.environment == env
@@ -462,6 +509,10 @@ def test_vagrant_constructor(mocker):
     assert runner.host_wd == host_wd
     assert runner.bind_path == '/app'
     assert os.environ.get('VAGRANT_CWD') == env
+    assert runner.envs == {
+        'HELLO': 'world',
+        'FOO': 'bar',
+    }
 
     os.environ.pop('VAGRANT_CWD', '')
     runner = Vagrant(
@@ -593,6 +644,7 @@ def test_remote_constructor(mock_key):
     assert runner.port == 22
     assert runner.name == 'remote'
     assert isinstance(runner.key, paramiko.RSAKey)
+    assert runner.envs == {}
 
 
 def test_remote_constructor_valid_ssh(mock_key, valid_ssh_conn):
@@ -687,7 +739,7 @@ def test_remote_execute(mock_key, mocker, remote_runner):
     cmd = Macro('echo hello')
     status = remote_runner.execute(cmd)
     assert exek.call_args[0][0] == 'echo hello'
-    assert exek.call_args[1] == {'timeout': 30}
+    assert exek.call_args[1] == {'environment': {}, 'get_pty': True, 'timeout': 30}
     assert conn.call_count == 1
     assert exek.call_count == 1
     assert close.call_count == 1
@@ -731,7 +783,7 @@ def test_remote_execute_fail(mock_key, mocker, remote_runner):
     cmd = Macro('cp')
     status = remote_runner.execute(cmd)
     assert exek.call_args[0][0] == 'cp'
-    assert exek.call_args[1] == {'timeout': 30}
+    assert exek.call_args[1] == {'environment': {}, 'get_pty': True, 'timeout': 30}
     assert conn.call_count == 1
     assert exek.call_count == 1
     assert close.call_count == 1
