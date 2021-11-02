@@ -1,5 +1,5 @@
 """Click CLI for running build-magic."""
-
+import os
 from io import TextIOWrapper
 import json
 import logging
@@ -368,17 +368,17 @@ def build_magic(
                 for trgt in target:
                     if trgt in stage_names:
                         stage_ = stages[stage_names.index(trgt)]
-                        stages_.append(get_config_params(stage_, next(seq)))
+                        stages_.append(get_config_params(stage_, cfg.name, next(seq)))
             elif args and cfg.name in DEFAULT_CONFIG_NAMES:
                 for trgt in [shlex.split(t)[0] for t in args]:
                     # Execute all stages in the default config file.
                     if trgt == 'all':
                         for stage_ in stages:
-                            stages_.append(get_config_params(stage_, next(seq)))
+                            stages_.append(get_config_params(stage_, cfg.name, next(seq)))
                     # Execute only the stage in the default config file that matches the given arg.
                     elif trgt in stage_names:
                         stage_ = stages[stage_names.index(trgt)]
-                        stages_.append(get_config_params(stage_, next(seq)))
+                        stages_.append(get_config_params(stage_, cfg.name, next(seq)))
                     # Otherwise, assume the args are a command.
                     else:
                         directives, commands = ['execute'], [' '.join(args)]
@@ -406,7 +406,7 @@ def build_magic(
             # The typical case where each stage is executed in the specified config file.
             else:
                 for stage_ in stages:
-                    stages_.append(get_config_params(stage_, next(seq)))
+                    stages_.append(get_config_params(stage_, cfg.name, next(seq)))
     # Assume the args are an ad-hoc command to execute.
     elif args and not command:
         directives, commands = ['execute'], [' '.join(args)]
@@ -492,14 +492,24 @@ def build_stages(args):
     return stages
 
 
-def get_config_params(stage, seq=1):
+def get_config_params(stage, path, seq=1):
     """Maps config keys to stage arguments as a dictionary.
 
     :param dict stage: The stage to map.
+    :param str path: The config file path.
     :param int seq: The stage sequence.
     :rtype: dict
     :return: The mapped keyword arguments.
     """
+    dotenv = stage.get('dotenv')
+    if dotenv:
+        # Make the path to the dotenv file relative to the config file.
+        rel_path = os.path.dirname(path)
+        dotenv_path = os.path.join(rel_path, dotenv)
+        envs = parse_dotenv_file(open(dotenv_path, 'r'))
+    else:
+        envs = None
+
     return dict(
         sequence=seq,
         runner_type=stage.get('runner_type'),
@@ -512,7 +522,7 @@ def get_config_params(stage, seq=1):
         wd=stage.get('wd'),
         name=stage.get('name'),
         parameters=stage.get('parameters'),
-        envs=parse_dotenv_file(stage.get('dotenv')),
+        envs=envs,
     )
 
 
@@ -547,7 +557,7 @@ def parse_dotenv_file(dotenv):
 
     Uncommented lines without a "=" are ignored.
 
-    :param io.TextIOWrapper dotenv: The dotenv file to read and parse.
+    :param io.TextIOWrapper|io.TextIO dotenv: The dotenv file to read and parse.
     :rtype: dict
     :return: A dictionary of the parsed variables.
     """
@@ -559,6 +569,7 @@ def parse_dotenv_file(dotenv):
     if '.env' not in dotenv.name:
         resume = click.confirm('The provided dotenv file does not have a .env extension. Continue anyway?')
         if not resume:
+            dotenv.close()
             ctx.exit(reference.ExitCode.INPUT_ERROR)
 
     envs = {}
