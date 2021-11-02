@@ -229,6 +229,26 @@ def meta_config(magic_dir):
 
 
 @pytest.fixture
+def dotenv_config(magic_dir):
+    """Provides a config file that uses a dotenv file in the temp directory."""
+    config_filename = 'dotenv.yaml'
+    dotenv_filename = 'test.env'
+
+    config = magic_dir / config_filename
+    dotenv = magic_dir / dotenv_filename
+
+    content = Path(__file__).parent.joinpath('files').joinpath(config_filename).read_text()
+    config.write_text(content)
+
+    content = Path(__file__).parent.joinpath('files').joinpath(dotenv_filename).read_text()
+    dotenv.write_text(content)
+
+    yield magic_dir
+    os.remove(magic_dir / config)
+    os.remove(magic_dir / dotenv)
+
+
+@pytest.fixture
 def ls():
     """Provides the correct list command for the executing operating system."""
     if os.sys.platform == 'win32':
@@ -285,19 +305,21 @@ def test_cli_help(cli):
 Options:
   -c, --command <TEXT TEXT>...    A directive, command pair to execute.
   -C, --config FILENAME           The config file to load parameters from.
-  --info                          Display config file metadata, variables, and
-                                  stage names.
   --copy TEXT                     Copy files from the specified path.
   -e, --environment TEXT          The command runner environment to use.
   -r, --runner [local|remote|vagrant|docker]
                                   The command runner to use.
+  --wd DIRECTORY                  The working directory to run commands from.
+  --continue / --stop             Continue to run after failure if True.
   --name TEXT                     The stage name to use.
   -t, --target TEXT               Run a particular stage in a config file by
                                   name.
+  --info                          Display config file metadata, variables, and
+                                  stage names.
+  --dotenv FILENAME               Provide a dotenv file to set additional
+                                  environment variables.
   --template                      Generates a config file template in the
                                   current directory.
-  --wd DIRECTORY                  The working directory to run commands from.
-  --continue / --stop             Continue to run after failure if True.
   -p, --parameter <TEXT TEXT>...  Space separated key/value used for runner
                                   specific settings.
   -v, --variable <TEXT TEXT>...   Space separated key/value config file
@@ -1018,3 +1040,36 @@ def test_cli_info_extra_options_and_args(cli):
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert out == ref
+
+
+def test_cli_dotenv(cli):
+    """Verify the --dotenv option works correctly."""
+    cmd = 'env'
+    env_file = Path(__file__).parent / 'files' / 'test.env'
+    res = cli.invoke(build_magic, ['--dotenv', env_file, '--verbose', cmd])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'FOO=bar\n' in out
+    assert 'HELLO=world\n' in out
+    assert 'dummy' not in out
+
+
+def test_cli_dotenv_warn(cli):
+    """Test the case where a dotenv file without a .env extension is provided."""
+    cmd = 'env'
+    env_file = Path(__file__).parent / 'files' / 'meta.yaml'
+    res = cli.invoke(build_magic, ['--dotenv', env_file, '--verbose', cmd], input='N')
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert 'The provided dotenv file does not have a .env extension. Continue anyway?' in out
+
+
+def test_cli_dotenv_config_file(cli, dotenv_config):
+    """Verify the dotenv config file property works correctly."""
+    config = dotenv_config / 'dotenv.yaml'
+    res = cli.invoke(build_magic, ['-C', config, '--verbose'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'FOO=bar\n' in out
+    assert 'HELLO=world\n' in out
+    assert 'dummy' not in out

@@ -96,6 +96,7 @@ def config_parser(config):
         stage['wd'] = data.get('working directory', '.')
         stage['copy'] = data.get('copy from directory', '')
         stage['artifacts'] = data.get('artifacts', [])
+        stage['dotenv'] = data.get('dotenv', '')
 
         # Set the action.
         stage['action'] = data.get('action', Actions.DEFAULT.value)
@@ -226,7 +227,7 @@ class StageFactory:
         return factory.generate()
 
     @classmethod
-    def _build_command_runner(cls, runner_type, environment, parameters, copy, wd, artifacts):
+    def _build_command_runner(cls, runner_type, environment, parameters, copy, wd, artifacts, envs):
         """Build a CommandRunner object.
 
         :param str runner_type: The command runner to use for executing commands.
@@ -235,6 +236,7 @@ class StageFactory:
         :param str wd: The working directory to use for executing commands.
         :param list[str] artifacts: The Stage artifacts to work on.
         :param dict parameters: The user-supplied parameters to pass to the command runner.
+        :param dict envs: The environment variables to set.
         :rtype: CommandRunner
         :return: The CommandRunner object to use for executing the Stage's commands.
         """
@@ -251,7 +253,14 @@ class StageFactory:
             raise NotADirectoryError(f'Path {copy} does not exist.')
 
         command_runner = getattr(runner, runner_type.capitalize())
-        return command_runner(environment, working_dir=wd, copy_dir=copy, artifacts=artifacts, parameters=parameters)
+        return command_runner(
+            environment,
+            working_dir=wd,
+            copy_dir=copy,
+            artifacts=artifacts,
+            parameters=parameters,
+            envs=envs,
+        )
 
     @classmethod
     def _build_parameters(cls, parameters):
@@ -287,6 +296,7 @@ class StageFactory:
             wd,
             name=None,
             parameters=None,
+            envs=None,
     ):
         """Validates inputs and generates a new Stage object.
 
@@ -301,6 +311,7 @@ class StageFactory:
         :param str wd: The working directory to use for executing commands.
         :param str|None name: The stage name if provided.
         :param list[tuple]|None parameters: The optional parameters passed by the user.
+        :param dict|None envs: A dictionary of environment variables to use.
         :rtype: Stage
         :return: The generated Stage object.
         """
@@ -327,6 +338,9 @@ class StageFactory:
         if not artifacts:
             artifacts = []
 
+        if not envs:
+            envs = {}
+
         # Build the macros.
         macros = cls._build_macros(commands=commands)
         if not macros:
@@ -340,6 +354,7 @@ class StageFactory:
             wd=wd,
             artifacts=artifacts,
             parameters=params,
+            envs=envs,
         )
 
         return Stage(cmd_runner, macros, directives, sequence, action, name)

@@ -4,6 +4,7 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/build-magic)
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/cmmorrow/build-magic/Python%20application)
 ![Codecov](https://img.shields.io/codecov/c/github/cmmorrow/build-magic)
+[![Downloads](https://pepy.tech/badge/build-magic)](https://pepy.tech/project/build-magic)
 
 An un-opinionated build automation tool.
 

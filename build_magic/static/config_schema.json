@@ -286,6 +286,16 @@
                                             "type": "string"
                                         }
                                     },
+                                    "dotenv": {
+                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/dotenv",
+                                        "type": "string",
+                                        "description": "A dotenv file of environment variables to use.",
+                                        "default": [],
+                                        "examples": [
+                                            "develop.env",
+                                            "myflaskapp.env"
+                                        ]
+                                    },
                                     "commands": {
                                         "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/commands",
                                         "type": "array",
