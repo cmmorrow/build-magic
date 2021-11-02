@@ -363,6 +363,7 @@ def test_config_parser():
                 'build',
                 'execute',
             ],
+            'dotenv': '',
             'parameters': [],
         },
         {
@@ -386,6 +387,7 @@ def test_config_parser():
                 'deploy',
                 'release',
             ],
+            'dotenv': '',
             'parameters': [],
         }
     ]
@@ -429,6 +431,7 @@ def test_config_parser_with_parameters():
             'directives': [
                 'test',
             ],
+            'dotenv': '',
             'parameters': [
                 ('keytype', 'ecdsa'),
                 ('keypath', '$HOME/user/.ssh/key_ecdsa'),

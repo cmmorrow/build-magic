@@ -1073,4 +1073,3 @@ def test_cli_dotenv_config_file(cli, dotenv_config):
     assert 'FOO=bar\n' in out
     assert 'HELLO=world\n' in out
     assert 'dummy' not in out
-
