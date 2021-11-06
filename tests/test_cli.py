@@ -229,6 +229,17 @@ def meta_config(magic_dir):
 
 
 @pytest.fixture
+def labels_config(magic_dir):
+    """Provides a config file with command labels in the temp directory."""
+    filename = 'labels.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
 def env_config(magic_dir):
     """Provides a config file with environment variables."""
     config_filename = 'envs.yaml'
@@ -1148,3 +1159,12 @@ def test_envs_config_file(cli, env_config):
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert 'OUTPUT: hello world bar' in out
+
+
+def test_labels_config_file(cli, labels_config):
+    """Verify that commands with labels in a config file are displayed properly."""
+    res = cli.invoke(build_magic, ['-C', labels_config, '--verbose'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert '( 1/2 ) EXECUTE : Say hello to the user.' in out
+    assert '( 2/2 ) EXECUTE : List the directory contents.' in out

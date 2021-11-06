@@ -1,0 +1,9 @@
+---
+build-magic:
+  - stage:
+      name: Test stage
+      commands:
+        - execute: echo hello
+          label: Say hello to the user.
+        - execute: ls
+          label: List the directory contents.

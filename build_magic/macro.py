@@ -12,24 +12,29 @@ class MacroFactory:
     :param list[str] commands: The commands to use for building Macros.
     :param list[str] prefixes: The command prefixes to use for building Macros.
     :param list[str] suffixes: The command suffixes to use for building Macros.
+    :param list[str] labels: The command descriptions to use for building Macros.
     """
 
     __slots__ = ['_commands']
 
-    def __init__(self, commands, prefixes=None, suffixes=None):
+    def __init__(self, commands, prefixes=None, suffixes=None, labels=None):
         """Instantiates a new MacroFactory object."""
         if not prefixes:
             prefixes = []
+
         if not suffixes:
             suffixes = []
+
         if commands is None:
             self._commands = []
         else:
+            if not labels:
+                labels = [''] * len(commands)
             while len(prefixes) < len(commands):
                 prefixes.append('')
             while len(suffixes) < len(commands):
                 suffixes.append('')
-            self._commands = tuple(zip(prefixes, commands, suffixes))
+            self._commands = tuple(zip(prefixes, commands, suffixes, labels))
 
     def generate(self):
         """Generates Macro objects based on the commands supplied to the MacroFactory.
@@ -39,11 +44,11 @@ class MacroFactory:
         """
         macros = []
         i = 1
-        for prefix, cmd, suffix, in self._commands:
+        for prefix, cmd, suffix, label, in self._commands:
             if not cmd:
                 continue
             macros.append(
-                Macro(cmd, sequence=i, prefix=prefix, suffix=suffix)
+                Macro(cmd, sequence=i, prefix=prefix, suffix=suffix, label=label)
             )
             i += 1
         return macros
@@ -59,11 +64,12 @@ class Macro:
     :param int sequence: The run order of the command.
     :param str prefix: A command or portion of a command to append to the beginning of the base command.
     :param str suffix: A command or portion of a command to append to the end of the base command.
+    :param str label: A description for the command to execute.
     """
 
-    __slots__ = ['_command', 'prefix', 'sequence', 'suffix']
+    __slots__ = ['_command', 'prefix', 'sequence', 'suffix', 'label']
 
-    def __init__(self, command='', sequence=0, prefix='', suffix=''):
+    def __init__(self, command='', sequence=0, prefix='', suffix='', label=''):
         """Instantiates a new Macro object."""
         if not isinstance(command, str):
             raise TypeError('command must by str not {}'.format(type(command)))
@@ -71,6 +77,7 @@ class Macro:
         self.sequence = int(sequence)
         self.prefix = str(prefix)
         self.suffix = str(suffix)
+        self.label = str(label)
 
     @property
     def command(self):

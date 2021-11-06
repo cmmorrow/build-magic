@@ -24,6 +24,12 @@ def suffix():
     return '-ltr'
 
 
+@pytest.fixture
+def label():
+    """Provides a dummy description to use a label for tests."""
+    return 'dummy command'
+
+
 def test_macro_create(cmd):
     """Verify creating a Macro object works as expected."""
     macro = Macro(cmd)
@@ -32,6 +38,7 @@ def test_macro_create(cmd):
     assert macro.command == cmd
     assert not macro.prefix
     assert not macro.suffix
+    assert not macro.label
     assert macro.as_string() == 'ls'
     assert macro.as_list() == ['ls']
 
@@ -44,6 +51,7 @@ def test_macro_create_with_prefix(cmd, prefix):
     assert macro.command == cmd
     assert macro.prefix == 'cd /tmp;'
     assert not macro.suffix
+    assert not macro.label
     assert macro.as_string() == 'cd /tmp; ls'
     assert macro.as_list() == ['cd', '/tmp;', 'ls']
 
@@ -56,6 +64,7 @@ def test_macro_create_suffix(cmd, suffix):
     assert macro.command == cmd
     assert not macro.prefix
     assert macro.suffix == '-ltr'
+    assert not macro.label
     assert macro.as_string() == 'ls -ltr'
     assert macro.as_list() == ['ls', '-ltr']
 
@@ -68,8 +77,22 @@ def test_macro_create_prefix_suffix(cmd, prefix, suffix):
     assert macro.command == cmd
     assert macro.prefix == 'cd /tmp;'
     assert macro.suffix == '-ltr'
+    assert not macro.label
     assert macro.as_string() == 'cd /tmp; ls -ltr'
     assert macro.as_list() == ['cd', '/tmp;', 'ls', '-ltr']
+
+
+def test_macro_create_label(cmd, label):
+    """Verify creating a Macro with a label works as expected."""
+    macro = Macro(cmd, label=label)
+    assert macro.sequence == 0
+    assert macro._command == 'ls'
+    assert macro.command == cmd
+    assert not macro.prefix
+    assert not macro.suffix
+    assert macro.label == 'dummy command'
+    assert macro.as_string() == 'ls'
+    assert macro.as_list() == ['ls']
 
 
 def test_macro_add_prefix(cmd, prefix):
@@ -79,6 +102,7 @@ def test_macro_add_prefix(cmd, prefix):
     assert macro._command == cmd
     assert not macro.prefix
     assert not macro.suffix
+    assert not macro.label
     assert macro.as_string() == 'ls'
     assert macro.as_list() == ['ls']
 
@@ -95,6 +119,7 @@ def test_macro_add_suffix(cmd, suffix):
     assert macro._command == cmd
     assert not macro.prefix
     assert not macro.suffix
+    assert not macro.label
     assert macro.as_string() == 'ls'
     assert macro.as_list() == ['ls']
 
@@ -113,6 +138,7 @@ def test_macro_prompted_command():
     assert macro.command == f'echo {PromptSequence.HIDDEN}'
     assert not macro.prefix
     assert not macro.suffix
+    assert not macro.label
     assert macro.as_string() == 'echo secret'
     assert macro.as_list() == ['echo', 'secret']
 
@@ -143,7 +169,7 @@ def test_macro_factory_single_command(cmd):
     """Verify the MacroFactor generate method works as expected."""
     commands = [cmd]
     factory = MacroFactory(commands)
-    assert factory._commands == (('', 'ls', ''),)
+    assert factory._commands == (('', 'ls', '', ''),)
     macros = factory.generate()
     assert len(macros) == 1
     assert macros[0].as_string() == 'ls'
@@ -155,10 +181,20 @@ def test_macro_factory_single_command_with_suffix(cmd):
     suffixes = ['dummy.docx dummy.xlsx']
     commands = [cmd]
     factory = MacroFactory(commands, suffixes=suffixes)
-    assert factory._commands == (('', 'ls', 'dummy.docx dummy.xlsx'),)
+    assert factory._commands == (('', 'ls', 'dummy.docx dummy.xlsx', ''),)
     macros = factory.generate()
     assert len(macros) == 1
     assert macros[0].as_string() == 'ls dummy.docx dummy.xlsx'
+
+
+def test_macro_factory_single_command_with_label(cmd, label):
+    """Verify the MacroFactory generate method handles labels as expected."""
+    commands = [cmd]
+    factory = MacroFactory(commands, labels=[label])
+    assert factory._commands == (('', 'ls', '', 'dummy command'),)
+    macros = factory.generate()
+    assert len(macros) == 1
+    assert macros[0].as_string() == 'ls'
 
 
 def test_macro_factory_multiple_commands():
@@ -166,7 +202,7 @@ def test_macro_factory_multiple_commands():
     commands = ['cd /build_magic', 'make']
     suffixes = ['', 'artifact1 artifact2 artifact3']
     factory = MacroFactory(commands, suffixes=suffixes)
-    assert factory._commands == (('', 'cd /build_magic', ''), ('', 'make', 'artifact1 artifact2 artifact3'))
+    assert factory._commands == (('', 'cd /build_magic', '', ''), ('', 'make', 'artifact1 artifact2 artifact3', ''))
     macros = factory.generate()
     assert len(macros) == 2
     assert macros[0].as_string() == 'cd /build_magic'
@@ -180,10 +216,10 @@ def test_macro_factory_multiple_commands_2():
     suffixes = ['dir1 dir2 dir3']
     factory = MacroFactory(commands, suffixes=suffixes)
     assert factory._commands == (
-        ('', 'mkdir', 'dir1 dir2 dir3'),
-        ('', 'rm dir1', ''),
-        ('', 'rm dir2', ''),
-        ('', 'rm dir3', ''),
+        ('', 'mkdir', 'dir1 dir2 dir3', ''),
+        ('', 'rm dir1', '', ''),
+        ('', 'rm dir2', '', ''),
+        ('', 'rm dir3', '', ''),
     )
     macros = factory.generate()
     assert len(macros) == 4

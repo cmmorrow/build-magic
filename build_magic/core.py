@@ -101,15 +101,21 @@ def config_parser(config):
         # Set the action.
         stage['action'] = data.get('action', Actions.DEFAULT.value)
 
-        # Set the command and directives.
+        # Set the command, directives, and labels.
         macros = data.get('commands', [])
         commands = []
         directives = []
+        labels = []
         for macro in macros:
+            if 'label' in macro.keys() and len(macro.keys()) > 1:
+                labels.append(macro['label'])
+            else:
+                labels.append('')
             directives.append(list(macro.keys())[0])
             commands.append(list(macro.values())[0])
         stage['commands'] = commands
         stage['directives'] = directives
+        stage['labels'] = labels
 
         # Set the parameters.
         parameters = data.get('parameters', {})
@@ -223,14 +229,15 @@ class StageFactory:
     """Validates and generates Stage objects."""
 
     @classmethod
-    def _build_macros(cls, commands):
+    def _build_macros(cls, commands, labels):
         """Build Macro objects from provided commands.
 
         :param list[str] commands: The commands to use for building the Macro objects.
+        :param list[str] labels: The command descriptions to display.
         :rtype: list[Macro]
         :return: A list of Macro objects.
         """
-        factory = MacroFactory(commands)
+        factory = MacroFactory(commands, labels=labels)
         return factory.generate()
 
     @classmethod
@@ -304,6 +311,7 @@ class StageFactory:
             name=None,
             parameters=None,
             envs=None,
+            labels=None,
     ):
         """Validates inputs and generates a new Stage object.
 
@@ -319,6 +327,7 @@ class StageFactory:
         :param str|None name: The stage name if provided.
         :param list[tuple]|None parameters: The optional parameters passed by the user.
         :param dict|None envs: A dictionary of environment variables to use.
+        :param dict|None labels: Command descriptions.
         :rtype: Stage
         :return: The generated Stage object.
         """
@@ -333,8 +342,14 @@ class StageFactory:
                     'Directive must be one of {}'.format(', '.join(Directive.available()))
                 )
 
+        if labels is None:
+            labels = [''] * len(commands)
+
         if len(commands) != (len(directives)):
             raise ValueError('Length of commands unequal to length of directives.')
+
+        if len(labels) != len(commands):
+            raise ValueError('Length of commands unequal to length of labels.')
 
         if action not in Actions.available():
             raise ValueError('Action must be one of {}.'.format(', '.join(Actions.available())))
@@ -349,7 +364,7 @@ class StageFactory:
             envs = {}
 
         # Build the macros.
-        macros = cls._build_macros(commands=commands)
+        macros = cls._build_macros(commands=commands, labels=labels)
         if not macros:
             raise ValueError('There are no commands to execute.')
 
@@ -496,7 +511,7 @@ class Stage:
                 _output.log(
                     mode.MACRO_START,
                     directive=directive,
-                    command=mac.command,
+                    command=mac.label if mac.label else mac.command,
                     sequence=mac.sequence,
                     total=len(self._macros),
                 )
@@ -510,7 +525,7 @@ class Stage:
             _output.log(
                 mode.MACRO_STATUS,
                 directive=directive,
-                command=mac.command,
+                command=mac.label if mac.label else mac.command,
                 status_code=status.exit_code,
                 sequence=mac.sequence,
                 total=len(self._macros),
