@@ -336,6 +336,8 @@ Options:
                                   name.
   --info                          Display config file metadata, variables, and
                                   stage names.
+  --env <TEXT TEXT>...            Provide an environment variable to set for
+                                  stage execution.
   --dotenv FILENAME               Provide a dotenv file to set additional
                                   environment variables.
   --template                      Generates a config file template in the
@@ -358,6 +360,7 @@ Options:
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])
+    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert res.output == ref
 
