@@ -365,6 +365,7 @@ def test_config_parser():
             ],
             'dotenv': '',
             'parameters': [],
+            'environment variables': {},
         },
         {
             'name': 'stage 2',
@@ -389,6 +390,7 @@ def test_config_parser():
             ],
             'dotenv': '',
             'parameters': [],
+            'environment variables': {},
         }
     ]
     stages = config_parser(config)
@@ -437,6 +439,7 @@ def test_config_parser_with_parameters():
                 ('keypath', '$HOME/user/.ssh/key_ecdsa'),
                 ('keypass', '"1234"'),
             ],
+            'environment variables': {},
         }
     ]
     stages = config_parser(config)
@@ -483,6 +486,51 @@ def test_config_invalid_meta():
     }
     with pytest.raises(ValueError):
         config_parser(config)
+
+
+def test_config_environment_variables():
+    """Test the case where environment variables are passed to a stage."""
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'commands': [
+                        {'execute': "echo '$HELLO' '$WORLD'"}
+                    ],
+                    'environment variables': {
+                        'HELLO': 'hello',
+                        'WORLD': 'world',
+                    }
+                }
+            }
+        ]
+    }
+    ref = [
+        {
+            'name': '',
+            'runner_type': 'local',
+            'environment': '',
+            'continue': False,
+            'wd': '.',
+            'copy': '',
+            'artifacts': [],
+            'action': 'default',
+            'commands': [
+                "echo '$HELLO' '$WORLD'",
+            ],
+            'directives': [
+                'execute',
+            ],
+            'dotenv': '',
+            'parameters': [],
+            'environment variables': {
+                'HELLO': 'hello',
+                'WORLD': 'world',
+            }
+        }
+    ]
+    stages = config_parser(config)
+    assert stages == ref
 
 
 def test_config_parser_validation_fail():

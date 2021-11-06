@@ -82,6 +82,7 @@ CONFIG_HELP = 'The config file to load parameters from.'
 CONTINUE_HELP = 'Continue to run after failure if True.'
 COPY_HELP = 'Copy files from the specified path.'
 DOTENV_HELP = 'Provide a dotenv file to set additional environment variables.'
+ENV_HELP = 'Provide an environment variable to set for stage execution.'
 ENVIRONMENT_HELP = 'The command runner environment to use.'
 FANCY_HELP = 'Enables output with colors. Ideal for an interactive terminal session.'
 INFO_HELP = 'Display config file metadata, variables, and stage names.'
@@ -244,6 +245,7 @@ def set_tty(_, param, value):
 @click.option('--name', help=NAME_HELP, type=str)
 @click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
 @click.option('--info', help=INFO_HELP, is_flag=True)
+@click.option('--env', help=ENV_HELP, multiple=True, type=(str, str))
 @click.option('--dotenv', help=DOTENV_HELP, type=CONFIG, default=None)
 @click.option('--template', help=TEMPLATE_HELP, is_flag=True, is_eager=True, expose_value=False, callback=get_template)
 @click.option('--parameter', '-p', help=PARAMETER_HELP, multiple=True, type=(str, str))
@@ -260,6 +262,7 @@ def build_magic(
         command,
         config,
         info,
+        env,
         dotenv,
         copy,
         continue_,
@@ -344,7 +347,7 @@ def build_magic(
                 copy=copy,
                 wd=wd,
                 parameters=parameter,
-                envs=parse_dotenv_file(dotenv),
+                envs={**parse_dotenv_file(dotenv), **dict(env)},
             )
         )
         if name:
@@ -394,7 +397,7 @@ def build_magic(
                                 copy=copy,
                                 wd=wd,
                                 parameters=parameter,
-                                envs=parse_dotenv_file(dotenv),
+                                envs={**parse_dotenv_file(dotenv), **dict(env)},
                             )
                         )
                         if name:
@@ -422,7 +425,7 @@ def build_magic(
                 copy=copy,
                 wd=wd,
                 parameters=parameter,
-                envs=parse_dotenv_file(dotenv),
+                envs={**parse_dotenv_file(dotenv), **dict(env)},
             )
         )
         if name:
@@ -508,7 +511,8 @@ def get_config_params(stage, path, seq=1):
         dotenv_path = os.path.join(rel_path, dotenv)
         envs = parse_dotenv_file(open(dotenv_path, 'r'))
     else:
-        envs = None
+        envs = {}
+    envs = {**envs, **stage.get('environment variables')}
 
     return dict(
         sequence=seq,
