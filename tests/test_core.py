@@ -365,6 +365,7 @@ def test_config_parser():
             ],
             'dotenv': '',
             'parameters': [],
+            'environment variables': {},
         },
         {
             'name': 'stage 2',
@@ -389,6 +390,7 @@ def test_config_parser():
             ],
             'dotenv': '',
             'parameters': [],
+            'environment variables': {},
         }
     ]
     stages = config_parser(config)
@@ -437,6 +439,7 @@ def test_config_parser_with_parameters():
                 ('keypath', '$HOME/user/.ssh/key_ecdsa'),
                 ('keypass', '"1234"'),
             ],
+            'environment variables': {},
         }
     ]
     stages = config_parser(config)
