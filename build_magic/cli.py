@@ -526,6 +526,7 @@ def get_config_params(stage, path, seq=1):
         wd=stage.get('wd'),
         name=stage.get('name'),
         parameters=stage.get('parameters'),
+        labels=stage.get('labels'),
         envs=envs,
     )
 

@@ -7,6 +7,7 @@ Added author, maintainer, version, created, and modified sections to config file
 Added the --info option to the CLI for viewing config file meta data.
 Added dotenv file support.
 Added support for environment variables.
+Added support for command labels to optionally display instead of the command itself.
 
 ## Version 0.3.3 (Newest)
 

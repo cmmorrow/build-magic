@@ -251,6 +251,13 @@ def test_stagefactory_build_invalid_action():
         StageFactory.build(*args)
 
 
+def test_stagefactory_inequal_commands_and_label_lengths():
+    """Test the case where a different number of labels is provided compared to commands."""
+    args = (0, 'local', ['execute'], None, ['ls'], '', 'default', '.', '.', None, None, None, ['label1', 'label2'])
+    with pytest.raises(ValueError, match='Length of commands unequal to length of labels'):
+        StageFactory.build(*args)
+
+
 def test_stagefactory_build_parameters():
     """Verify the StageFactory _build_parameters() class method works correctly."""
     ref = {
@@ -363,6 +370,7 @@ def test_config_parser():
                 'build',
                 'execute',
             ],
+            'labels': ['', ''],
             'dotenv': '',
             'parameters': [],
             'environment variables': {},
@@ -388,6 +396,7 @@ def test_config_parser():
                 'deploy',
                 'release',
             ],
+            'labels': ['', '', '', ''],
             'dotenv': '',
             'parameters': [],
             'environment variables': {},
@@ -433,6 +442,7 @@ def test_config_parser_with_parameters():
             'directives': [
                 'test',
             ],
+            'labels': [''],
             'dotenv': '',
             'parameters': [
                 ('keytype', 'ecdsa'),
@@ -521,12 +531,120 @@ def test_config_environment_variables():
             'directives': [
                 'execute',
             ],
+            'labels': [''],
             'dotenv': '',
             'parameters': [],
             'environment variables': {
                 'HELLO': 'hello',
                 'WORLD': 'world',
             }
+        }
+    ]
+    stages = config_parser(config)
+    assert stages == ref
+
+
+def test_config_parser_labels():
+    """Verify labels provided in a config file are parsed correctly."""
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'name': 'stage 1',
+                    'action': 'persist',
+                    'continue on fail': True,
+                    'runner': 'docker',
+                    'environment': 'alpine:latest',
+                    'copy from directory': '/src',
+                    'artifacts': [
+                        'file1.txt',
+                        'file2.txt',
+                    ],
+                    'commands': [
+                        {
+                            'build': 'tar -czf myfiles.tar.gz file1.txt file2.txt',
+                            'label': 'Tar and zip two files.'
+                        },
+                        {
+                            'execute': 'rm file1.txt file2.txt',
+                            'label': 'Remove the original files.'
+                        },
+                    ]
+                }
+            },
+            {
+                'stage': {
+                    'name': 'stage 2',
+                    'action': 'cleanup',
+                    'working directory': '/src',
+                    'commands': [
+                        {
+                            'install': 'tar -xzf myfiles.tar.gz',
+                            'label': 'Extract the archive.'
+                        },
+                        {
+                            'execute': 'rm myfiles.tar.gz',
+                        },
+                        {
+                            'deploy': 'cat file1.txt file2.txt',
+                            'label': 'Concatenate the two files.'
+                        },
+                        {
+                            'release': 'git push origin main',
+                        },
+                    ]
+                }
+            }
+        ]
+    }
+    ref = [
+        {
+            'name': 'stage 1',
+            'runner_type': 'docker',
+            'environment': 'alpine:latest',
+            'continue': True,
+            'wd': '.',
+            'copy': '/src',
+            'artifacts': ['file1.txt', 'file2.txt'],
+            'action': 'persist',
+            'commands': [
+                'tar -czf myfiles.tar.gz file1.txt file2.txt',
+                'rm file1.txt file2.txt',
+            ],
+            'directives': [
+                'build',
+                'execute',
+            ],
+            'labels': ['Tar and zip two files.', 'Remove the original files.'],
+            'dotenv': '',
+            'parameters': [],
+            'environment variables': {},
+        },
+        {
+            'name': 'stage 2',
+            'runner_type': 'local',
+            'environment': '',
+            'continue': False,
+            'wd': '/src',
+            'copy': '',
+            'artifacts': [],
+            'action': 'cleanup',
+            'commands': [
+                'tar -xzf myfiles.tar.gz',
+                'rm myfiles.tar.gz',
+                'cat file1.txt file2.txt',
+                'git push origin main',
+            ],
+            'directives': [
+                'install',
+                'execute',
+                'deploy',
+                'release',
+            ],
+            'labels': ['Extract the archive.', '', 'Concatenate the two files.', ''],
+            'dotenv': '',
+            'parameters': [],
+            'environment variables': {},
         }
     ]
     stages = config_parser(config)

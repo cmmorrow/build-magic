@@ -400,6 +400,13 @@
                                                             "default": "",
                                                             "examples": [
                                                             ]
+                                                        },
+                                                        "label": {
+                                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/commands/items/anyOf/0/properties/label",
+                                                            "type": "string",
+                                                            "title": "The label schema",
+                                                            "description": "Provides a description of the command being executed.",
+                                                            "examples": []
                                                         }
                                                     },
                                                     "additionalProperties": false
