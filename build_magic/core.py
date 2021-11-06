@@ -116,6 +116,13 @@ def config_parser(config):
         stage['parameters'] = list(parameters.items())
         stages.append(stage)
 
+        # Set the environment variables.
+        envs_raw = data.get('environment variables', {})
+        envs = {}
+        for key, value in envs_raw.items():
+            envs.update({key: value})
+        stage['environment variables'] = envs
+
     return stages
 
 

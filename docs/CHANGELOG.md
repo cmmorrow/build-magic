@@ -2,6 +2,12 @@
 
 ## Version 0.4.0 (Unreleased)
 
+Added a prep section to config files.
+Added author, maintainer, version, created, and modified sections to config files.
+Added the --info option to the CLI for viewing config file meta data.
+Added dotenv file support.
+Added support for environment variables.
+
 ## Version 0.3.3 (Newest)
 
 * Fixed a bug where an error when parsing a YAML file was not caught and handled.

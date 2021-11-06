@@ -229,6 +229,26 @@ def meta_config(magic_dir):
 
 
 @pytest.fixture
+def env_config(magic_dir):
+    """Provides a config file with environment variables."""
+    config_filename = 'envs.yaml'
+    dotenv_filename = 'test.env'
+
+    config = magic_dir / config_filename
+    dotenv = magic_dir / dotenv_filename
+
+    content = Path(__file__).parent.joinpath('files').joinpath(config_filename).read_text()
+    config.write_text(content)
+
+    content = Path(__file__).parent.joinpath('files').joinpath(dotenv_filename).read_text()
+    dotenv.write_text(content)
+
+    yield magic_dir
+    os.remove(magic_dir / config)
+    os.remove(magic_dir / dotenv)
+
+
+@pytest.fixture
 def dotenv_config(magic_dir):
     """Provides a config file that uses a dotenv file in the temp directory."""
     config_filename = 'dotenv.yaml'
@@ -1073,3 +1093,55 @@ def test_cli_dotenv_config_file(cli, dotenv_config):
     assert 'FOO=bar\n' in out
     assert 'HELLO=world\n' in out
     assert 'dummy' not in out
+
+
+def test_cli_environment_variables(cli):
+    """Verify setting environment variables works correctly."""
+    res = cli.invoke(
+        build_magic, [
+            '--env',
+            'HELLO',
+            'hello',
+            '--env',
+            'WORLD',
+            'world',
+            '--verbose',
+            'echo',
+            '$HELLO $WORLD',
+        ]
+    )
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'OUTPUT: hello world' in out
+
+
+def test_combine_envs_and_dotenv(cli):
+    """Verify that using a dotenv and individual environment variables are merged correctly."""
+    env_file = Path(__file__).parent / 'files' / 'test.env'
+    res = cli.invoke(
+        build_magic, [
+            '--env',
+            'HELLO',
+            'hello',
+            '--env',
+            'WORLD',
+            'world',
+            '--dotenv',
+            env_file,
+            '--verbose',
+            'echo',
+            '$HELLO $WORLD $FOO',
+        ]
+    )
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'OUTPUT: hello world bar' in out
+
+
+def test_envs_config_file(cli, env_config):
+    """Verify that using environment variables with a dotenv file in a config file work correctly."""
+    config = env_config / 'envs.yaml'
+    res = cli.invoke(build_magic, ['-C', config, '--verbose'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'OUTPUT: hello world bar' in out

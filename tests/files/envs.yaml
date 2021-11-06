@@ -1,0 +1,8 @@
+build-magic:
+  - stage:
+      dotenv: test.env
+      environment variables:
+        HELLO: hello
+        WORLD: world
+      commands:
+        - execute: echo $HELLO $WORLD $FOO

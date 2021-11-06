@@ -296,6 +296,17 @@
                                             "myflaskapp.env"
                                         ]
                                     },
+                                    "environment variables": {
+                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/environment%20variables",
+                                        "type": "object",
+                                        "title": "Environment Variables",
+                                        "description": "Environment variables to apply to the executing stage.",
+                                        "default": [
+                                            {"SHELL": "zsh"},
+                                            {"CONTEXT": "development"}
+                                        ],
+                                        "additionalItems": true
+                                    },
                                     "commands": {
                                         "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/commands",
                                         "type": "array",
