@@ -8,6 +8,7 @@ Added the --info option to the CLI for viewing config file meta data.
 Added dotenv file support.
 Added support for environment variables.
 Added support for command labels to optionally display instead of the command itself.
+Added support for job and stage descriptions.
 
 ## Version 0.3.3 (Newest)
 

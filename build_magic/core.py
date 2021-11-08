@@ -90,6 +90,7 @@ def config_parser(config):
         data = data.get('stage', {})
         stage = dict()
         stage['name'] = data.get('name', '')
+        stage['description'] = data.get('description', '')
         stage['runner_type'] = data.get('runner', Runners.LOCAL.value)
         stage['environment'] = data.get('environment', '')
         stage['continue'] = data.get('continue on fail', False)
@@ -204,7 +205,7 @@ class Engine:
         for stage in self._stages:
             spinner = yaspin()
             # Run the stage.
-            _output.log(mode.STAGE_START, stage.sequence, stage.name)
+            _output.log(mode.STAGE_START, stage.sequence, stage.name, stage.description)
             # Launch the process spinner
             _output.log(mode.PROCESS_SPINNER, spinner, process_active=True)
             stage.setup()
@@ -312,6 +313,7 @@ class StageFactory:
             parameters=None,
             envs=None,
             labels=None,
+            description=None,
     ):
         """Validates inputs and generates a new Stage object.
 
@@ -328,6 +330,7 @@ class StageFactory:
         :param list[tuple]|None parameters: The optional parameters passed by the user.
         :param dict|None envs: A dictionary of environment variables to use.
         :param dict|None labels: Command descriptions.
+        :param str|None description: A description of the stage.
         :rtype: Stage
         :return: The generated Stage object.
         """
@@ -379,7 +382,7 @@ class StageFactory:
             envs=envs,
         )
 
-        return Stage(cmd_runner, macros, directives, sequence, action, name)
+        return Stage(cmd_runner, macros, directives, sequence, action, name, description)
 
 
 class Stage:
@@ -395,9 +398,10 @@ class Stage:
         '_results',
         '_sequence',
         '_name',
+        '_description',
     ]
 
-    def __init__(self, cmd_runner, macros, directives, sequence, action, name=None):
+    def __init__(self, cmd_runner, macros, directives, sequence, action, name='', description=''):
         """Instantiates a new Stage object.
 
         Note: Stage objects should not be constructed directly and should instead be created by a StageFactory.
@@ -407,7 +411,8 @@ class Stage:
         :param list[str] directives: The command directives.
         :param int|str sequence: The execution order of the macros.
         :param str action: The Action to use.
-        :param str|None name: The stage name if provided.
+        :param str name: The stage name if provided.
+        :param str description: The description of the stage if provided.
         """
         try:
             self._action = getattr(actions, action.capitalize())
@@ -422,6 +427,7 @@ class Stage:
         self._result = 0
         self._is_setup = False
         self._name = name
+        self._description = description
 
     @property
     def sequence(self):
@@ -436,7 +442,12 @@ class Stage:
     @property
     def name(self):
         """The stage name."""
-        return self._name
+        return self._name or ''
+
+    @property
+    def description(self):
+        """The stage description."""
+        return self._description or ''
 
     def _get_action_function(self, method):
         """Fetches the mapped action function for the provided command runner method.

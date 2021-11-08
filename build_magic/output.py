@@ -114,16 +114,19 @@ class Basic(Output):
             message = f'{message} in {delta.total_seconds():.3f}'
         self._display(message)
 
-    def start_stage(self, stage_number=1, name=None):
+    def start_stage(self, stage_number=1, name='', description=''):
         """Indicates the beginning of a stage.
 
         :param int stage_number: The stage sequence number.
-        :param str|None name: The stage name if given.
+        :param str name: The stage name if given.
+        :param str description: The stage description if given.
         :return: None
         """
         message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Starting Stage {stage_number}'
         if name:
             message = f'{message}: {name}'
+        if description:
+            message = f'{message} - {description}'
         self._display(message)
 
     def end_stage(self, stage_number=1, status_code=0, name=None):
@@ -246,16 +249,19 @@ class Tty(Output):
             message = f'build-magic{emoji} finished at {datetime.now().strftime("%c")}'
         self._display(message)
 
-    def start_stage(self, stage_number=1, name=None):
+    def start_stage(self, stage_number=1, name='', description=''):
         """Indicates the beginning of a stage.
 
         :param int stage_number: The stage sequence number.
-        :param str|None name: The stage name if given.
+        :param str name: The stage name if given.
+        :param str description: The stage description if given.
         :return: None
         """
         message = f'Starting Stage {stage_number}'
         if name:
             message += f': {name}'
+        if description:
+            message += f' - {description}'
         self._display(message)
 
     def end_stage(self, stage_name=1, status_code=0, name=None):

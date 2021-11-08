@@ -85,6 +85,16 @@ def test_basic_start_stage(capsys):
     captured = capsys.readouterr()
     assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] Starting Stage 7: test stage\n'
 
+    # Assign stage description.
+    output.log(OutputMethod.STAGE_START, 7, description='This is a test')
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] Starting Stage 7 - This is a test\n'
+
+    # Assign stage name and description.
+    output.log(OutputMethod.STAGE_START, 7, 'test stage', 'This is a test')
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] Starting Stage 7: test stage - This is a test\n'
+
 
 @freeze_time('2021-01-02 01:06:34')
 def test_basic_end_stage(capsys):
