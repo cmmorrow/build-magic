@@ -1,17 +1,21 @@
 build-magic:
   - stage:
       name: Stage A
+      description: Test Stage A
       commands:
         - execute: echo "A"
   - stage:
       name: Stage B
+      description: Test Stage B
       commands:
         - execute: echo "B"
   - stage:
       name: Stage C
+      description: Test Stage C
       commands:
         - execute: echo "C"
   - stage:
       name: Stage D
+      description: Test Stage D
       commands:
         - execute: echo "D"

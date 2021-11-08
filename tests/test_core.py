@@ -172,13 +172,15 @@ def test_stage_run_multiple_continue_on_fail():
 
 def test_stage_run_verbose(capsys):
     """Verify the Stage run() method handles verbose mode correctly."""
-    args = (Local(), [Macro('echo hello')], ['execute'], 1, 'default')
-    stage = Stage(*args)
+    args = (Local(), [Macro('echo hello')], ['execute'], 1, 'default',)
+    stage = Stage(*args, name='Test', description='This is a test')
     assert stage.is_setup is False
     exit_code = stage.run(verbose=True)
     assert exit_code == 0
     assert len(stage._results) == 1
     assert stage.is_setup is True
+    assert stage.name == 'Test'
+    assert stage.description == 'This is a test'
     captured = capsys.readouterr()
     assert '\nOUTPUT: hello\n' in captured.out
 
@@ -192,6 +194,8 @@ def test_stagefactory_build():
     assert stage._directives == ['execute']
     assert isinstance(stage._macros[0], Macro)
     assert stage._macros[0].command == 'ls'
+    assert stage.name == ''
+    assert stage.description == ''
     assert stage._result == 0
     assert stage._results == []
     assert stage.sequence == 0
@@ -322,6 +326,7 @@ def test_config_parser():
             {
                 'stage': {
                     'name': 'stage 1',
+                    'description': 'This is a test',
                     'action': 'persist',
                     'continue on fail': True,
                     'runner': 'docker',
@@ -355,6 +360,7 @@ def test_config_parser():
     ref = [
         {
             'name': 'stage 1',
+            'description': 'This is a test',
             'runner_type': 'docker',
             'environment': 'alpine:latest',
             'continue': True,
@@ -377,6 +383,7 @@ def test_config_parser():
         },
         {
             'name': 'stage 2',
+            'description': '',
             'runner_type': 'local',
             'environment': '',
             'continue': False,
@@ -429,6 +436,7 @@ def test_config_parser_with_parameters():
     ref = [
         {
             'name': '',
+            'description': '',
             'runner_type': 'remote',
             'environment': 'user@myhost:2222',
             'continue': False,
@@ -518,6 +526,7 @@ def test_config_environment_variables():
     ref = [
         {
             'name': '',
+            'description': '',
             'runner_type': 'local',
             'environment': '',
             'continue': False,
@@ -575,6 +584,7 @@ def test_config_parser_labels():
             {
                 'stage': {
                     'name': 'stage 2',
+                    'description': 'This is a test',
                     'action': 'cleanup',
                     'working directory': '/src',
                     'commands': [
@@ -600,6 +610,7 @@ def test_config_parser_labels():
     ref = [
         {
             'name': 'stage 1',
+            'description': '',
             'runner_type': 'docker',
             'environment': 'alpine:latest',
             'continue': True,
@@ -622,6 +633,7 @@ def test_config_parser_labels():
         },
         {
             'name': 'stage 2',
+            'description': 'This is a test',
             'runner_type': 'local',
             'environment': '',
             'continue': False,

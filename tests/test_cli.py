@@ -343,6 +343,7 @@ Options:
   --wd DIRECTORY                  The working directory to run commands from.
   --continue / --stop             Continue to run after failure if True.
   --name TEXT                     The stage name to use.
+  --description TEXT              The stage description to use.
   -t, --target TEXT               Run a particular stage in a config file by
                                   name.
   --info                          Display config file metadata, variables, and
@@ -371,7 +372,6 @@ Options:
   --help                          Show this message and exit.
 """
     res = cli.invoke(build_magic, ['--help'])
-    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert res.output == ref
 
@@ -411,6 +411,22 @@ def test_cli_stage_name(cli):
     assert res.exit_code == ExitCode.PASSED
     assert 'Starting Stage 1: test stage' in res.output
     assert 'Stage 1: test stage - finished with result COMPLETE'
+
+
+def test_cli_description(cli):
+    """Verify providing a description works correctly."""
+    res = cli.invoke(build_magic, ['--description', 'This is a test', 'echo hello world'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1 - This is a test' in out
+
+
+def test_cli_name_and_description(cli):
+    """Verify providing a name and description works correctly."""
+    res = cli.invoke(build_magic, ['--name', 'test', '--description', 'This is a test', 'echo hello world'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1: test - This is a test' in out
 
 
 def test_cli_invalid_runner(cli):
@@ -778,13 +794,12 @@ def test_cli_config_parameters(cli, mocker, parameters_config):
 
 def test_cli_target(cli, targets_config):
     """Verify the --target option works correctly."""
-    # file = Path(resource_filename('tests', 'test_cli.py')).parent / 'files' / 'targets.yaml'
     res = cli.invoke(build_magic, ['-C', str(targets_config), '--target', 'Stage D', '-t', 'Stage B'])
     assert res.exit_code == ExitCode.PASSED
     out = res.output
-    assert 'Stage D' in out
+    assert 'Stage D - Test Stage D' in out
     out = out.split('\n', maxsplit=8)[-1]
-    assert 'Stage B' in out
+    assert 'Stage B - Test Stage B' in out
     assert '( 1/1 ) EXECUTE : echo "B" .......................................... RUNNING' in res.output
     assert "Stage 2: Stage B - finished with result DONE" in res.output
 
@@ -1022,12 +1037,13 @@ def test_cli_info_no_config(cli):
 
 def test_cli_info(cli, meta_config):
     """Verify the --info option works correctly with one config file."""
-    ref = """version:     0.1.0
-author:      Beckett Mariner
-maintainer:  Brad Boimler
-created:     04/17/2382
-modified:    06/02/2382
-stage:       Test
+    ref = """version:      0.1.0
+author:       Beckett Mariner
+maintainer:   Brad Boimler
+created:      04/17/2382
+modified:     06/02/2382
+description:  Second contact
+stage:        Test
 """
     res = cli.invoke(build_magic, ['--info', '-C', meta_config])
     out = res.output
@@ -1039,12 +1055,13 @@ def test_cli_info_two_configs(cli):
     """Verify the --info option works correctly with more than one config file."""
     meta = Path(__file__).parent / 'files' / 'meta.yaml'
     variables = Path(__file__).parent / 'files' / 'variables.yaml'
-    ref = f"""{meta}  version:     0.1.0
-{meta}  author:      Beckett Mariner
-{meta}  maintainer:  Brad Boimler
-{meta}  created:     04/17/2382
-{meta}  modified:    06/02/2382
-{meta}  stage:       Test
+    ref = f"""{meta}  version:      0.1.0
+{meta}  author:       Beckett Mariner
+{meta}  maintainer:   Brad Boimler
+{meta}  created:      04/17/2382
+{meta}  modified:     06/02/2382
+{meta}  description:  Second contact
+{meta}  stage:        Test
 {variables}  variable:  ARCH
 {variables}  variable:  OS
 {variables}  stage:     Variable Test
@@ -1059,12 +1076,13 @@ def test_cli_info_extra_options_and_args(cli):
     """Verify the --info option works with extra options and args."""
     meta = Path(__file__).parent / 'files' / 'meta.yaml'
     targets = Path(__file__).parent / 'files' / 'targets.yaml'
-    ref = f"""{meta}  version:     0.1.0
-{meta}  author:      Beckett Mariner
-{meta}  maintainer:  Brad Boimler
-{meta}  created:     04/17/2382
-{meta}  modified:    06/02/2382
-{meta}  stage:       Test
+    ref = f"""{meta}  version:      0.1.0
+{meta}  author:       Beckett Mariner
+{meta}  maintainer:   Brad Boimler
+{meta}  created:      04/17/2382
+{meta}  modified:     06/02/2382
+{meta}  description:  Second contact
+{meta}  stage:        Test
 {targets}  stage:  Stage A
 {targets}  stage:  Stage B
 {targets}  stage:  Stage C

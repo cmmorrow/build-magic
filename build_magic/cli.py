@@ -81,6 +81,7 @@ COMMAND_HELP = 'A directive, command pair to execute.'
 CONFIG_HELP = 'The config file to load parameters from.'
 CONTINUE_HELP = 'Continue to run after failure if True.'
 COPY_HELP = 'Copy files from the specified path.'
+DESCRIPTION_HELP = 'The stage description to use.'
 DOTENV_HELP = 'Provide a dotenv file to set additional environment variables.'
 ENV_HELP = 'Provide an environment variable to set for stage execution.'
 ENVIRONMENT_HELP = 'The command runner environment to use.'
@@ -135,6 +136,7 @@ def get_config_info(cfg, show_filename=False):
     maintainer = obj.get('maintainer')
     created = obj.get('created')
     modified = obj.get('modified')
+    description = obj.get('description')
 
     variables = []
     if re.search(reference.VARIABLE_PATTERN, json.dumps(obj)):
@@ -158,6 +160,8 @@ def get_config_info(cfg, show_filename=False):
         add_output('created', created)
     if modified:
         add_output('modified', modified)
+    if description:
+        add_output('description', description)
 
     for variable in variables:
         add_output('variable', variable)
@@ -242,7 +246,8 @@ def set_tty(_, param, value):
 @click.option('--runner', '-r', help=RUNNER_HELP, type=RUNNERS)
 @click.option('--wd', help=WD_HELP, default='.', type=WORKINGDIR)
 @click.option('--continue/--stop', 'continue_', help=CONTINUE_HELP, default=False)
-@click.option('--name', help=NAME_HELP, type=str)
+@click.option('--name', help=NAME_HELP, type=str, default='')
+@click.option('--description', help=DESCRIPTION_HELP, type=str, default='')
 @click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
 @click.option('--info', help=INFO_HELP, is_flag=True)
 @click.option('--env', help=ENV_HELP, multiple=True, type=(str, str))
@@ -275,6 +280,7 @@ def build_magic(
         runner,
         name,
         target,
+        description,
         wd,
         plain,
         quiet,
@@ -340,6 +346,8 @@ def build_magic(
                 sequence=next(seq),
                 runner_type=reference.Runners.LOCAL.value,
                 directives=directives,
+                name=name,
+                description=description,
                 artifacts=artifacts,
                 action=reference.Actions.DEFAULT.value,
                 commands=commands,
@@ -350,8 +358,6 @@ def build_magic(
                 envs={**parse_dotenv_file(dotenv), **dict(env)},
             )
         )
-        if name:
-            stages_[0].update(dict(name=name))
         if len(default_configs) == 1:
             if not config_file.closed:
                 config_file.close()
@@ -390,6 +396,8 @@ def build_magic(
                                 sequence=next(seq),
                                 runner_type=reference.Runners.LOCAL.value,
                                 directives=directives,
+                                name=name,
+                                description=description,
                                 artifacts=[],
                                 action=reference.Actions.DEFAULT.value,
                                 commands=commands,
@@ -400,8 +408,6 @@ def build_magic(
                                 envs={**parse_dotenv_file(dotenv), **dict(env)},
                             )
                         )
-                        if name:
-                            stages_[0].update(dict(name=name))
                         break
             # If a default config file exists but there are no args, skip it.
             elif not args and cfg.name in DEFAULT_CONFIG_NAMES:
@@ -418,6 +424,8 @@ def build_magic(
                 sequence=1,
                 runner_type=reference.Runners.LOCAL.value,
                 directives=directives,
+                name=name,
+                description=description,
                 artifacts=[],
                 action=reference.Actions.DEFAULT.value,
                 commands=commands,
@@ -428,8 +436,6 @@ def build_magic(
                 envs={**parse_dotenv_file(dotenv), **dict(env)},
             )
         )
-        if name:
-            stages_[0].update(dict(name=name))
     # If all else fails, display the usage text.
     if not stages_:
         if target:
@@ -525,6 +531,7 @@ def get_config_params(stage, path, seq=1):
         copy=stage.get('copy'),
         wd=stage.get('wd'),
         name=stage.get('name'),
+        description=stage.get('description'),
         parameters=stage.get('parameters'),
         labels=stage.get('labels'),
         envs=envs,

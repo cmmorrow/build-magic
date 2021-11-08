@@ -81,6 +81,12 @@
             "description": "The modification date of the config file.",
             "default": ""
         },
+        "description": {
+            "$id": "#/properties/description",
+            "type:": "string",
+            "description": "A description of the job.",
+            "default": ""
+        },
         "prepare": {
             "$id": "#/properties/prepare",
             "type": "array",
@@ -197,6 +203,17 @@
                                             "build",
                                             1,
                                             "test-job"
+                                        ]
+                                    },
+                                    "description": {
+                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/description",
+                                        "type": "string",
+                                        "title": "The stage description",
+                                        "description": "A description of the stage.",
+                                        "default": "",
+                                        "examples": [
+                                            "Builds myapp for Windows 10",
+                                            "Installs myapp for Ubuntu 20.04"
                                         ]
                                     },
                                     "runner": {
