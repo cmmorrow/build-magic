@@ -7,7 +7,7 @@ import sys
 from colorama import Cursor, Fore, init, Style
 
 from build_magic import __version__ as version
-from build_magic.reference import OutputMethod
+from build_magic.reference import OutputMethod, ExitCode
 
 
 class Output:
@@ -52,6 +52,9 @@ class Output:
     def info(self, *args, **kwargs):
         """Communicates a general information message."""
         raise NotImplementedError
+
+    def skip(self, *args, **kwargs):
+        """Communicates a skipping message."""
 
     @staticmethod
     def _display(line, err=False):
@@ -137,8 +140,11 @@ class Basic(Output):
         :param str|None name: The stage name if given.
         :return: None
         """
-        result = 'DONE'
-        if status_code > 0:
+        if status_code == ExitCode.PASSED:
+            result = 'DONE'
+        elif status_code == ExitCode.SKIPPED:
+            result = 'SKIP'
+        else:
             result = 'FAIL'
         if name:
             message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Stage {stage_number}: {name} - ' \
@@ -193,6 +199,16 @@ class Basic(Output):
         """
         msg = msg.rstrip()
         message = f'{datetime.now().isoformat()} build-magic [ INFO  ] OUTPUT: {msg}'
+        self._display(message)
+
+    def skip(self, msg):
+        """Communicates a skipping message.
+
+        :param str msg: The message to print.
+        :return: None
+        """
+        msg = msg.rstrip()
+        message = f'{datetime.now().isoformat()} build-magic [ SKIP  ] OUTPUT: {msg}'
         self._display(message)
 
     def process_spinner(self, *args, **kwargs):
@@ -272,9 +288,13 @@ class Tty(Output):
         :param str|None name: The stage name if given.
         :return: None
         """
-        color = Fore.GREEN + Style.BRIGHT
-        result = 'DONE'
-        if status_code > 0:
+        if status_code == ExitCode.PASSED:
+            color = Fore.GREEN + Style.BRIGHT
+            result = 'DONE'
+        elif status_code == ExitCode.SKIPPED:
+            color = Fore.YELLOW + Style.BRIGHT
+            result = 'SKIPPED'
+        else:
             color = Fore.RED + Style.BRIGHT
             result = 'FAILED'
         if name:
@@ -354,6 +374,15 @@ class Tty(Output):
         message = 'OUTPUT: {}'.format(msg)
         self._display(message)
 
+    def skip(self, msg):
+        """Communicates a skipping message.
+
+        :param str msg: The message to print.
+        :return: None
+        """
+        msg = msg.rstrip()
+        self._display(Fore.YELLOW + str(msg) + Style.RESET_ALL, err=True)
+
     @staticmethod
     def process_spinner(spinner, process_active=False):
         """Indicates whether a process is underway.
@@ -405,6 +434,10 @@ class Silent(Output):
 
     def info(self, *args, **kwargs):
         """Communicates a general information message."""
+        return
+
+    def skip(self, *args, **kwargs):
+        """Communicates a skipping message."""
         return
 
     def process_spinner(self, *args, **kwargs):

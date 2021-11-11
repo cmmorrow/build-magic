@@ -240,6 +240,28 @@ def labels_config(magic_dir):
 
 
 @pytest.fixture
+def skip1_config(magic_dir):
+    """Provides a config file with one stage to skip in the temp directory."""
+    filename = 'skip1.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
+def skip1fail_config(magic_dir):
+    """Provides a config file with one stage to skip and a second to fail in the temp directory."""
+    filename = 'skip1fail.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
 def env_config(magic_dir):
     """Provides a config file with environment variables."""
     config_filename = 'envs.yaml'
@@ -1186,3 +1208,57 @@ def test_labels_config_file(cli, labels_config):
     assert res.exit_code == ExitCode.PASSED
     assert '( 1/2 ) EXECUTE : Say hello to the user.' in out
     assert '( 2/2 ) EXECUTE : List the directory contents.' in out
+
+
+def test_skip_single_stage(cli, mocker):
+    """Verify that skipping a single stage works correctly."""
+    mocker.patch('subprocess.run', return_value=MagicMock(returncode=120, stdout=b'command not found\n'))
+    res = cli.invoke(build_magic, ['-r', 'local', '-e', 'windows', 'echo hello world'])
+    out = res.output
+    assert res.exit_code == ExitCode.SKIPPED
+    assert 'Skipping Stage 1 because OS is not windows.' in out
+    assert 'Stage 1 finished with result SKIPPED' in out
+
+
+def test_skip_one_stage_pass(cli, mocker, skip1_config):
+    """Verify that skipping a single stage followed by a passing stage works correctly."""
+    mocker.patch(
+        'subprocess.run',
+        side_effect=(
+            MagicMock(
+                returncode=120,
+                stdout=b'command not found\n',
+            ),
+            MagicMock(
+                returncode=0,
+                stdout=b'hello world',
+            )
+        )
+    )
+    res = cli.invoke(build_magic, ['-C', skip1_config])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Stage 1 finished with result SKIPPED' in out
+    assert 'Stage 2 finished with result DONE' in out
+
+
+def test_skip_one_stage_fail(cli, mocker, skip1fail_config):
+    """Verify that skipping a single stage followed by a failing stage works correctly."""
+    mocker.patch(
+        'subprocess.run',
+        side_effect=(
+            MagicMock(
+                returncode=120,
+                stdout=b'command not found\n',
+            ),
+            MagicMock(
+                returncode=1,
+                stdout=b'cat: blah.txt: No such file or directory',
+            )
+        )
+    )
+    res = cli.invoke(build_magic, ['-C', skip1fail_config])
+    out = res.output
+    assert res.exit_code == ExitCode.FAILED
+    assert 'Stage 1 finished with result SKIPPED' in out
+    assert 'Stage 2 finished with result FAILED' in out

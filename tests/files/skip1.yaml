@@ -1,0 +1,9 @@
+build-magic:
+  - stage:
+      runner: local
+      environment: windows
+      commands:
+        - execute: echo 'hello world'
+  - stage:
+      commands:
+        - execute: echo 'hello world'

@@ -9,6 +9,7 @@ Added dotenv file support.
 Added support for environment variables.
 Added support for command labels to optionally display instead of the command itself.
 Added support for job and stage descriptions.
+An environment can now be specified for the Local command runner and the stage will be skipped if the environment doesn't match the current OS or distribution.
 
 ## Version 0.3.3 (Newest)
 

@@ -11,7 +11,7 @@ from jsonschema import ValidationError, validate as jsvalidator
 from yaspin import yaspin
 
 from build_magic import actions, output, runner
-from build_magic.exc import ExecutionError, NoJobs, SetupError, TeardownError
+from build_magic.exc import ExecutionError, NoJobs, OSEnvironmentMismatch, SetupError, TeardownError
 from build_magic.macro import MacroFactory
 from build_magic.reference import VARIABLE_PATTERN
 from build_magic.reference import Actions, Directive, ExitCode, OutputMethod, OutputTypes, Runners
@@ -219,7 +219,8 @@ class Engine:
                 raise err
 
             if exit_code > status_code:
-                status_code = exit_code
+                if not (exit_code == ExitCode.SKIPPED and stage.sequence < len(self._stages)):
+                    status_code = exit_code
             _output.log(mode.STAGE_END, stage.sequence, exit_code, stage.name)
 
         _output.log(mode.JOB_END)
@@ -502,7 +503,17 @@ class Stage:
             raise SetupError
 
         # Call the command runner's prepare function.
-        self._command_runner.prepare()
+        try:
+            self._command_runner.prepare()
+        except OSEnvironmentMismatch:
+            if spinner is not None:
+                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+            msg = (
+                f'Skipping Stage {self.sequence}{": " + self.name if self.name else ""} '
+                f'because OS is not {self._command_runner.environment.lower()}.'
+            )
+            _output.log(mode.SKIP, msg)
+            return ExitCode.SKIPPED
 
         for mac in self._macros:
             directive = self._directives[mac.sequence - 1]
@@ -557,6 +568,6 @@ class Stage:
         # Set the exit code.
         fails = map(lambda r: True if r.exit_code > 0 else False, self._results)
         if any(fails):
-            self._result = 1
+            self._result = ExitCode.FAILED
 
         return self._result
