@@ -72,3 +72,9 @@ class VagrantNotFoundError(BuildMagicException):
     """The Vagrant executable was not found in the system path."""
 
     msg = 'Cannot find Vagrant in the system path. Is it installed?'
+
+
+class OSEnvironmentMismatch(BuildMagicException):
+    """The specified environment doesn't match the target operating system."""
+
+    msg = "Target OS does not match the specified environment."

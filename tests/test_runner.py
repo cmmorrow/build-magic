@@ -227,6 +227,83 @@ def test_local_prepare(build_path, local_runner, tmp_path):
     assert len(list(Path.cwd().iterdir())) == 1
 
 
+@pytest.mark.parametrize(
+    'version', (
+        b'Microsoft Windows 10 Enterprise',
+        b'Microsoft Windows 8.1 Pro',
+        b'Microsoft Windows 7 Ultimate',
+        b'Microsoft Windows 11 Home Single Language',
+        b'Microsoft Windows Server 2012 R2 Enterprise',
+    )
+)
+def test_local_os_matches_environment_windows(local_runner, mocker, version):
+    """Verify the Local command runner os_matches_environment() method works correctly for Windows."""
+    mocker.patch(
+        'subprocess.run',
+        return_value=MagicMock(
+            spec=subprocess.CompletedProcess,
+            returncode=0,
+            stdout=version,
+        )
+    )
+    local_runner.environment = 'windows'
+    assert local_runner.os_matches_environment()
+
+    local_runner.environment = 'win'
+    assert local_runner.os_matches_environment()
+
+
+@pytest.mark.parametrize(
+    'version', (
+        b'Mac OS X',
+        b'MacOS',
+        b'macOS Server',
+    )
+)
+def test_local_os_matches_environment_macos(local_runner, mocker, version):
+    """Verify the Local command runner os_matches_environment() method works correctly for MacOS."""
+    mocker.patch(
+        'subprocess.run',
+        return_value=MagicMock(
+            spec=subprocess.CompletedProcess,
+            returncode=0,
+            stdout=version,
+        )
+    )
+    local_runner.environment = 'macos'
+    assert local_runner.os_matches_environment()
+
+    local_runner.environment = 'darwin'
+    assert local_runner.os_matches_environment()
+
+
+@pytest.mark.parametrize(
+    'version', (
+        (b'ID=debian', 'debian'),
+        (b'ID=ubuntu', 'Ubuntu'),
+        (b'ID=centos', 'centos'),
+        (b'ID=rhel', 'rhel'),
+        (b'ID=fedora', 'fedora'),
+        (b'ID=mint', 'mint'),
+        (b'ID=suse', 'suse'),
+        (b'ID=arch', 'arch'),
+    ),
+)
+def test_local_os_matches_environment_linux(local_runner, mocker, version):
+    """Verify the Local command runner os_matches_environment() method works correctly for Linux distros."""
+    os_ver, env = version
+    mocker.patch(
+        'subprocess.run',
+        return_value=MagicMock(
+            spec=subprocess.CompletedProcess,
+            returncode=0,
+            stdout=os_ver,
+        )
+    )
+    local_runner.environment = env
+    assert local_runner.os_matches_environment()
+
+
 def test_local_execute(build_path, local_runner, tmp_path):
     """Verify the Local command runner execute() method works correctly."""
     cmd = Macro('tar -v -czf hello.tar.gz hello.txt')

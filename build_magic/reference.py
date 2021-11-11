@@ -254,6 +254,7 @@ class ExitCode(enum.IntEnum):
     INTERNAL_ERROR = 3
     INPUT_ERROR = 2
     NO_TESTS = 5
+    SKIPPED = 6
 
 
 @unique
@@ -269,6 +270,7 @@ class OutputMethod(enum.Enum):
     MACRO_STATUS = 'macro_status'
     ERROR = 'error'
     INFO = 'info'
+    SKIP = 'skip'
     PROCESS_SPINNER = 'process_spinner'
 
 
@@ -289,6 +291,16 @@ class KeyTypes(EnumExt):
     rsa = 'RSAKey'
     ecdsa = 'ECDSAKey'
     ed25519 = 'Ed25519Key'
+
+
+@unique
+class OSVersionCommands(EnumExt):
+    """Commands used for querying for a particular OS."""
+
+    DARWIN = 'sw_vers'
+    LINUX = 'cat /etc/os-release'
+    WINDOWS = 'systeminfo'
+    ANY = 'uname -a'
 
 
 class KeyPath(Parameter):

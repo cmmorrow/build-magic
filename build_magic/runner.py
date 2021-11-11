@@ -12,8 +12,8 @@ from docker.errors import ContainerError
 import paramiko
 from scp import SCPClient
 
-from build_magic.exc import HostWorkingDirectoryNotFound
-from build_magic.reference import BindDirectory, HostWorkingDirectory
+from build_magic.exc import HostWorkingDirectoryNotFound, OSEnvironmentMismatch
+from build_magic.reference import BindDirectory, HostWorkingDirectory, OSVersionCommands
 
 
 HOST_WD = 'hostwd'
@@ -271,6 +271,35 @@ class Local(CommandRunner):
         """Instantiates a new Local command runner object."""
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters, envs)
 
+    def os_matches_environment(self):
+        """Tests if self.environment matches the locally running operating system or distro.
+
+        :return: True if the environment matches the OS, else False.
+        """
+        if self.environment.lower() in ('macos', 'darwin'):
+            cmd = OSVersionCommands.DARWIN.value
+        elif self.environment.lower() in ('win', 'windows'):
+            cmd = OSVersionCommands.WINDOWS.value
+        else:
+            cmd = OSVersionCommands.LINUX.value
+
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+        )
+
+        if result.returncode > 0:
+            return False
+
+        if self.environment.lower() in ('macos', 'darwin'):
+            return True if b'Mac OS X' or b'MacOS' in result.stdout else False
+        elif self.environment.lower() in ('win', 'windows'):
+            return True if b'Microsoft Windows' in result.stdout else False
+        else:
+            return True if bytes(self.environment.lower(), encoding='utf-8') in result.stdout else False
+
     def prepare(self):
         """Changes to the specified working directory and copies artifacts if necessary.
 
@@ -282,6 +311,10 @@ class Local(CommandRunner):
 
         if self.working_directory:
             self.cd(self.working_directory)
+
+        if self.environment:
+            if self.os_matches_environment() is False:
+                raise OSEnvironmentMismatch
 
         return True
 

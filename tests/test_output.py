@@ -124,6 +124,11 @@ def test_basic_end_stage(capsys):
     captured = capsys.readouterr()
     assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] Stage 7: test-stage - complete with result FAIL\n'
 
+    # Stage skipped.
+    output.log(OutputMethod.STAGE_END, 7, 6)
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] Stage 7 complete with result SKIP\n'
+
 
 def test_basic_no_job(capsys):
     """Verify the basic no_job() method works as expected."""
@@ -230,6 +235,19 @@ def test_basic_info(capsys):
     assert captured.out == '2021-01-02T01:06:34 build-magic [ INFO  ] OUTPUT: This is a test.\n'
 
 
+@freeze_time('2021-01-02 01:06:34')
+def test_basic_skip(capsys):
+    """Verify the basic skip() method works as expected."""
+    output = Output()
+    with pytest.raises(NotImplementedError):
+        output.log(OutputMethod.INFO)
+
+    output = Basic()
+    output.log(OutputMethod.SKIP, 'Stage skipped.\n')
+    captured = capsys.readouterr()
+    assert captured.out == '2021-01-02T01:06:34 build-magic [ SKIP  ] OUTPUT: Stage skipped.\n'
+
+
 def test_tty_get_width_and_height(mocker):
     """Verify the TTY get_width and get_height methods work correctly."""
     output = Tty()
@@ -280,6 +298,10 @@ def test_tty_end_stage(capsys):
     captured = capsys.readouterr()
     assert captured.out == 'Stage 1 finished with result DONE\n\n'
 
+    output.log(OutputMethod.STAGE_END, 7)
+    captured = capsys.readouterr()
+    assert captured.out == 'Stage 7 finished with result DONE\n\n'
+
     output.log(OutputMethod.STAGE_END, 1, 1)
     captured = capsys.readouterr()
     assert captured.out == 'Stage 1 finished with result FAILED\n\n'
@@ -287,6 +309,10 @@ def test_tty_end_stage(capsys):
     output.log(OutputMethod.STAGE_END, 1, 1, 'test-stage')
     captured = capsys.readouterr()
     assert captured.out == 'Stage 1: test-stage - finished with result FAILED\n\n'
+
+    output.log(OutputMethod.STAGE_END, 1, 6)
+    captured = capsys.readouterr()
+    assert captured.out == 'Stage 1 finished with result SKIPPED\n\n'
 
 
 def test_tty_no_job(capsys):
@@ -354,73 +380,33 @@ def test_tty_info(capsys):
     assert captured.out == 'OUTPUT: test message.\n'
 
 
-def test_silent_start_job(capsys):
-    """Verify the silent start_job() method works correctly."""
+def test_tty_skip(capsys):
+    """Verify the skip() method works correctly."""
+    output = Tty()
+    output.log(OutputMethod.SKIP, 'stage skipped.\n\n')
+    captured = capsys.readouterr()
+    assert captured.err == 'stage skipped.\n'
+
+
+@pytest.mark.parametrize(
+    'method', (
+        OutputMethod.JOB_START,
+        OutputMethod.JOB_END,
+        OutputMethod.STAGE_START,
+        OutputMethod.STAGE_END,
+        OutputMethod.NO_JOB,
+        OutputMethod.MACRO_START,
+        OutputMethod.MACRO_STATUS,
+        OutputMethod.ERROR,
+        OutputMethod.INFO,
+        OutputMethod.SKIP,
+        OutputMethod.PROCESS_SPINNER,
+    )
+)
+def test_silent(capsys, method):
+    """Verify the silent methods work correctly."""
     output = Silent()
-    output.log(OutputMethod.JOB_START)
+    output.log(method)
     captured = capsys.readouterr()
     assert not captured.out
-
-
-def test_silent_end_job(capsys):
-    """Verify the silent end_job() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.JOB_END)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_start_stage(capsys):
-    """Verify the silent start_stage() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.STAGE_START)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_end_stage(capsys):
-    """Verify the silent end_stage() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.STAGE_END)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_no_job(capsys):
-    """Verify the silent no_job() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.NO_JOB)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_macro_start(capsys):
-    """Verify the silent macro_start() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.MACRO_START)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_macro_status(capsys):
-    """Verify the silent macro_status() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.MACRO_STATUS)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_error(capsys):
-    """Verify the silent error() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.ERROR)
-    captured = capsys.readouterr()
-    assert not captured.out
-
-
-def test_silent_info(capsys):
-    """Verify the silent info() method works correctly."""
-    output = Silent()
-    output.log(OutputMethod.INFO)
-    captured = capsys.readouterr()
-    assert not captured.out
+    assert not captured.err
