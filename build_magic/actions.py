@@ -349,6 +349,9 @@ def vm_destroy(self):
     if hasattr(self, '_vm') and isinstance(self._vm, vagrant.Vagrant):
         try:
             self._vm.destroy()
+            # Remove the build-magic created Vagrantfile if it exists.
+            if pathlib.Path(self.environment).resolve().joinpath(self.alt_vagrantfile_name).exists():
+                pathlib.Path(self.environment).resolve().joinpath(self.alt_vagrantfile_name).unlink()
         except subprocess.CalledProcessError as err:
             print(str(err))
             return False

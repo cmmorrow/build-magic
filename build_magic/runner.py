@@ -18,6 +18,7 @@ from build_magic.reference import BindDirectory, HostWorkingDirectory, OSVersion
 
 HOST_WD = 'hostwd'
 BIND_DIR = 'bind'
+ENVS = 'envs'
 CWD = '.'
 
 
@@ -511,7 +512,9 @@ class Vagrant(CommandRunner):
     """Manages macros executed executed in a guest virtual machine managed by Vagrant."""
 
     vagrantfile_name = 'Vagrantfile'
+    alt_vagrantfile_name = 'Vagrantfile_build_magic'
     vagrant_cwd_env = 'VAGRANT_CWD'
+    vagrantfile_name_env = 'VAGRANT_VAGRANTFILE'
     default_home_dir = '/home/vagrant'
     default_bind_dir = '/vagrant'
 
@@ -532,6 +535,10 @@ class Vagrant(CommandRunner):
         super().__init__(environment, working_dir, copy_dir, timeout, artifacts, parameters, envs)
 
         self._vm = None
+        self._vagrantfile_config = {
+            BIND_DIR: False,
+            ENVS: False,
+        }
 
         if self.environment == self.vagrantfile_name:
             self.environment = CWD
@@ -542,11 +549,75 @@ class Vagrant(CommandRunner):
             os.environ.pop(self.vagrant_cwd_env, '')
             os.environ[self.vagrant_cwd_env] = str(Path(self.environment).resolve())
 
+        self.bind_path = self.parameters.get(BIND_DIR, BindDirectory(self.default_bind_dir)).value
+        if self.bind_path != self.default_bind_dir:
+            self._vagrantfile_config[BIND_DIR] = True
+
+        if self.envs:
+            self._vagrantfile_config[ENVS] = True
+
         self.host_wd = self.parameters.get(HOST_WD, HostWorkingDirectory(self.environment)).value
         if not Path(self.host_wd).exists():
             raise HostWorkingDirectoryNotFound
 
-        self.bind_path = self.parameters.get(BIND_DIR, BindDirectory(self.default_bind_dir)).value
+        # Create a new Vagrantfile if needed.
+        if any(self._vagrantfile_config.values()):
+            config = self.build_config()
+            self.create_vagrantfile_config(config)
+
+    def build_config(self):
+        """Assemble the Vagrantfile config based on the command runner settings.
+
+        :rtype: str
+        :return: The Vagrantfile config.
+        """
+        wd = self.default_home_dir if self.working_directory == CWD else self.working_directory
+
+        bind_dir = ''
+        if self._vagrantfile_config.get(BIND_DIR, False):
+            bind_dir = f'  config.vm.synced_folder "{CWD}", "{self.bind_path}"'
+
+        envs = []
+        exports = ''
+        if self.envs:
+            for env, value in self.envs.items():
+                envs.append(f'echo "export {env}={value}" >> {wd}/.profile')
+            exports = '\n'.join(envs)
+
+        provision = ''
+        if exports:
+            provision = f"""  config.vm.provision "build-magic", type: "shell" do |s|
+    s.inline = <<-SCRIPT
+{exports}
+SCRIPT
+  end"""
+
+        config = f"""# Config added by build-magic
+Vagrant.configure("2") do |config|
+{bind_dir}
+{provision}
+end"""
+        return config
+
+    def create_vagrantfile_config(self, config):
+        """Concatenate a new Vagrantfile config to an existing Vagrantfile.
+
+        The steps are:
+
+            1. Read the Vagrantfile from self.environment.
+            2. Append config to the end of the Vagrantfile.
+            3. Write the new Vagrantfile to the same directory as the existing Vagrantfile.
+            4. Set the VAGRANT_VAGRANTFILE environment variable to point to the new Vagrantfile.
+
+        :param config: A Vagrant.config section to add to an existing Vagrantfile.
+        :return: None
+        """
+        vagrantfile_path = Path(self.environment).resolve()
+        vagrantfile = vagrantfile_path.joinpath(self.vagrantfile_name).read_text()
+        new_vagrantfile = vagrantfile + config
+        vagrantfile_path.joinpath(self.alt_vagrantfile_name).write_text(new_vagrantfile)
+        os.environ.pop(self.vagrantfile_name_env, '')
+        os.environ[self.vagrantfile_name_env] = self.alt_vagrantfile_name
 
     def prepare(self):
         """Handles copying artifacts to the working directory if necessary."""

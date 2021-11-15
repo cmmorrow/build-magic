@@ -10,6 +10,7 @@ Added support for environment variables.
 Added support for command labels to optionally display instead of the command itself.
 Added support for job and stage descriptions.
 An environment can now be specified for the Local command runner and the stage will be skipped if the environment doesn't match the current OS or distribution.
+Build-magic creates and uses a custom Vagrantfile when using the Vagrant command runner and setting bind directory or envvars.
 
 ## Version 0.3.3 (Newest)
 
