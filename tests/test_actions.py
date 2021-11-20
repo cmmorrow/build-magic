@@ -223,8 +223,29 @@ def test_action_vm_destroy(generic_runner, mocker):
 
     # Assign _vm to a Vagrant object.
     generic_runner._vm = vagrant.Vagrant()
+    generic_runner.alt_vagrantfile_name = 'Vagrantfile_build_magic'
     assert generic_runner.teardown()
     assert destroy.call_count == 1
+
+
+def test_action_vm_destroy_delete_vagrantfile(generic_runner, mocker, tmp_path):
+    """Verify the vm_destroy() function properly deletes a build-magic generated Vagrantfile."""
+    mocker.patch('vagrant.Vagrant.destroy')
+
+    ref_vagrantfile = Path(__file__).parent / 'files' / 'Vagrantfile'
+    vagrantfile_path = tmp_path / 'vagrant_build_magic'
+    vagrantfile_path.mkdir()
+    vagrantfile = ref_vagrantfile.read_text()
+    vagrantfile_path.joinpath('Vagrantfile_build_magic').write_text(vagrantfile)
+
+    assert vagrantfile_path.joinpath('Vagrantfile_build_magic').exists()
+
+    generic_runner.teardown = types.MethodType(actions.vm_destroy, generic_runner)
+    generic_runner.environment = vagrantfile_path
+    generic_runner._vm = vagrant.Vagrant()
+    generic_runner.alt_vagrantfile_name = 'Vagrantfile_build_magic'
+    generic_runner.teardown()
+    assert not vagrantfile_path.joinpath('Vagrantfile_build_magic').exists()
 
 
 def test_action_vm_destroy_error(generic_runner, mocker):

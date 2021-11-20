@@ -543,6 +543,10 @@ def test_docker_envs(docker_runner, mocker):
 def test_vagrant_constructor(mocker):
     """Verify the Vagrant command runner constructor works correctly."""
     mocker.patch('pathlib.Path.exists', return_value=True)
+    read = mocker.patch('pathlib.Path.read_text', return_value='')
+    write = mocker.patch('pathlib.Path.write_text')
+
+    # Test the vanilla command runner.
     runner = Vagrant()
     assert runner.environment == '.'
     assert runner.working_directory == '/home/vagrant'
@@ -556,6 +560,12 @@ def test_vagrant_constructor(mocker):
     assert runner.bind_path == '/vagrant'
     assert runner.envs == {}
 
+    assert runner._vagrantfile_config.get('envs') is False
+    assert runner._vagrantfile_config.get('bind') is False
+
+    assert read.call_count == 0
+    assert write.call_count == 0
+
     if os.sys.platform == 'win32':
         host_wd = 'C:\\my_repo'
         env = 'C:\\opt'
@@ -563,6 +573,7 @@ def test_vagrant_constructor(mocker):
         host_wd = '/my_repo'
         env = '/opt'
 
+    # Test the command runner with several arguments set.
     runner = Vagrant(
         environment=env,
         working_dir='/test',
@@ -591,18 +602,46 @@ def test_vagrant_constructor(mocker):
         'FOO': 'bar',
     }
 
+    assert runner._vagrantfile_config.get('envs') is True
+    assert runner._vagrantfile_config.get('bind') is True
+
+    assert read.call_count == 1
+    assert write.call_count == 1
+
+    # Test Vagrant envvars manipulation
     os.environ.pop('VAGRANT_CWD', '')
+    os.environ.pop('VAGRANT_VAGRANTFILE', '')
     runner = Vagrant(
         environment='Vagrantfile',
     )
+    assert not os.environ.get('VAGRANT_VAGRANTFILE')
     assert not os.environ.get('VAGRANT_CWD')
     assert runner.environment == '.'
 
     runner = Vagrant(
-        environment='/opt/Vagrantfile'
+        environment=str(Path(env) / 'Vagrantfile'),
+        envs={'HELLO': 'hello', 'WORLD': 'world'}
     )
+    assert os.environ.get('VAGRANT_VAGRANTFILE') == 'Vagrantfile_build_magic'
     assert os.environ.get('VAGRANT_CWD') == env
-    assert runner.environment == '/opt/'
+    assert runner.environment == str(Path(env)) + os.sep
+
+
+def test_vagrant_create_vagrantfile_config(tmp_path):
+    """Verify that the create_config() method creates a new Vagrant file with the new config."""
+    ref_vagrantfile = Path(__file__).parent / 'files' / 'Vagrantfile'
+    vagrantfile_path = tmp_path / 'vagrant_build_magic'
+    vagrantfile_path.mkdir()
+    vagrantfile = ref_vagrantfile.read_text()
+    vagrantfile_path.joinpath('Vagrantfile').write_text(vagrantfile)
+
+    runner = Vagrant(
+        environment=str(vagrantfile_path),
+    )
+    runner.create_vagrantfile_config('dummy')
+    new_vagrantfile = vagrantfile_path.joinpath('Vagrantfile_build_magic')
+    assert new_vagrantfile.exists()
+    assert new_vagrantfile.read_text() == vagrantfile + 'dummy'
 
 
 def test_vagrant_host_wd_not_found(mocker):
@@ -610,6 +649,78 @@ def test_vagrant_host_wd_not_found(mocker):
     mocker.patch('pathlib.Path.exists', return_value=False)
     with pytest.raises(HostWorkingDirectoryNotFound):
         assert Vagrant()
+
+
+def test_vagrant_build_config(mocker):
+    """Verify creating the Vagrantfile config works correctly."""
+    mocker.patch('pathlib.Path.read_text')
+    mocker.patch('pathlib.Path.write_text')
+
+    # Test configuring synced folder and envvars.
+    ref = """# Config added by build-magic
+Vagrant.configure("2") do |config|
+  config.vm.synced_folder ".", "/app"
+  config.vm.provision "build-magic", type: "shell" do |s|
+    s.inline = <<-SCRIPT
+echo "export HELLO=world" >> /home/vagrant/.profile
+echo "export FOO=bar" >> /home/vagrant/.profile
+SCRIPT
+  end
+end"""
+    runner = Vagrant(
+        parameters={
+            'bind': BindDirectory(str(Path('/app'))),
+        },
+        envs={
+            'HELLO': 'world',
+            'FOO': 'bar',
+        }
+    )
+    config = runner.build_config()
+    assert config == ref
+
+    # Test configuring envvars.
+    ref = """# Config added by build-magic
+Vagrant.configure("2") do |config|
+
+  config.vm.provision "build-magic", type: "shell" do |s|
+    s.inline = <<-SCRIPT
+echo "export HELLO=world" >> /home/vagrant/.profile
+echo "export FOO=bar" >> /home/vagrant/.profile
+SCRIPT
+  end
+end"""
+    runner = Vagrant(
+        envs={
+            'HELLO': 'world',
+            'FOO': 'bar',
+        }
+    )
+    config = runner.build_config()
+    assert config == ref
+
+    # Test configuring synced folder.
+    ref = """# Config added by build-magic
+Vagrant.configure("2") do |config|
+  config.vm.synced_folder ".", "/app"
+
+end"""
+    runner = Vagrant(
+        parameters={
+            'bind': BindDirectory(str(Path('/app'))),
+        }
+    )
+    config = runner.build_config()
+    assert config == ref
+
+    ref = """# Config added by build-magic
+Vagrant.configure("2") do |config|
+
+
+end"""
+    runner = Vagrant()
+    config = runner.build_config()
+    assert config == ref
 
 
 def test_vagrant_prepare(build_path, mocker, tmp_path, vagrant_runner):
