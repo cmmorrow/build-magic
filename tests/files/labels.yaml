@@ -5,5 +5,5 @@ build-magic:
       commands:
         - execute: echo hello
           label: Say hello to the user.
-        - execute: ls
-          label: List the directory contents.
+        - execute: echo goodbye
+          label: Say goodbye to the user.

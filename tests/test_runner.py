@@ -354,7 +354,12 @@ def test_local_envs(local_runner):
         'HELLO': 'world',
         'FOO': 'bar',
     }
-    cmd = 'env'
+
+    if os.sys.platform == 'win32':
+        cmd = 'set'
+    else:
+        cmd = 'env'
+
     macro = Macro(cmd)
     local_runner.envs = envs
     status = local_runner.execute(macro)
@@ -669,7 +674,7 @@ SCRIPT
 end"""
     runner = Vagrant(
         parameters={
-            'bind': BindDirectory(str(Path('/app'))),
+            'bind': BindDirectory('/app'),
         },
         envs={
             'HELLO': 'world',
@@ -707,7 +712,7 @@ Vagrant.configure("2") do |config|
 end"""
     runner = Vagrant(
         parameters={
-            'bind': BindDirectory(str(Path('/app'))),
+            'bind': BindDirectory('/app'),
         }
     )
     config = runner.build_config()
