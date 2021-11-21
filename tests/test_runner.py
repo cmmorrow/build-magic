@@ -359,7 +359,7 @@ def test_local_envs(local_runner):
         cmd = 'set'
     else:
         cmd = 'env'
-    
+
     macro = Macro(cmd)
     local_runner.envs = envs
     status = local_runner.execute(macro)
