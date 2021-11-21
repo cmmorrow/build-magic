@@ -1,0 +1,5 @@
+build-magic:
+  - stage:
+      dotenv: test.env
+      commands:
+        - execute: set

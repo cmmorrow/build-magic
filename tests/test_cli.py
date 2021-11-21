@@ -264,7 +264,10 @@ def skip1fail_config(magic_dir):
 @pytest.fixture
 def env_config(magic_dir):
     """Provides a config file with environment variables."""
-    config_filename = 'envs.yaml'
+    if os.sys.platform == 'win32':
+        config_filename = 'envs_win.yaml'
+    else:
+        config_filename = 'envs.yaml'
     dotenv_filename = 'test.env'
 
     config = magic_dir / config_filename
@@ -284,7 +287,10 @@ def env_config(magic_dir):
 @pytest.fixture
 def dotenv_config(magic_dir):
     """Provides a config file that uses a dotenv file in the temp directory."""
-    config_filename = 'dotenv.yaml'
+    if os.sys.platform == 'win32':
+        config_filename = 'dotenv_win.yaml'
+    else:
+        config_filename = 'dotenv.yaml'
     dotenv_filename = 'test.env'
 
     config = magic_dir / config_filename
@@ -1118,13 +1124,16 @@ def test_cli_info_extra_options_and_args(cli):
 
 def test_cli_dotenv(cli):
     """Verify the --dotenv option works correctly."""
-    cmd = 'env'
+    if os.sys.platform == 'win32':
+        cmd = 'set'
+    else:
+        cmd = 'env'
     env_file = Path(__file__).parent / 'files' / 'test.env'
     res = cli.invoke(build_magic, ['--dotenv', env_file, '--verbose', cmd])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'FOO=bar\n' in out
-    assert 'HELLO=world\n' in out
+    assert 'FOO=bar' in out
+    assert 'HELLO=world' in out
     assert 'dummy' not in out
 
 
@@ -1140,17 +1149,24 @@ def test_cli_dotenv_warn(cli):
 
 def test_cli_dotenv_config_file(cli, dotenv_config):
     """Verify the dotenv config file property works correctly."""
-    config = dotenv_config / 'dotenv.yaml'
+    if os.sys.platform == 'win32':
+        config = dotenv_config / 'dotenv_win.yaml'
+    else:
+        config = dotenv_config / 'dotenv.yaml'
     res = cli.invoke(build_magic, ['-C', config, '--verbose'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
-    assert 'FOO=bar\n' in out
-    assert 'HELLO=world\n' in out
+    assert 'FOO=bar' in out
+    assert 'HELLO=world' in out
     assert 'dummy' not in out
 
 
 def test_cli_environment_variables(cli):
     """Verify setting environment variables works correctly."""
+    if os.sys.platform == 'win32':
+        cmd = '%HELLO% %WORLD%'
+    else:
+        cmd = '$HELLO $WORLD'
     res = cli.invoke(
         build_magic, [
             '--env',
@@ -1161,7 +1177,7 @@ def test_cli_environment_variables(cli):
             'world',
             '--verbose',
             'echo',
-            '$HELLO $WORLD',
+            cmd,
         ]
     )
     out = res.output
@@ -1172,6 +1188,10 @@ def test_cli_environment_variables(cli):
 def test_combine_envs_and_dotenv(cli):
     """Verify that using a dotenv and individual environment variables are merged correctly."""
     env_file = Path(__file__).parent / 'files' / 'test.env'
+    if os.sys.platform == 'win32':
+        cmd = '%HELLO% %WORLD% %FOO%'
+    else:
+        cmd = '$HELLO $WORLD $FOO'
     res = cli.invoke(
         build_magic, [
             '--env',
@@ -1184,7 +1204,7 @@ def test_combine_envs_and_dotenv(cli):
             env_file,
             '--verbose',
             'echo',
-            '$HELLO $WORLD $FOO',
+            cmd,
         ]
     )
     out = res.output
@@ -1194,7 +1214,10 @@ def test_combine_envs_and_dotenv(cli):
 
 def test_envs_config_file(cli, env_config):
     """Verify that using environment variables with a dotenv file in a config file work correctly."""
-    config = env_config / 'envs.yaml'
+    if os.sys.platform == 'win32':
+        config = env_config / 'envs_win.yaml'
+    else:
+        config = env_config / 'envs.yaml'
     res = cli.invoke(build_magic, ['-C', config, '--verbose'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
@@ -1207,7 +1230,7 @@ def test_labels_config_file(cli, labels_config):
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert '( 1/2 ) EXECUTE : Say hello to the user.' in out
-    assert '( 2/2 ) EXECUTE : List the directory contents.' in out
+    assert '( 2/2 ) EXECUTE : Say goodbye to the user.' in out
 
 
 def test_skip_single_stage(cli, mocker):
