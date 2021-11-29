@@ -6,7 +6,6 @@ import logging
 import pathlib
 import re
 import shlex
-import sys
 
 import click
 import yaml
@@ -62,13 +61,19 @@ Examples:
     build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
 
 * Build a project in a Linux container.
-    build-magic -r docker -e Ubuntu:latest -c execute "configure" -c build "make all"
+    build-magic -r docker -e ubuntu:latest -c execute "configure" -c build "make all"
 
 * Execute multiple commands in a config file.
     build-magic -C myconfig.yaml
 
 * Execute a particular stage in a config file.
     build-magic -C myconfig.yaml -t build
+
+* Execute a particular stage in a config file in the current directory named build-magic.yaml.
+    build-magic build
+
+* Execute all stages in a config file in the current directory named build-magic.yaml.
+    build-magic all
 
 Use --help for detailed usage of each option.
 
@@ -100,78 +105,15 @@ VERBOSE_HELP = 'Verbose output -- stdout from executed commands will be printed 
 WD_HELP = 'The working directory to run commands from.'
 
 
-def read_config_file(cfg):
-    """Loads a config yaml file.
+def error(ctx, msg, code):
+    """High-level function for printing an error message and providing an error code.
 
-    :param TextIOWrapper cfg: The config file to read.
-    :rtype: dict
-    :return: A dictionary representing the the loaded config.
+    :param click.Context ctx: The click Context to use.
+    :param str msg: The error message to print.
+    :param int code: The exit code to return.
     """
-    try:
-        obj = yaml.safe_load(cfg)
-        if isinstance(cfg, TextIOWrapper):
-            cfg.close()
-    except yaml.YAMLError as err:
-        click.secho(str(err), fg='red', err=True)
-        sys.exit(reference.ExitCode.INPUT_ERROR)
-    return obj
-
-
-def get_config_info(cfg, show_filename=False):
-    """Writes relevant info in a config file to stdout.
-
-    :param TextIOWrapper cfg: The config file to read and display info of.
-    :param bool show_filename: If True, display the filename of the config file.
-    :return: None
-    """
-    def add_output(label_, val):
-        spacing.append(len(label_))
-        output.append((label_, val))
-
-    obj = read_config_file(cfg)
-    filename = f'{cfg.name}  ' if show_filename else ''
-
-    version = obj.get('version')
-    author = obj.get('author')
-    maintainer = obj.get('maintainer')
-    created = obj.get('created')
-    modified = obj.get('modified')
-    description = obj.get('description')
-
-    variables = []
-    if re.search(reference.VARIABLE_PATTERN, json.dumps(obj)):
-        variables = re.findall(reference.VARIABLE_PATTERN, json.dumps(obj))
-        variables = set(variables)
-        variables = sorted([var.strip('{{').strip('}}').strip() for var in variables])
-
-    stages = [stg.get('stage') for stg in obj['build-magic']]
-    stage_names = [stage.get('name') for stage in stages if stage.get('name')]
-
-    spacing = []
-    output = []
-
-    if version:
-        add_output('version', version)
-    if author:
-        add_output('author', author)
-    if maintainer:
-        add_output('maintainer', maintainer)
-    if created:
-        add_output('created', created)
-    if modified:
-        add_output('modified', modified)
-    if description:
-        add_output('description', description)
-
-    for variable in variables:
-        add_output('variable', variable)
-
-    for name in stage_names:
-        add_output('stage', name)
-
-    space = max(spacing) + 1
-    for label, value in output:
-        click.echo(f'{filename}{label + ":":<{space}}  {value}')
+    click.secho(str(msg), fg='red', err=True)
+    ctx.exit(code)
 
 
 def get_template(ctx, _, value):
@@ -186,17 +128,19 @@ def get_template(ctx, _, value):
         return
     try:
         core.generate_config_template()
-        sys.exit(0)
+        ctx.exit()
     except FileExistsError:
-        click.secho('Cannot generate the config template because it already exists!', fg='red', err=True)
-        sys.exit(reference.ExitCode.INPUT_ERROR)
-    except PermissionError:
-        click.secho(
-            "Cannot generate the config template because build-magic doesn't have permission.",
-            fg='red',
-            err=True,
+        error(
+            ctx=ctx,
+            msg='Cannot generate the config template because it already exists!',
+            code=reference.ExitCode.INPUT_ERROR,
         )
-        ctx.exit(reference.ExitCode.INPUT_ERROR)
+    except PermissionError:
+        error(
+            ctx=ctx,
+            msg="Cannot generate the config template because build-magic doesn't have permission.",
+            code=reference.ExitCode.INPUT_ERROR,
+        )
 
 
 def set_silent(_, param, value):
@@ -289,7 +233,7 @@ def build_magic(
 ):
     """An un-opinionated build automation tool.
 
-    ARGS - One of three possible uses based on context:
+    ARGS - One of four possible uses based on context:
 
     1. If the --copy option is used, each argument in ARGS is a file name in the copy from directory to copy to
     the working directory.
@@ -299,42 +243,24 @@ def build_magic(
 
     3. ARGS are considered a single command to execute if the --command option isn't used.
 
+    4. ARGS are config file names if using the --info option.
+
     Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a detailed usage description.
     """
 
     ctx = click.get_current_context()
+
+    if info:
+        execute_info_subcommand(ctx=ctx, config_files=args)
 
     # Get the output type.
     out = quiet or plain or fancy
 
     stages_ = []
     all_stage_names = []
-    config = list(config)
     seq = core.iterate_sequence()
 
-    # Check to see if a default-named config file exists in the current directory.
-    default_configs = DEFAULT_CONFIG_NAMES & set([path.name for path in pathlib.Path.cwd().iterdir()])
-    if len(default_configs) > 1:
-        click.secho(f'More than one config file found: {default_configs}', fg='red', err=True)
-        ctx.exit(reference.ExitCode.INPUT_ERROR)
-
-    # Add the default config to the list of configs.
-    if len(default_configs) == 1:
-        default_config_file_name = tuple(default_configs)[0]
-        config_file = pathlib.Path(default_config_file_name).open()
-        if config_file.name not in [conf.name for conf in config]:
-            config.insert(0, config_file)
-        else:
-            config_file.close()
-
-    if info:
-        if not config:
-            click.secho('No config files specified.', fg='red', err=True)
-            ctx.exit(reference.ExitCode.INPUT_ERROR)
-        show_filenames = True if len(config) > 1 else False
-        for cfg in config:
-            get_config_info(cfg, show_filename=show_filenames)
-        ctx.exit()
+    config = configs_with_default_config(ctx=ctx, configs=config, command=command)
 
     # Set the commands from the command line.
     if command:
@@ -358,10 +284,6 @@ def build_magic(
                 envs={**parse_dotenv_file(dotenv), **dict(env)},
             )
         )
-        if len(default_configs) == 1:
-            if not config_file.closed:
-                config_file.close()
-
     elif config:
         if prompt:
             variable = list(variable)
@@ -372,24 +294,28 @@ def build_magic(
             stages = get_stages_from_config(cfg, dict(variable))
             stage_names = [stg.get('name') for stg in stages if stg.get('name')]
             all_stage_names.extend(stage_names)
-            # Only execute stages that match a target name.
+
             if target:
+                # Only execute stages that match a target name.
                 for trgt in target:
                     if trgt in stage_names:
                         stage_ = stages[stage_names.index(trgt)]
                         stages_.append(get_config_params(stage_, cfg.name, next(seq)))
             elif args and cfg.name in DEFAULT_CONFIG_NAMES:
                 for trgt in [shlex.split(t)[0] for t in args]:
-                    # Execute all stages in the default config file.
+
                     if trgt == 'all':
+                        # Execute all stages in the default config file.
                         for stage_ in stages:
                             stages_.append(get_config_params(stage_, cfg.name, next(seq)))
-                    # Execute only the stage in the default config file that matches the given arg.
+
                     elif trgt in stage_names:
+                        # Execute only the stage in the default config file that matches the given arg.
                         stage_ = stages[stage_names.index(trgt)]
                         stages_.append(get_config_params(stage_, cfg.name, next(seq)))
-                    # Otherwise, assume the args are a command.
+
                     else:
+                        # Otherwise, assume the args are a command.
                         directives, commands = ['execute'], [' '.join(args)]
                         stages_.append(
                             dict(
@@ -409,13 +335,16 @@ def build_magic(
                             )
                         )
                         break
-            # If a default config file exists but there are no args, skip it.
+
             elif not args and cfg.name in DEFAULT_CONFIG_NAMES:
+                # If a default config file exists but there are no args, skip it.
                 continue
-            # The typical case where each stage is executed in the specified config file.
+
             else:
+                # The typical case where each stage is executed in the specified config file.
                 for stage_ in stages:
                     stages_.append(get_config_params(stage_, cfg.name, next(seq)))
+
     # Assume the args are an ad-hoc command to execute.
     elif args and not command:
         directives, commands = ['execute'], [' '.join(args)]
@@ -439,8 +368,12 @@ def build_magic(
     # If all else fails, display the usage text.
     if not stages_:
         if target:
-            click.secho(f'Target {target[0]} not found among {all_stage_names}.', fg='red', err=True)
-            ctx.exit(reference.ExitCode.INPUT_ERROR)
+            error(
+                ctx=ctx,
+                msg=f'Target {target[0]} not found among {all_stage_names}.',
+                code=reference.ExitCode.INPUT_ERROR,
+            )
+
         click.echo(USAGE)
         ctx.exit(reference.ExitCode.NO_TESTS)
 
@@ -464,6 +397,142 @@ def build_magic(
     ctx.exit(code)
 
 
+def read_config_file(cfg):
+    """Loads a config yaml file.
+
+    :param TextIOWrapper cfg: The config file to read.
+    :rtype: dict
+    :return: A dictionary representing the the loaded config.
+    """
+    try:
+        obj = yaml.safe_load(cfg)
+        if isinstance(cfg, TextIOWrapper):
+            cfg.close()
+        return obj
+    except yaml.YAMLError as err:
+        error(
+            ctx=click.get_current_context(),
+            msg=str(err),
+            code=reference.ExitCode.INPUT_ERROR,
+        )
+
+
+def get_config_info(cfg, show_filename=False):
+    """Writes relevant info in a config file to stdout.
+
+    :param TextIO cfg: The config file to read and display info of.
+    :param bool show_filename: If True, display the filename of the config file.
+    :return: None
+    """
+    def add_output(label_, val):
+        spacing.append(len(label_))
+        output.append((label_, val))
+
+    obj = read_config_file(cfg)
+    filename = f'{cfg.name}  ' if show_filename else ''
+
+    version = obj.get('version')
+    author = obj.get('author')
+    maintainer = obj.get('maintainer')
+    created = obj.get('created')
+    modified = obj.get('modified')
+    description = obj.get('description')
+
+    variables = []
+    if re.search(reference.VARIABLE_PATTERN, json.dumps(obj)):
+        variables = re.findall(reference.VARIABLE_PATTERN, json.dumps(obj))
+        variables = set(variables)
+        variables = sorted([var.strip('{{').strip('}}').strip() for var in variables])
+
+    stages = [stg.get('stage') for stg in obj['build-magic']]
+    stage_names = [stage.get('name') for stage in stages if stage.get('name')]
+
+    spacing = []
+    output = []
+
+    if version:
+        add_output('version', version)
+    if author:
+        add_output('author', author)
+    if maintainer:
+        add_output('maintainer', maintainer)
+    if created:
+        add_output('created', created)
+    if modified:
+        add_output('modified', modified)
+    if description:
+        add_output('description', description)
+
+    for variable in variables:
+        add_output('variable', variable)
+
+    for name in stage_names:
+        add_output('stage', name)
+
+    space = max(spacing) + 1
+    for label, value in output:
+        click.echo(f'{filename}{label + ":":<{space}}  {value}')
+
+
+def execute_info_subcommand(ctx, config_files):
+    """Opens config files and fetches the info for each.
+
+    :param click.Context ctx: The context of the click command.
+    :param tuple[str] config_files: The config files to get the info of.
+    """
+    if not config_files:
+        error(
+            ctx=ctx,
+            msg='No config files specified.',
+            code=reference.ExitCode.INPUT_ERROR,
+        )
+    show_filenames = True if len(config_files) > 1 else False
+    try:
+        for cfg in [open(arg, 'r') for arg in config_files]:
+            get_config_info(cfg, show_filename=show_filenames)
+    except FileNotFoundError as e:
+        error(
+            ctx=ctx,
+            msg=str(e),
+            code=reference.ExitCode.INPUT_ERROR,
+        )
+    ctx.exit()
+
+
+def configs_with_default_config(ctx, configs, command=None):
+    """Check to see if there is a default config and add it to the list of configs.
+
+    :param click.Context ctx: The context of the click command.
+    :param tuple[TextIOWrapper] configs: The config filenames to use.
+    :param tuple[str]|None command: The commands to use if set.
+    :rtype: list[TextIOWrapper]
+    :return: A list of the configs that include the default config file if one exists.
+    """
+    new_configs = list(configs)
+
+    # Check to see if a default-named config file exists in the current directory.
+    default_configs = DEFAULT_CONFIG_NAMES & set([path.name for path in pathlib.Path.cwd().iterdir()])
+    if len(default_configs) > 1:
+        error(
+            ctx=ctx,
+            msg=f'More than one config file found: {default_configs}',
+            code=reference.ExitCode.INPUT_ERROR,
+        )
+
+    # Add the default config to the list of configs.
+    if len(default_configs) == 1:
+        default_config_file_name = tuple(default_configs)[0]
+        config_file = pathlib.Path(default_config_file_name).open()
+        if config_file.name not in [conf.name for conf in configs]:
+            new_configs.insert(0, config_file)
+        else:
+            config_file.close()
+        if command and not config_file.closed:
+            config_file.close()
+
+    return new_configs
+
+
 def execute_stages(engine):
     """Helper function for executing each stage in order.
 
@@ -479,8 +548,11 @@ def execute_stages(engine):
     except (ExecutionError, SetupError, TeardownError):
         ctx.exit(reference.ExitCode.INTERNAL_ERROR)
     except KeyboardInterrupt:
-        click.secho('\nbuild-magic interrupted and exiting....', fg='red', err=True)
-        ctx.exit(reference.ExitCode.INTERRUPTED)
+        error(
+            ctx=ctx,
+            msg='\nbuild-magic interrupted and exiting....',
+            code=reference.ExitCode.INTERRUPTED,
+        )
 
 
 def build_stages(args):
@@ -490,14 +562,16 @@ def build_stages(args):
     :rtype: list[Stage]
     :return: A list of corresponding Stage objects.
     """
-    ctx = click.get_current_context()
     stages = []
     for stage in args:
         try:
             stages.append(core.build_stage(**stage))
         except (NotADirectoryError, ValueError, reference.ValidationError, HostWorkingDirectoryNotFound) as err:
-            click.secho(str(err), fg='red', err=True)
-            ctx.exit(reference.ExitCode.INPUT_ERROR)
+            error(
+                ctx=click.get_current_context(),
+                msg=str(err),
+                code=reference.ExitCode.INPUT_ERROR,
+            )
     return stages
 
 
@@ -546,8 +620,6 @@ def get_stages_from_config(cfg, variables):
     :rtype: list[dict]
     :return: The extracted stages.
     """
-    ctx = click.get_current_context()
-
     # Read the config YAML file.
     obj = read_config_file(cfg)
 
@@ -556,8 +628,11 @@ def get_stages_from_config(cfg, variables):
         obj = core.parse_variables(obj, variables)
         return core.config_parser(obj)
     except ValueError as err:
-        click.secho(str(err), fg='red', err=True)
-        ctx.exit(reference.ExitCode.INPUT_ERROR)
+        error(
+            ctx=click.get_current_context(),
+            msg=str(err),
+            code=reference.ExitCode.INPUT_ERROR,
+        )
 
 
 def parse_dotenv_file(dotenv):

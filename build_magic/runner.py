@@ -168,7 +168,7 @@ class CommandRunner:
         self.envs = {} if not envs else envs
 
     def _merge_envs(self):
-        """"""
+        """Merge environment variables with self.envs."""
         envs = os.environ
         envs.update(self.envs)
         self.envs = envs

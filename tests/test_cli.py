@@ -36,13 +36,19 @@ Examples:
     build-magic -r remote -e user@myhost --copy . -c build "tar -czf myfiles.tar.gz f1.txt f2.txt" f1.txt f2.txt
 
 * Build a project in a Linux container.
-    build-magic -r docker -e Ubuntu:latest -c execute "configure" -c build "make all"
+    build-magic -r docker -e ubuntu:latest -c execute "configure" -c build "make all"
 
 * Execute multiple commands in a config file.
     build-magic -C myconfig.yaml
 
 * Execute a particular stage in a config file.
     build-magic -C myconfig.yaml -t build
+
+* Execute a particular stage in a config file in the current directory named build-magic.yaml.
+    build-magic build
+
+* Execute all stages in a config file in the current directory named build-magic.yaml.
+    build-magic all
 
 Use --help for detailed usage of each option.
 
@@ -347,7 +353,7 @@ def test_cli_help(cli):
 
   An un-opinionated build automation tool.
 
-  ARGS - One of three possible uses based on context:
+  ARGS - One of four possible uses based on context:
 
   1. If the --copy option is used, each argument in ARGS is a file name in the
   copy from directory to copy to the working directory.
@@ -357,6 +363,8 @@ def test_cli_help(cli):
 
   3. ARGS are considered a single command to execute if the --command option
   isn't used.
+
+  4. ARGS are config file names if using the --info option.
 
   Visit https://cmmorrow.github.io/build-magic/user_guide/cli_usage/ for a
   detailed usage description.
@@ -1073,7 +1081,7 @@ modified:     06/02/2382
 description:  Second contact
 stage:        Test
 """
-    res = cli.invoke(build_magic, ['--info', '-C', meta_config])
+    res = cli.invoke(build_magic, ['--info', str(meta_config)])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert out == ref
@@ -1081,8 +1089,8 @@ stage:        Test
 
 def test_cli_info_two_configs(cli):
     """Verify the --info option works correctly with more than one config file."""
-    meta = Path(__file__).parent / 'files' / 'meta.yaml'
-    variables = Path(__file__).parent / 'files' / 'variables.yaml'
+    meta = str(Path(__file__).parent / 'files' / 'meta.yaml')
+    variables = str(Path(__file__).parent / 'files' / 'variables.yaml')
     ref = f"""{meta}  version:      0.1.0
 {meta}  author:       Beckett Mariner
 {meta}  maintainer:   Brad Boimler
@@ -1094,31 +1102,20 @@ def test_cli_info_two_configs(cli):
 {variables}  variable:  OS
 {variables}  stage:     Variable Test
 """
-    res = cli.invoke(build_magic, ['--info', '-C', meta, '-C', variables])
+    res = cli.invoke(build_magic, ['--info', meta, variables])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert out == ref
 
 
 def test_cli_info_extra_options_and_args(cli):
-    """Verify the --info option works with extra options and args."""
-    meta = Path(__file__).parent / 'files' / 'meta.yaml'
-    targets = Path(__file__).parent / 'files' / 'targets.yaml'
-    ref = f"""{meta}  version:      0.1.0
-{meta}  author:       Beckett Mariner
-{meta}  maintainer:   Brad Boimler
-{meta}  created:      04/17/2382
-{meta}  modified:     06/02/2382
-{meta}  description:  Second contact
-{meta}  stage:        Test
-{targets}  stage:  Stage A
-{targets}  stage:  Stage B
-{targets}  stage:  Stage C
-{targets}  stage:  Stage D
-"""
-    res = cli.invoke(build_magic, ['--info', '-C', meta, '-C', targets, '--verbose', 'echo hello world'])
+    """Test the case where extra args are given to the --info option."""
+    meta = str(Path(__file__).parent / 'files' / 'meta.yaml')
+    targets = str(Path(__file__).parent / 'files' / 'targets.yaml')
+    ref = "[Errno 2] No such file or directory: 'echo hello world'\n"
+    res = cli.invoke(build_magic, ['--info', meta, targets, '--verbose', 'echo hello world'])
     out = res.output
-    assert res.exit_code == ExitCode.PASSED
+    assert res.exit_code == ExitCode.INPUT_ERROR
     assert out == ref
 
 
