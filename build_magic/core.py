@@ -482,6 +482,10 @@ class Stage:
         :param yaspin spinner: The yaspin spinner object to use.
         :return: The highest Stage result.
         """
+        def stop_spinner():
+            if spinner is not None:
+                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+
         # Setup if not already setup.
         if not self.is_setup:
             self.setup()
@@ -490,24 +494,20 @@ class Stage:
         try:
             result = self._command_runner.provision()
         except KeyboardInterrupt:
-            if spinner is not None:
-                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+            stop_spinner()
             raise KeyboardInterrupt
         except Exception as err:
-            if spinner is not None:
-                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+            stop_spinner()
             raise SetupError(exception=err)
         if not result:
-            if spinner is not None:
-                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+            stop_spinner()
             raise SetupError
 
         # Call the command runner's prepare function.
         try:
             self._command_runner.prepare()
         except OSEnvironmentMismatch:
-            if spinner is not None:
-                _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+            stop_spinner()
             msg = (
                 f'Skipping Stage {self.sequence}{": " + self.name if self.name else ""} '
                 f'because OS is not {self._command_runner.environment.lower()}.'
@@ -528,8 +528,7 @@ class Stage:
 
             # Run the macro.
             try:
-                if spinner is not None:
-                    _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+                stop_spinner()
                 _output.log(
                     mode.MACRO_START,
                     directive=directive,
@@ -539,8 +538,7 @@ class Stage:
                 )
                 status = self._command_runner.execute(mac)
             except Exception as err:
-                if spinner is not None:
-                    _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+                stop_spinner()
                 raise ExecutionError(exception=err)
 
             # Handle the result.
@@ -553,6 +551,7 @@ class Stage:
                 total=len(self._macros),
             )
             self._results.append(status)
+
             if verbose:
                 if status.stdout:
                     _output.print_output(status.stdout)
