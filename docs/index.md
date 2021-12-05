@@ -78,7 +78,7 @@ Developing for Linux from a Windows or MacOS laptop? Build-magic lets you build,
 
 ### Automate everything
 
-If your terminal can do it, build-magic can automate it! Build-magic is a modern alternative to automating with Makefiles and shell scripts. Build-magic config files feature an easy to use YAML syntax for executing multiple stages (targets). Build-magic actions can also apply setup and teardown behaviors for preserving container or VM state, or clean up extra files generated as part of a build process. Build-magic also gives you control over how output is displayed by providing a TTY friendly format as well a log file friendly format.
+If your terminal can do it, build-magic can automate it! Build-magic is a modern alternative to automating with Makefiles and shell scripts. Build-magic Config Files feature an easy to use YAML syntax for executing multiple stages (targets). Build-magic actions can also apply setup and teardown behaviors for preserving container or VM state, or clean up extra files generated as part of a build process. Build-magic also gives you control over how output is displayed by providing a TTY friendly format as well a log file friendly format.
 
 ### Simple but powerful
 

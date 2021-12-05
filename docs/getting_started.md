@@ -116,7 +116,7 @@ Build-magic can execute commands in a virtual machine via [Vagrant](https://www.
 
 Build-magic can execute commands on a remote machine via [SSH](https://www.openssh.com/). To allow remote command execution, SSH client needs to be installed on the local machine and SSH server needs to be installed and running on the remote machine.
 
-If you're using MacOS or Linux, both SSH client and SSH server should be installed. If you are using Windows 10, SSH client and SSH server are installable features. Instructions for installing SSH on Windows 10 or Windows Server 2019 can be found [here](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse).
+If you're using MacOS or Linux, both SSH client and SSH server should be installed. If you are using Windows 10+, SSH client and SSH server are installable features. Instructions for installing SSH on Windows 10 or Windows Server 2019 can be found [here](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse).
 
 Currently, build-magic only supports SSH connections via public/private key pairs for password-less login. Password-less login needs to be working before build-magic can make use of remote command execution. You can read more about how to configure public/private key pairs on [SSH.com](https://www.ssh.com/ssh/key/).
 
