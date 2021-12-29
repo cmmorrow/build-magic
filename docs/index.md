@@ -1,6 +1,6 @@
 # build-magic &#x1F528;&#x2728;
 
-An un-opinionated, general purpose automation tool.
+An un-opinionated, build automation tool.
 
 Build-magic is a command-line application for automating build, test, install, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.
 

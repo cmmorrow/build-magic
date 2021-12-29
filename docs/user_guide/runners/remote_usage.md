@@ -3,7 +3,7 @@
 The *remote* Command Runner executes commands on a remote machine. To execute commands remotely, SSH needs to be installed on the host machine and configured using a public/private key pair. This way, build-magic can execute commands without prompting the user for a password.
 
 !!! Note
-    To connect to or from a Windows 10 machine, OpenSSH needs to be installed on the Windows machine. Build-magic isn't compatible with other Windows SSH implementations or PuTTY **.ppk** files. You can find instructions on installing OpenSSH for Windows 10 [here](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse).
+    To connect to or from a Windows 10 or 11 machine, OpenSSH needs to be installed on the Windows machine. Build-magic isn't compatible with other Windows SSH implementations or PuTTY **.ppk** files. You can find instructions on installing OpenSSH for Windows 10 [here](https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse).
 
 To connect to a remote machine, the **--environment** option should include the user and hostname of the machine to connect to, for example:
 
@@ -300,3 +300,7 @@ To use a private key protected by a passphrase, use **--parameter keypass**:
           commands:
             - execute: echo hello world
     ```
+
+## A Note on Setting Environment Variables
+
+By default, OpenSSH doesn't allow for environment variables to be set on a remote machine because it's a security risk. Unless sshd is explicitly configured to allow for setting environment variables on the remote machine, passing environment variables or a dotenv file through the command-line or a Config File will have no effect. More info on the process for configuring sshd to allow environment variables can be found [here](https://man.openbsd.org/sshd#LOGIN_PROCESS).

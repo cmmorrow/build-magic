@@ -5,6 +5,7 @@ nav:
   - Getting Started: getting_started.md
   - User Guide:
     - Core Concepts: user_guide/core_concepts.md
+    - Using Build-magic: user_guide/basic_usage.md
     - Using the CLI: user_guide/cli_usage.md
     - Defining Config Files: user_guide/config_usage.md
     - Using Command Runners:
@@ -12,6 +13,7 @@ nav:
       - Using the Docker Runner: user_guide/runners/docker_usage.md
       - Using the Vagrant Runner: user_guide/runners/vagrant_usage.md
       - Using the Remote Runner: user_guide/runners/remote_usage.md
+  - Comparison with Similar Tools: comparison.md
 markdown_extensions:
   - toc:
       permalink: True
@@ -28,7 +30,7 @@ theme:
   # name: readthedocs
   name: material
   palette:
-    scheme: slate
+    # scheme: slate
     primary: teal
     accent: light blue
     # - media: "(prefers-color-scheme: light)"

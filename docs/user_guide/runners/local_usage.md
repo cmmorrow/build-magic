@@ -4,7 +4,7 @@ The *local* Command Runner executes commands on the host machine where build-mag
 
 ## Running Shell Commands
 
-The *local* Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping.
+The *local* Command Runner invokes the default shell to execute commands, allowing the use of redirection and piping on a Posix-like OS.
 
 === "Command-line"
 
@@ -87,3 +87,11 @@ The *cleanup* Action can be executed with the **--action** option.
 
 !!! Note
     There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.
+
+## Specifying a local environment
+
+Optionally, when running a stage locally, you can specify a local environment for the stage to run in. You might want to do this to ensure a stage with Debian Linux specific commands don't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) don't match the current machine, build-magic will skip the stage.
+
+```bash
+> build-magic -r local -e debian --verbose echo hello world
+```

@@ -18,6 +18,12 @@ Developing a C++ application for Linux on a Windows laptop? Build-magic can buil
 
 Build-magic allows you to specify commands and the environment to execute the commands from the command-line or from a Config File.
 
+## Contributing
+
+Build-magic is still under active development, with new features being added regularly.
+
+Want to help make build-magic better? Pull Requests are welcome. Please review the [contributing guide](https://github.com/cmmorrow/build-magic/blob/main/CONTRIBUTING.md) on how you can contribute to build-magic.
+
 ## Examples
 
 Archive two files on a local Linux or Mac OS machine:
@@ -49,10 +55,6 @@ As much as possible, build-magic strives to setup environments and execute comma
 ### Declarative
 
 Build-magic uses a simple syntax that lets you describe what commands to automate, the environment to use, and what files to include. There's no need for conditional statements that you might need when automating with a shell or batch script. Build-magic will take care of the details and execute the specified commands in the specified environment.
-
-### Explicit
-
-Unlike similar automation tools, build-magic runs exactly the shell commands you provide. What you see is what you get. If you need to run a command that changes from environment to environment, you can provide environment variables at runtime. Alternatively, you can use runtime variables that are provided via the command-line and substituted into commands in a Config File.
 
 ### Reproducible
 
@@ -114,7 +116,9 @@ Multiple commands can be executed as a sequence by using the `--command` option:
 --command build "tar -czf myfiles.tar.gz file1.txt file2.txt" \
 --command execute "rm file1.txt file2.txt" \
 --command install "tar -xzf myfiles.tar.gz" \
---command test "cat file1.txt file2.txt"
+--command test "cat file1.txt file2.txt" \
+--command execute "rm file1.txt file2.txt" \
+--command execute "rm myfiles.tar.gz"
 ```
 
 When using the `--command` option, a directive that describes the command must be provided. The directive `execute` can be used as a catch-all for describing any command. The `--verbose` option will print anything written to stdout by an individual command.
@@ -131,7 +135,9 @@ To run the commands in a Linux container, add the `--runner` and `--environment`
 --command build "tar -czf myfiles.tar.gz file1.txt file2.txt" \
 --command execute "rm file1.txt file2.txt" \
 --command install "tar -xzf myfiles.tar.gz" \
---command test "cat file1.txt file2.txt"
+--command test "cat file1.txt file2.txt" \
+--command execute "rm file1.txt file2.txt" \
+--command execute "rm myfiles.tar.gz"
 ```
 
 Run `build-magic --help` for a list of all the available command-line options.
@@ -144,11 +150,15 @@ Sequences of commands can be grouped into stages and executed from a Config File
 build-magic:
   - stage:
       name: Setup
+      runner: docker
+      environment: ubuntu:latest
       commands:
         - execute: echo hello > file1.txt
         - execute: echo world > file2.txt
   - stage:
       name: Archive
+      runner: docker
+      environment: ubuntu:latest
       commands:
         - build: tar -czf myfiles.tar.gz file1.txt file2.txt
           label: Archive the files as myfiles.tar.gz
@@ -156,15 +166,21 @@ build-magic:
           label: Delete the original files
   - stage:
       name: Un-Archive
+      runner: docker
+      environment: ubuntu:latest
       commands:
         - install: tar -xzf myfiles.tar.gz
           label: Extract the archive to the current directory
   - stage:
       name: Result
+      runner: docker
+      environment: ubuntu:latest
       commands:
         - test: cat file1.txt file2.txt
         - execute: rm file1.txt file2.txt
           label: Cleanup the files
+        - execute: rm myfiles.tar.gz
+          label: Cleanup the archive
 ```
 
 Notice how optional labels can be added to each command that will be printed as part of the build-magic output instead of the corresponding command.
@@ -186,6 +202,56 @@ Multiple stages can be executed this way, even in a different order:
 ```bash
 > build-magic --config config.yaml --target Setup --target Result
 ```
+
+### Code reuse with anchors
+
+YAML anchors and aliases can be used to reuse repeated values. In the Config File above, the command `rm file1.txt file2.txt` is used more than once, and the same runner and environment is used for each stage. These values can be replaced with anchors and called with aliases. YAML anchors can be defined in a `prepare:` section of the Config File:
+
+```yaml
+prepare:
+  - &delete_files
+      rm file1.txt file2.txt
+  - &runner
+      docker
+  - &environment
+      ubuntu:latest
+build-magic:
+  - stage:
+      name: Setup
+      runner: *runner
+      environment: *environment
+      commands:
+        - execute: echo hello > file1.txt
+        - execute: echo world > file2.txt
+  - stage:
+      name: Archive
+      runner: *runner
+      environment: *environment
+      commands:
+        - build: tar -czf myfiles.tar.gz file1.txt file2.txt
+          label: Archive the files as myfiles.tar.gz
+        - execute: *delete_files
+          label: Delete the original files
+  - stage:
+      name: Un-Archive
+      runner: *runner
+      environment: *environment
+      commands:
+        - install: tar -xzf myfiles.tar.gz
+          label: Extract the archive to the current directory
+  - stage:
+      name: Result
+      runner: *runner
+      environment: *environment
+      commands:
+        - test: cat file1.txt file2.txt
+        - execute: *delete_files
+          label: Cleanup the files
+        - execute: rm myfiles.tar.gz
+          label: Cleanup the archive
+```
+
+The execution of this Config File is identical to the previous one.
 
 ### Environment Variables
 
@@ -273,7 +339,3 @@ build-magic:
       commands:
         - execute: go build main.go
 ```
-
-## Contributing
-
-Want to help make build-magic better? Pull Requests are welcome. Please review the [contributing guide](https://github.com/cmmorrow/build-magic/blob/main/CONTRIBUTING.md) on how you can contribute to build-magic.

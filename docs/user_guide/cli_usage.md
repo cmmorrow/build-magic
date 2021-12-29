@@ -8,12 +8,14 @@
 build-magic [-r | --runner (local | remote | vagrant | docker)] 
     [-e | --environment <env>] [--name <stage>] [--wd <working-directory>] 
     [-p | --parameter <p-name p-value>]... 
+    [--description] [--env <name value>]... [--dotenv <dotenv-file>]
     [--action (default | cleanup | persist)] 
     [--fancy | --plain | --quiet] [--verbose] <command>
 
 build-magic [-r | --runner (local | remote | vagrant | docker)] 
     [-e | --environment <env>] [--name <stage>] [--wd <working-directory>] 
     [-p | --parameter <p-name p-value>]... 
+    [--description] [--env <name value>]... [--dotenv <dotenv-file>]
     [--action (default | cleanup | persist)] 
     [--fancy | --plain | --quiet] [--verbose] [--copy <copy-from>] 
     [--continue | --stop] [-c | --command <directive command>]... 
@@ -32,6 +34,18 @@ build-magic [--fancy | --plain | --quiet] [--verbose]
 [-v | --variable <var-name var-value>]... 
 [--prompt <prompt-name>]... 
 all | <stage name>... | [-t | --target <stage name>]...
+```
+
+### Generate a Config File Template
+
+```text
+build-magic --template
+```
+
+### Check Config File Info
+
+```text
+build-magic --info <config-file>...
 ```
 
 ## Usage
@@ -66,6 +80,8 @@ In this form, any arguments provided after valid options are interpreted as one 
 
 **--version** - Prints the build-magic version.
 
+**--description** - Provides a description of the executing stage.
+
 **-r**, **--runner** - The command runner to use for executing commands. Must be one of *local*, *remote*, *vagrant* or *docker*. The default command runner is *local*.
 
 **-e**, **--environment** - The environment to use for the specified command runner. The context of the environment depends on the command runner.
@@ -78,6 +94,10 @@ In this form, any arguments provided after valid options are interpreted as one 
 If **--runner** is defined and not equal to *local*, **--environment** is required.
 
 **--name** - Optional name **<stage\>** to give the executing stage. If **--name** isn't provided, the default stage name is 1.
+
+**--env** - Key/value pairs **<name value\>** sets an environment variable to be used in the executing stage. Can be provided multiple times.
+
+**--dotenv** - The path to a dotenv file of environment variables to set in the executing stage.
 
 **--wd** - The working directory build-magic will operate from. If not specified, the default working directory is the current directory. In the case of the *local* and *remote* command runners, the working directory is on the host machine. For *vagrant* and *docker* command runners, the working directory is on the guest machine, i.e. inside the virtual machine or running container. If the **copy** option is provided along with **<artifacts\>**, the **<artifacts\>** are copied from **<copy-from\>** to **<working-directory\>**.
 
@@ -107,7 +127,6 @@ The *default* action is set by default.
     Depending on the commands being executed, using **--continue** can lead to unstable behavior as failures can cascade to subsequent commands.
 
 **-c**, **--command** - A **<directive command\>** pair to execute. The command must be wrapped in quotes for build-magic to parse it correctly. For example: `--command execute "echo 'hello world'"`. Can be provided multiple times.
-
 
 ### Specify stages and commands to execute from a Config File
 
