@@ -10,7 +10,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.1.2">
     
     
       
@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -253,6 +253,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../basic_usage/" class="md-nav__link">
+        Using Build-magic
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../cli_usage/" class="md-nav__link">
         Using the CLI
       </a>
@@ -311,6 +323,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    Metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare" class="md-nav__link">
+    Prepare
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -327,14 +353,14 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_4" type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" >
       
-      <label class="md-nav__link" for="__nav_4_4">
+      <label class="md-nav__link" for="__nav_4_5">
         Using Command Runners
         <span class="md-nav__icon md-icon"></span>
       </label>
       <nav class="md-nav" aria-label="Using Command Runners" data-md-level="2">
-        <label class="md-nav__title" for="__nav_4_4">
+        <label class="md-nav__title" for="__nav_4_5">
           <span class="md-nav__icon md-icon"></span>
           Using Command Runners
         </label>
@@ -400,6 +426,21 @@
   
 
     
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../comparison/" class="md-nav__link">
+        Comparison with Similar Tools
+      </a>
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -439,6 +480,20 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    Metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prepare" class="md-nav__link">
+    Prepare
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -455,43 +510,64 @@
                 <h1 id="defining-build-magic-config-files">Defining build-magic Config Files<a class="headerlink" href="#defining-build-magic-config-files" title="Permanent link">&para;</a></h1>
 <h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis" title="Permanent link">&para;</a></h2>
 <p>Build-magic supports executing multiple stages as static, repeatable jobs with a Config File. A build-magic Config File is a YAML file with the following structure:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
-    <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
-        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Build Project</span>
-        <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
-        <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
-        <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">parameters</span><span class="p">:</span>
-            <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">commands</span><span class="p">:</span>
-            <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">configure</span>
-            <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
-    <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
-        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Run tests</span>
-        <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
-        <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
-        <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">parameters</span><span class="p">:</span>
-            <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">commands</span><span class="p">:</span> 
-            <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">service start mydb</span>
-            <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
-            <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">service stop mydb</span>
-    <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
-        <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Package CentOS</span>
-        <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
-        <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
-        <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">parameters</span><span class="p">:</span>
-            <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="nt">commands</span><span class="p">:</span>
-            <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make rpm</span>
-            <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload &quot;build/RPMS/x86_64/(*).rpm&quot; my-artifactory</span>
+<div class="highlight"><pre><span></span><code><span class="nt">author</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Vision</span>
+<span class="nt">maintainer</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Vision</span>
+<span class="nt">version</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1.2.3</span>
+<span class="nt">created</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2021/12/05</span>
+<span class="nt">modified</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2021/12/06</span>
+<span class="nt">description</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">An example build-magic Config File.</span>
+<span class="nt">prepare</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nl">&amp;myproject</span>
+    <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+<span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Build Project</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="nv">*myproject</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
+      <span class="nt">environment variables</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">GOOS</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">linux</span>
+        <span class="p p-Indicator">-</span> <span class="nt">GOARCH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">amd64</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">configure</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Build the project</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Run tests</span>
+      <span class="nt">description</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Run integration tests against a test db</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="nv">*myproject</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
+      <span class="nt">dotenv</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mydb.env</span>
+      <span class="nt">continue on fail</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+      <span class="nt">commands</span><span class="p">:</span> 
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">service start mydb</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Start the test db</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Run integration tests</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">service stop mydb</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Shutdown the test db</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Package CentOS</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="nv">*myproject</span>
+      <span class="nt">parameters</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make rpm</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload &quot;build/RPMS/x86_64/(*).rpm&quot; my-artifactory</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Upload the package to the artifactory</span>
 </code></pre></div>
 <h2 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h2>
-<p><strong>build-magic</strong> - Each build-magic Config File must start with <strong>build-magic</strong> on the first line. The type of the <strong>build-magic</strong> property is an array of <strong>stage</strong> properties. The <strong>build-magic</strong> property must define at least one <strong>stage</strong>.</p>
+<p><strong>build-magic</strong> - The type of the <strong>build-magic</strong> property is an array of <strong>stage</strong> properties. The <strong>build-magic</strong> property must define at least one <strong>stage</strong>.</p>
 <p><strong>stage</strong> - Each <strong>stage</strong> is an object that defines the same properties as the CLI. The only property of <strong>stage</strong> that's required is <strong>commands</strong>.</p>
-<p><strong>name</strong> - Optional name to give the executing <strong>stage</strong>. If <strong>name</strong> isn't provided, the default stage name is 1, and each subsequent stage name is incremented by 1.</p>
+<p><strong>name</strong> - Optional name to give the executing <strong>stage</strong>. If <strong>name</strong> isn't provided, the default stage name is 1, and each subsequent stage name is incremented by 1. The <strong>name</strong> can be used as the target if explicitly executing individual stages from the command-line.</p>
+<p><strong>description</strong> - Optional description of the stage to be displayed by the build-magic output. The <strong>description</strong> is typically longer than the stage <strong>name</strong>.</p>
 <p><strong>runner</strong> - The command runner to use for executing commands. The value must be one of <em>local</em>, <em>remote</em>, <em>vagrant</em> or <em>docker</em>. The default command runner is <em>local</em>.</p>
 <p><strong>environment</strong> - The environment to use for the specified command runner. If the <strong>runner</strong> property is defined and not equal to <em>local</em>, the <strong>environment</strong> property is required.</p>
 <p><strong>action</strong> The setup and teardown action to use. The value must be one of <em>default</em>, <em>cleanup</em>, or <em>persist</em>. The default action is <em>default</em>.</p>
@@ -501,10 +577,23 @@
 <p>Depending on the commands being executed, using <strong>continue</strong> can lead to unstable behavior as failures can cascade to subsequent commands.</p>
 </div>
 <p><strong>copy from directory</strong> - The path to copy artifacts from. If defined, build-magic will copy the array of items in <strong>artifacts</strong> to <strong>working directory</strong>.</p>
+<p><strong>environment variables</strong> - A list of key/value pairs where the key is the name of the environment variable and the value is the value of the environment variable. Each environment variable is set for the duration of the stage where it's provided.</p>
+<p><strong>dotenv</strong> - The path to a dotenv file of environment variables to set for the duration of the stage where it's provided.</p>
 <p><strong>working directory</strong> - The working directory the <strong>stage</strong> will operate from. If not specified, the default working directory is the current directory. In the case of the <em>local</em> and <em>remote</em> <strong>runner</strong>, the working directory is on the host machine. For the <em>vagrant</em> and <em>docker</em> <strong>runner</strong>, the working directory is on the guest machine, i.e. inside the virtual machine or running container.</p>
 <p><strong>artifacts</strong> - Files to be copied from the <strong>copy from directory</strong> to the <strong>working directory</strong>. Artifacts are ignored unless the <strong>copy from directory</strong> option is set. The artifacts must exist in <strong>copy from directory</strong> path to be copied to the working directory.</p>
 <p><strong>parameters</strong> - A list of key/value pairs of command runner specific configurations.</p>
 <p><strong>commands</strong> - A list of key/value pairs, where the key is a directive and the value is the command to execute.</p>
+<p><strong>label</strong> - An optional description for each command in <strong>commands</strong> that will be displayed by the build-magic output instead of the command.</p>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<p>As of build-magic 0.4.0, each Config File can optionally specify job-level metadata outside of the <strong>build-magic</strong> section that can be used to provide more context for the Config File.</p>
+<p><strong>author</strong> - The Config File author.</p>
+<p><strong>maintainer</strong> - The Config File maintainer or maintainers.</p>
+<p><strong>version</strong> - The version number of the Config File.</p>
+<p><strong>created</strong> - The date the Config File was created.</p>
+<p><strong>modified</strong> - The last date the Config File was modified.</p>
+<p><strong>description</strong> - A brief description of the job being executed in the Config File.</p>
+<h2 id="prepare">Prepare<a class="headerlink" href="#prepare" title="Permanent link">&para;</a></h2>
+<p>As of build-magic 0.4.0, a <strong>prepare</strong> section can optionally be provided as a list of defined YAML anchors and chunks. The anchors and associated config can be used to define repetitive commands or values to make better use of code reuse. You can of course use YAML anchors anywhere in a Config File, but the <strong>prepare</strong> section is a dedicated space for these anchors that will help keep the Config File clean and easier to read.</p>
                 
               
               

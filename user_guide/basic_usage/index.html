@@ -1,0 +1,1196 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.1.2">
+    
+    
+      
+        <title>Using Build-magic - build-magic</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f955dcd.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ef6f36e2.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#009485">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+    
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="light-blue">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#basic-usage" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="build-magic" class="md-header__button md-logo" aria-label="build-magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            build-magic
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Using Build-magic
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" data-md-state="active" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="build-magic" class="md-nav__button md-logo" aria-label="build-magic" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54z"/></svg>
+
+    </a>
+    build-magic
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CHANGELOG/" class="md-nav__link">
+        What's New
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      <label class="md-nav__link" for="__nav_4">
+        User Guide
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_concepts/" class="md-nav__link">
+        Core Concepts
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Using Build-magic
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Using Build-magic
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-single-command" class="md-nav__link">
+    Running a single command
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-output-format" class="md-nav__link">
+    Changing the output format
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-command-runners" class="md-nav__link">
+    Using command runners
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-multiple-commands" class="md-nav__link">
+    Running multiple commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-commands-from-a-config-file" class="md-nav__link">
+    Running commands from a Config File
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-config-file-with-multiple-stages" class="md-nav__link">
+    Running a Config File with multiple Stages
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continue-on-fail" class="md-nav__link">
+    Continue on fail
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-reuse-with-anchors" class="md-nav__link">
+    Code reuse with anchors
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup-action" class="md-nav__link">
+    Cleanup action
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-environment-variables" class="md-nav__link">
+    Using environment variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-runtime-variables" class="md-nav__link">
+    Using runtime variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-working-directory" class="md-nav__link">
+    Changing the working directory
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#including-files" class="md-nav__link">
+    Including files
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-metadata-to-config-files" class="md-nav__link">
+    Adding metadata to Config Files
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-config-file-metadata" class="md-nav__link">
+    Viewing Config File metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specifying-a-local-environment" class="md-nav__link">
+    Specifying a local environment
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-config-file-names-and-target-arguments" class="md-nav__link">
+    Default Config File names and target arguments
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_usage/" class="md-nav__link">
+        Using the CLI
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config_usage/" class="md-nav__link">
+        Defining Config Files
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" >
+      
+      <label class="md-nav__link" for="__nav_4_5">
+        Using Command Runners
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="Using Command Runners" data-md-level="2">
+        <label class="md-nav__title" for="__nav_4_5">
+          <span class="md-nav__icon md-icon"></span>
+          Using Command Runners
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/local_usage/" class="md-nav__link">
+        Using the Local Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/docker_usage/" class="md-nav__link">
+        Using the Docker Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/vagrant_usage/" class="md-nav__link">
+        Using the Vagrant Runner
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runners/remote_usage/" class="md-nav__link">
+        Using the Remote Runner
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../comparison/" class="md-nav__link">
+        Comparison with Similar Tools
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-single-command" class="md-nav__link">
+    Running a single command
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-output-format" class="md-nav__link">
+    Changing the output format
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-command-runners" class="md-nav__link">
+    Using command runners
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-multiple-commands" class="md-nav__link">
+    Running multiple commands
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-commands-from-a-config-file" class="md-nav__link">
+    Running commands from a Config File
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-config-file-with-multiple-stages" class="md-nav__link">
+    Running a Config File with multiple Stages
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continue-on-fail" class="md-nav__link">
+    Continue on fail
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-reuse-with-anchors" class="md-nav__link">
+    Code reuse with anchors
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup-action" class="md-nav__link">
+    Cleanup action
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-environment-variables" class="md-nav__link">
+    Using environment variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-runtime-variables" class="md-nav__link">
+    Using runtime variables
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-the-working-directory" class="md-nav__link">
+    Changing the working directory
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#including-files" class="md-nav__link">
+    Including files
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-metadata-to-config-files" class="md-nav__link">
+    Adding metadata to Config Files
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#viewing-config-file-metadata" class="md-nav__link">
+    Viewing Config File metadata
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#specifying-a-local-environment" class="md-nav__link">
+    Specifying a local environment
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-config-file-names-and-target-arguments" class="md-nav__link">
+    Default Config File names and target arguments
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h1>
+<h2 id="running-a-single-command">Running a single command<a class="headerlink" href="#running-a-single-command" title="Permanent link">&para;</a></h2>
+<p>You can run a single command from the command-line with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose echo hello world
+</code></pre></div>
+<p><img alt="single command output" src="../../static/single_command.svg" /></p>
+<p>The arguments to <em>build-magic</em> are treated and executed as a single command and the <strong>--verbose</strong> option prints the output of the command.</p>
+<h2 id="changing-the-output-format">Changing the output format<a class="headerlink" href="#changing-the-output-format" title="Permanent link">&para;</a></h2>
+<p>Build-magic's output can be changed to a more log-like appearance with the <strong>--plain</strong> option.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --plain <span class="nb">echo</span> hello world
+</code></pre></div>
+<p><img alt="plain output" src="../../static/plain_output.svg" /></p>
+<h2 id="using-command-runners">Using command runners<a class="headerlink" href="#using-command-runners" title="Permanent link">&para;</a></h2>
+<p>Build-magic can run commands locally, remotely via SSH, in a Docker container, or in a VM via Vagrant. The follow commands all print the same output, but are run in different environments:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="nb">echo</span> hello world
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --runner remote -e user@myhost <span class="nb">echo</span> hello world
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --runner docker -e alpine:latest <span class="nb">echo</span> hello world
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --runner vagrant -e Vagrantfile <span class="nb">echo</span> hello world
+</code></pre></div>
+<h2 id="running-multiple-commands">Running multiple commands<a class="headerlink" href="#running-multiple-commands" title="Permanent link">&para;</a></h2>
+<p>Multiple commands can be run from the command-line using the <strong>--command</strong> or <strong>-c</strong> option which takes two values, a directive and a command wrapped in quotes. Multiple commands can similarly be run from a Config File:</p>
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --command execute <span class="s2">&quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot;</span> <span class="se">\</span>
+  --command build <span class="s2">&quot;make build&quot;</span> <span class="se">\</span>
+  --command <span class="nb">test</span> <span class="s2">&quot;make test&quot;</span> <span class="se">\</span>
+  --command execute <span class="s2">&quot;tar -czf myapp.tar.gz build/*&quot;</span> <span class="se">\</span>
+  --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./configure CC=c99 CFLAGS=-O2 LIBS=-lposix</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make build</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myapp.tar.gz build/*</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload myapp.tar.gz my-artifactory</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="running-commands-from-a-config-file">Running commands from a Config File<a class="headerlink" href="#running-commands-from-a-config-file" title="Permanent link">&para;</a></h2>
+<p>If you have a build-magic Config File named <em>myproject.yaml</em>, you can run the commands in the Config File with the <strong>--config</strong> or <strong>-C</strong> option:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C myproject.yaml
+</code></pre></div>
+<p><img alt="multi command output" src="../../static/multi_command.svg" /></p>
+<h2 id="running-a-config-file-with-multiple-stages">Running a Config File with multiple Stages<a class="headerlink" href="#running-a-config-file-with-multiple-stages" title="Permanent link">&para;</a></h2>
+<p>One of the advantages of running commands from a Config File compared to the command-line is being able to run multiple Stages. A Stage is a group of commands that are run together and executed in order. By default, if a command in a Stage fails, build-magic will move on to executing commands in the next Stage. Typically, you want to batch together commands related to a particular task into a Stage.</p>
+<p>Consider the contrived example below:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+--runner docker <span class="se">\</span>
+--environment ubuntu:latest <span class="se">\</span>
+--verbose <span class="se">\</span>
+--command execute <span class="s2">&quot;echo hello &gt; file1.txt&quot;</span> <span class="se">\</span>
+--command execute <span class="s2">&quot;echo world &gt; file2.txt&quot;</span> <span class="se">\</span>
+--command build <span class="s2">&quot;tar -czf myfiles.tar.gz file1.txt file2.txt&quot;</span> <span class="se">\</span>
+--command execute <span class="s2">&quot;rm file1.txt file2.txt&quot;</span> <span class="se">\</span>
+--command install <span class="s2">&quot;tar -xzf myfiles.tar.gz&quot;</span> <span class="se">\</span>
+--command <span class="nb">test</span> <span class="s2">&quot;cat file1.txt file2.txt&quot;</span> <span class="se">\</span>
+--command execute <span class="s2">&quot;rm file1.txt file2.txt&quot;</span> <span class="se">\</span>
+--command execute <span class="s2">&quot;rm myfiles.tar.gz&quot;</span>
+</code></pre></div>
+<p>We can group related commands into Stages in a Config File:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Setup</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello &gt; file1.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo world &gt; file2.txt</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Archive</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myfiles.tar.gz file1.txt file2.txt</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Archive the files as myfiles.tar.gz</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rm file1.txt file2.txt</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Delete the original files</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Un-Archive</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -xzf myfiles.tar.gz</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Extract the archive to the current directory</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Result</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat file1.txt file2.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rm file1.txt file2.txt</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Cleanup the files</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rm myfiles.tar.gz</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Cleanup the archive</span>
+</code></pre></div>
+<p>Config Files are written in YAML, using a simple syntax. Commands are grouped together into Stages. Each <strong>stage</strong> can optionally have a <strong>name</strong>, <strong>runner</strong>, <strong>description</strong>, and <strong>environment</strong>. Commands are listed with a directive first, followed by a colon (<em>:</em>), followed by the command.</p>
+<p>Directives don't have any special meaning in build-magic, but are simply descriptive. The available directives are:</p>
+<ul>
+<li><strong>execute</strong></li>
+<li><strong>build</strong></li>
+<li><strong>install</strong></li>
+<li><strong>test</strong></li>
+<li><strong>deploy</strong></li>
+<li><strong>release</strong></li>
+</ul>
+<p>Each command can optionally define a <strong>label</strong> to be displayed in the output instead of the command being executed.</p>
+<p>Naming this file <em>example.yaml</em>, you can run it with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C example.yaml --verbose
+</code></pre></div>
+<p><img alt="archive config output" src="../../static/archive_config.svg" /></p>
+<p>A single Stage in a Config File can be run with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config example.yaml --target Setup
+</code></pre></div>
+<p><img alt="setup config output" src="../../static/setup_config.svg" /></p>
+<p>Individual Stages can be executed using the <strong>--target</strong> or <strong>-t</strong> option. The Stages will be executed in the order listed on the command-line.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --config example.yaml -t Setup -t Result --verbose
+</code></pre></div>
+<p><img alt="archive error output" src="../../static/archive_error.svg" /></p>
+<p>The last command fails because the archive file was never created.</p>
+<h2 id="continue-on-fail">Continue on fail<a class="headerlink" href="#continue-on-fail" title="Permanent link">&para;</a></h2>
+<p>You can tell build-magic to continue executing even if a command fails by adding <strong>--continue</strong> on the command-line to continue after fails in all Stages:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C example.yaml -t Setup -t Result --verbose --continue
+</code></pre></div>
+<p><img alt="archive continue output" src="../../static/archive_continue.svg" /></p>
+<h2 id="code-reuse-with-anchors">Code reuse with anchors<a class="headerlink" href="#code-reuse-with-anchors" title="Permanent link">&para;</a></h2>
+<p>YAML anchors and aliases can be used to reuse repeated values. In the Config File above, the command <code>rm file1.txt file2.txt</code> is used more than once, and the same runner and environment is used for each Stage. These values can be replaced with anchors and called with aliases. YAML anchors can be defined in a <strong>prepare</strong> section of the Config File:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">prepare</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nl">&amp;delete_files</span>
+      <span class="l l-Scalar l-Scalar-Plain">rm file1.txt file2.txt</span>
+  <span class="p p-Indicator">-</span> <span class="nl">&amp;runner</span>
+      <span class="l l-Scalar l-Scalar-Plain">docker</span>
+  <span class="p p-Indicator">-</span> <span class="nl">&amp;environment</span>
+      <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+<span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Setup</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="nv">*runner</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="nv">*environment</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello &gt; file1.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo world &gt; file2.txt</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Archive</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="nv">*runner</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="nv">*environment</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myfiles.tar.gz file1.txt file2.txt</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Archive the files as myfiles.tar.gz</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="nv">*delete_files</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Delete the original files</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Un-Archive</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="nv">*runner</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="nv">*environment</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -xzf myfiles.tar.gz</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Extract the archive to the current directory</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Result</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="nv">*runner</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="nv">*environment</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat file1.txt file2.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="nv">*delete_files</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Cleanup the files</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rm myfiles.tar.gz</span>
+          <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Cleanup the archive</span>
+</code></pre></div>
+<p>The execution of this Config File is identical to the previous one.</p>
+<h2 id="cleanup-action">Cleanup action<a class="headerlink" href="#cleanup-action" title="Permanent link">&para;</a></h2>
+<p>Instead of using a command to manually delete files, you can use the cleanup action with <strong>action: cleanup</strong> which will delete all new files that were created during a build-magic Stage.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Setup</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello &gt; file1.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo world &gt; file2.txt</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat file1.txt file2.txt</span>
+</code></pre></div>
+<p>After running this Config File, the files <em>file1.txt</em> and <em>file2.txt</em> will be automatically deleted without touching any other files in the directory.</p>
+<h2 id="using-environment-variables">Using environment variables<a class="headerlink" href="#using-environment-variables" title="Permanent link">&para;</a></h2>
+<p>Commands executed by build-magic can use environment variables as if the command was being executed from the shell, but they cannot set new environment variables. This is because each command is atomic and executed in it's own shell environment, so setting an environment variable in one command doesn't carry over to another.</p>
+<p>If you want to provide new environment variables for a Stage, use the <strong>environment variable</strong> key in a <strong>stage</strong>, followed by key/value pairs where each key is the name of the environment variable. For example:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">environment variables</span><span class="p">:</span>
+        <span class="nt">FOO</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">hello</span>
+        <span class="nt">BAR</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">world</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo $FOO $BAR</span>
+</code></pre></div>
+<p>Running the Config File above named <em>example.yaml</em>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C example.yaml --verbose
+</code></pre></div>
+<p><img alt="envvars command output" src="../../static/envvars_command.svg" /></p>
+<p>The equivalent command can be run solely from the command-line with:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --env FOO hello --env BAR world --verbose <span class="nb">echo</span> <span class="s1">&#39;$FOO&#39;</span> <span class="s1">&#39;$BAR&#39;</span>
+</code></pre></div>
+<p>If you need to set multiple environment variables or use different environments for development vs production, you can use a dotenv file per <strong>stage</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">dotenv</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">develop.env</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo $FOO $BAR</span>
+</code></pre></div>
+<p>In this example, the content of <em>develop.env</em> is:</p>
+<div class="highlight"><pre><span></span><code><span class="na">FOO</span><span class="o">=</span><span class="s">hello</span>
+<span class="na">BAR</span><span class="o">=</span><span class="s">world</span>
+</code></pre></div>
+<p>Dotenv files can also be used when running commands from the command-line:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --dotenv develop.env --verbose <span class="nb">echo</span> <span class="s1">&#39;$FOO&#39;</span> <span class="s1">&#39;$BAR&#39;</span>
+</code></pre></div>
+<h2 id="using-runtime-variables">Using runtime variables<a class="headerlink" href="#using-runtime-variables" title="Permanent link">&para;</a></h2>
+<p>Variables can be substituted into a Config File at runtime. A special syntax is used to mark runtime variables in a Config File and the values to use are specified by the user on the command-line with the <strong>--variable</strong> or <strong>-v</strong> option. Consider the following Config File:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="p p-Indicator">&gt;</span>
+          <span class="l l-Scalar l-Scalar-Plain">curl -u {{ user }}:{{ password }}</span> 
+          <span class="l l-Scalar l-Scalar-Plain">https://myrepo/myproject/{{ version }}</span>
+</code></pre></div>
+<p>The double braces <code>{{}}</code> indicate a runtime variable that should be substituted at runtime. The following will substitute values into the Config File and successfully run the command:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -v user vision -v password wanda -v version <span class="m">12</span> -C config.yaml
+</code></pre></div>
+<p><img alt="cleartext command output" src="../../static/cleartext_command.svg" /></p>
+<p>You can see in the output that the values were substituted into the command, however, it's a bad idea to supply passwords and other secrets in clear text. Instead, you can use the <strong>--prompt</strong> option which will interactively prompt the user for input and hide what is typed.</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -v user --prompt password -v version <span class="m">12</span> -C config.yaml
+&gt; password:
+</code></pre></div>
+<p><img alt="prompt command output" src="../../static/prompt_command.svg" /></p>
+<p>You can see that the prompt for <code>password</code> doesn't print any text that is typed, and the prompted value isn't displayed in the output either.</p>
+<h2 id="changing-the-working-directory">Changing the working directory<a class="headerlink" href="#changing-the-working-directory" title="Permanent link">&para;</a></h2>
+<p>By default, build-magic runs in the current directory, but you can override the default by specify the working directory with <strong>working directory</strong> in a Config File or <strong>--wd</strong> from the command-line. For example, the following will set the working directory to <em>~/myprojects/app</em> regardless of the shell's current directory:</p>
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --wd ~/myprojects/app <span class="se">\</span>
+  --command execute <span class="s2">&quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot;</span> <span class="se">\</span>
+  --command build <span class="s2">&quot;make build&quot;</span> <span class="se">\</span>
+  --command <span class="nb">test</span> <span class="s2">&quot;make test&quot;</span> <span class="se">\</span>
+  --command execute <span class="s2">&quot;tar -czf myapp.tar.gz build/*&quot;</span> <span class="se">\</span>
+  --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/myprojects/app</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./configure CC=c99 CFLAGS=-O2 LIBS=-lposix</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make build</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myapp.tar.gz build/*</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload myapp.tar.gz my-artifactory</span>
+</code></pre></div>
+</div>
+</div>
+<p>The <strong>working directory</strong> always refers to the directory where build-magic executes commands, regardless of which runner is used. For example if we execute the commands above in a Docker container, the working directory <em>~/myprojects/app</em> will refer to a path in the container.</p>
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+  --runner docker <span class="se">\</span>
+  --environment ubuntu:latest <span class="se">\</span>
+  --wd ~/myprojects/app <span class="se">\</span>
+  --command execute <span class="s2">&quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot;</span> <span class="se">\</span>
+  --command build <span class="s2">&quot;make build&quot;</span> <span class="se">\</span>
+  --command <span class="nb">test</span> <span class="s2">&quot;make test&quot;</span> <span class="se">\</span>
+  --command execute <span class="s2">&quot;tar -czf myapp.tar.gz build/*&quot;</span> <span class="se">\</span>
+  --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu:latest</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/myprojects/app</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./configure CC=c99 CFLAGS=-O2 LIBS=-lposix</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make build</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myapp.tar.gz build/*</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload myapp.tar.gz my-artifactory</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="including-files">Including files<a class="headerlink" href="#including-files" title="Permanent link">&para;</a></h2>
+<p>Files can be copied from another directory into the working directory using <strong>copy from directory</strong> in a Config File or the <strong>--copy</strong> option on the command-line:</p>
+<div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
+--copy myproject/src <span class="se">\</span>
+-c execute <span class="s2">&quot;go build main.go&quot;</span> <span class="se">\</span>
+audio.go equalizer.go effects.go
+</code></pre></div>
+</div>
+<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">Config File</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">copy from directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">myproject/src</span>
+      <span class="nt">artifacts</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">audio.go</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">equalizer.go</span>
+        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">effects.go</span>
+    <span class="nt">commands</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">go build main.go</span>
+</code></pre></div>
+</div>
+</div>
+<h2 id="adding-metadata-to-config-files">Adding metadata to Config Files<a class="headerlink" href="#adding-metadata-to-config-files" title="Permanent link">&para;</a></h2>
+<p>Config Files can contain additional info that isn't used directly by build-magic, but is useful for documenting Config Files. These metadata fields are:</p>
+<ul>
+<li><em>author</em></li>
+<li><em>maintainer</em></li>
+<li><em>version</em></li>
+<li><em>created</em></li>
+<li><em>modified</em></li>
+<li><em>description</em></li>
+</ul>
+<p>Each of these fields are user definable, as build-magic doesn't enforce any constraints on their formatting.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.1.0</span>
+<span class="nt">author</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">The Vision</span>
+<span class="nt">created</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2021-12-12</span>
+<span class="nt">description</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">An example build-magic Config File.</span>
+<span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo hello world</span>
+</code></pre></div>
+<h2 id="viewing-config-file-metadata">Viewing Config File metadata<a class="headerlink" href="#viewing-config-file-metadata" title="Permanent link">&para;</a></h2>
+<p>You can get a high-level summary of a Config File by using the <strong>--info</strong> option to view the Stage names, runtime variables, and metadata. Consider the Config File below:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">maintainer</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Hawkeye</span>
+<span class="nt">version</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1.0.4</span>
+<span class="nt">prepare</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nl">&amp;clone_repo</span>
+      <span class="l l-Scalar l-Scalar-Plain">git clone --depth 1 --branch v{{ version }} some/git/repo.git</span>
+  <span class="p p-Indicator">-</span> <span class="nl">&amp;get_release_id</span> <span class="p p-Indicator">&gt;</span>
+      <span class="no">curl -s -u {{ user }}:{{ password }} api/some/git/repo/releases/v{{ version }} |</span>
+      <span class="no">jq .id &gt; RELEASE_ID</span>
+<span class="nt">build-magic</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">debian</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">debian:latest</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apt update</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apt install -y gcc make curl jq git</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="nv">*clone_repo</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make all</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./myapp --help</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mkdir -p $HOME/myapp/usr/local/bin</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mkdir -p $HOME/myapp/DEBIAN</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cp $HOME/control $HOME/myapp/DEBIAN</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cp /app/myapp /$HOME/myapp/usr/local/bin</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dpkg-deb --build $HOME/myapp</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="nv">*get_release_id</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="p p-Indicator">&gt;</span>
+            <span class="no">curl -u {{ user }}:{{ password }}</span>
+            <span class="no">--data-binary @&quot;$HOME/myapp.deb&quot;</span>
+            <span class="no">-H &quot;Content-Type: application/octet-stream&quot;</span>
+            <span class="no">uploads/some/git/repo/releases/$(cat RELEASE_ID)/assets?name=myapp.deb</span>
+  <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
+      <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos</span>
+      <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
+      <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:latest</span>
+      <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+      <span class="nt">commands</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yum install -y rpmdevtools git</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yum install -y epel-release</span>
+        <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">yum install jq</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="nv">*clone_repo</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make all</span>
+        <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./myapp --help</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rpmdev-setuptree</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mkdir -p $HOME/rpmbuild/RPMS/x86_64</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cp $HOME/myapp.spec $HOME/rpmbuild/SPECS</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">rpmbuild -bb --target x86_64 $HOME/rpmbuild/SPECS/myapp.spec</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="nv">*get_release_id</span>
+        <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ls $HOME/rpmbuild/RPMS/x86_64/* | xargs basename &gt; NAME</span>
+        <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="p p-Indicator">&gt;</span>
+            <span class="no">curl -u {{ user }}:{{ password }}</span>
+            <span class="no">--data-binary @$(ls $HOME/rpmbuild/RPMS/x86_64/*)</span>
+            <span class="no">-H &quot;Content-Type: application/octet-stream&quot;</span>
+            <span class="no">uploads/some/git/repo/releases/$(cat RELEASE_ID)/assets?name=$(cat NAME)</span>
+</code></pre></div>
+<p>To get a high-level summary of this Config File named <em>myapp.yaml</em>, simply run:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --info myapp.yaml
+</code></pre></div>
+<p><img alt="single info output" src="../../static/single_info.svg" /></p>
+<p>You can get a high-level summary of multiple Config Files by passing more than one Config File path as an argument to the <strong>--info</strong> option:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic --info myapp.yaml config.yaml
+</code></pre></div>
+<p><img alt="multi info output" src="../../static/multi_info.svg" /></p>
+<h2 id="specifying-a-local-environment">Specifying a local environment<a class="headerlink" href="#specifying-a-local-environment" title="Permanent link">&para;</a></h2>
+<p>Optionally, when running a Stage locally, you can specify a local environment for the Stage to run in. You might want to do this to ensure a Stage with Debian Linux specific commands don't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) don't match the current machine, build-magic will skip the Stage.</p>
+<p>For example, if running CentOS Linux and specifying the local environment as <em>debian</em>, the Stage will be skipped:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -r <span class="nb">local</span> -e debian --verbose <span class="nb">echo</span> hello world
+</code></pre></div>
+<p><img alt="skip debian output" src="../../static/skip_debian.svg" /></p>
+<p>If running MacOS and specifying <em>windows</em>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -r <span class="nb">local</span> -e windows --verbose <span class="nb">echo</span> hello world
+</code></pre></div>
+<p><img alt="skip windows output" src="../../static/skip_windows.svg" /></p>
+<p>However, if the the local machine matches the specified environment, the Stage will be executed. For example, if running MacOS and specifying the environment should be <em>macos</em>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -r <span class="nb">local</span> -e macos --verbose <span class="nb">echo</span> hello world
+</code></pre></div>
+<p><img alt="single command output" src="../../static/single_command.svg" /></p>
+<h2 id="default-config-file-names-and-target-arguments">Default Config File names and target arguments<a class="headerlink" href="#default-config-file-names-and-target-arguments" title="Permanent link">&para;</a></h2>
+<p>If a Config File has a default name such as <em>build-magic.yaml</em>, you can provide a target name as an argument, similar to calling targets in a Makefile with <em>make</em>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic Setup
+</code></pre></div>
+<p>You can run all Stages in a Config File using the special target <em>all</em>:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic all
+</code></pre></div>
+<p>The accepted default Config File names are:</p>
+<ul>
+<li><em>build-magic.yaml</em></li>
+<li><em>build_magic.yaml</em></li>
+<li><em>build-magic.yml</em></li>
+<li><em>build_magic.yml</em></li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        <a href="../core_concepts/" class="md-footer__link md-footer__link--prev" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Core Concepts
+            </div>
+          </div>
+        </a>
+      
+      
+        <a href="../cli_usage/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Using the CLI
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing"}, "search": "../../assets/javascripts/workers/search.fe42c31b.min.js", "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.4ea5477f.min.js"></script>
+      
+    
+  </body>
+</html>

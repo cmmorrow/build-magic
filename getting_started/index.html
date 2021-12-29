@@ -10,7 +10,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-7.1.2">
+      <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.1.2">
     
     
       
@@ -52,7 +52,7 @@
     
     
     
-    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="light-blue">
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="light-blue">
   
     
     <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
@@ -393,6 +393,18 @@
   
   
     <li class="md-nav__item">
+      <a href="../user_guide/basic_usage/" class="md-nav__link">
+        Using Build-magic
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../user_guide/cli_usage/" class="md-nav__link">
         Using the CLI
       </a>
@@ -420,14 +432,14 @@
     <li class="md-nav__item md-nav__item--nested">
       
       
-        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_4" type="checkbox" id="__nav_4_4" >
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_4_5" type="checkbox" id="__nav_4_5" >
       
-      <label class="md-nav__link" for="__nav_4_4">
+      <label class="md-nav__link" for="__nav_4_5">
         Using Command Runners
         <span class="md-nav__icon md-icon"></span>
       </label>
       <nav class="md-nav" aria-label="Using Command Runners" data-md-level="2">
-        <label class="md-nav__title" for="__nav_4_4">
+        <label class="md-nav__title" for="__nav_4_5">
           <span class="md-nav__icon md-icon"></span>
           Using Command Runners
         </label>
@@ -489,6 +501,21 @@
           
         </ul>
       </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../comparison/" class="md-nav__link">
+        Comparison with Similar Tools
+      </a>
     </li>
   
 
@@ -756,7 +783,7 @@
 <p>Build-magic can execute commands in a virtual machine via <a href="https://www.vagrantup.com/">Vagrant</a>. Vagrant is a command-line tool for controlling virtual machines. Instructions on how to install Vagrant can be found <a href="https://www.vagrantup.com/docs/installation">here</a>.</p>
 <h4 id="using-a-remote-machine">Using a Remote Machine<a class="headerlink" href="#using-a-remote-machine" title="Permanent link">&para;</a></h4>
 <p>Build-magic can execute commands on a remote machine via <a href="https://www.openssh.com/">SSH</a>. To allow remote command execution, SSH client needs to be installed on the local machine and SSH server needs to be installed and running on the remote machine.</p>
-<p>If you're using MacOS or Linux, both SSH client and SSH server should be installed. If you are using Windows 10, SSH client and SSH server are installable features. Instructions for installing SSH on Windows 10 or Windows Server 2019 can be found <a href="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse">here</a>.</p>
+<p>If you're using MacOS or Linux, both SSH client and SSH server should be installed. If you are using Windows 10+, SSH client and SSH server are installable features. Instructions for installing SSH on Windows 10 or Windows Server 2019 can be found <a href="https://docs.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse">here</a>.</p>
 <p>Currently, build-magic only supports SSH connections via public/private key pairs for password-less login. Password-less login needs to be working before build-magic can make use of remote command execution. You can read more about how to configure public/private key pairs on <a href="https://www.ssh.com/ssh/key/">SSH.com</a>.</p>
 <h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
 <p>You can verify build-magic is install by running the following command from a command prompt:</p>
