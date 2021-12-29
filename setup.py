@@ -36,7 +36,7 @@ setup(
     },
     install_requires=[
         'cffi==1.14.6',
-        'click==8.0.1',
+        'click==8.0.3',
         'colorama==0.4.4',
         'cryptography==3.4.7',
         'jsonschema==3.2.0',
