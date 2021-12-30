@@ -1108,6 +1108,30 @@ def test_cli_info_two_configs(cli):
     assert out == ref
 
 
+def test_cli_info_no_meta_data(cli):
+    """Test the case where --info is called on a Config File without meta data or a stage name."""
+    skip1 = str(Path(__file__).parent / 'files' / 'skip1.yaml')
+    res = cli.invoke(build_magic, ['--info', skip1])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == ''
+
+
+def test_cli_info_two_configs_no_meta_data(cli):
+    """Test the case where --info is called on two Config Files where one doesn't have meta data or a stage name."""
+    meta = str(Path(__file__).parent / 'files' / 'meta.yaml')
+    skip1 = str(Path(__file__).parent / 'files' / 'skip1.yaml')
+    res = cli.invoke(build_magic, ['--info', skip1, meta])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'meta.yaml  author:       Beckett Mariner' in out
+    assert 'meta.yaml  maintainer:   Brad Boimler' in out
+    assert 'meta.yaml  created:      04/17/2382' in out
+    assert 'meta.yaml  modified:     06/02/2382' in out
+    assert 'meta.yaml  description:  Second contact' in out
+    assert 'meta.yaml  stage:        Test' in out
+
+
 def test_cli_info_extra_options_and_args(cli):
     """Test the case where extra args are given to the --info option."""
     meta = str(Path(__file__).parent / 'files' / 'meta.yaml')
