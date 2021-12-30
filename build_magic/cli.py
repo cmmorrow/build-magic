@@ -469,7 +469,7 @@ def get_config_info(cfg, show_filename=False):
     for name in stage_names:
         add_output('stage', name)
 
-    space = max(spacing) + 1
+    space = max(spacing) + 1 if spacing else 1
     for label, value in output:
         click.echo(f'{filename}{label + ":":<{space}}  {value}')
 
