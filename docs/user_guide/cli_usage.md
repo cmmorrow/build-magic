@@ -136,13 +136,13 @@ Execute multiple stages with multiple commands using a Config File. For example:
 > build-magic --config my_config.yaml
 ```
 
-Alternatively, `-C` (uppercase c) can be used instead of `--config`.
+Alternatively, **-C** (uppercase c) can be used instead of **--config**.
 
 ```bash
 > build-magic -C my_config.yaml
 ```
 
-A Config File in a different directory can also be used by providing the relative or absolute path to the config file:
+A Config File in a different directory can also be used by providing the relative or absolute path to the Config File:
 
 ```bash
 > build-magic --config my_project/config.yaml
@@ -154,7 +154,7 @@ Multiple Config Files can be specified and they will be executed in order.
 > build-magic --config config1.yaml --config config2.yaml
 ```
 
-Execute a specific stage in a Config File with the `--target` option. If for example, a Config File has three stages named *build*, *test*, and *deploy*, the *deploy* stage can be run on it's own with:
+Execute a specific stage in a Config File with the **--target** option. If for example, a Config File has three stages named *build*, *test*, and *deploy*, the *deploy* stage can be run on it's own with:
 
 ```bash
 > build-magic --config my_config.yaml --target deploy
@@ -166,7 +166,7 @@ Multiple targets can be specified to change the stage execution order of a Confi
 > build-magic --config my_config.yaml --target test --target build
 ```
 
-Alternatively, `-t` can be used instead of `--target`.
+Alternatively, **-t** can be used instead of **--target**.
 
 ```bash
 > build-magic -C my_config.yaml -t test -t build
@@ -192,16 +192,16 @@ To run all the stages in a default named Config File, use:
 ```
 
 !!! Note
-    The `make` like usage is more limited than using the `--target` option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with `all`. Stage names also need to be a single word. Also, a Config File must have one of the default filenames mentioned above, which also means multiple Config Files cannot be used. The Config File must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended to use the `--target` option instead for these reasons.
+    The `make` like usage is more limited than using the **--target** option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with *all*. Stage names also need to be a single word. Also, a Config File must have one of the default filenames mentioned above, which also means multiple Config Files cannot be used. The Config File must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended to use the **--target** option instead for these reasons.
 
-It is also possible to use the `--target` option with a Config File that has a default filename without having to specify the Config File name with `--config`. For example:
+It is also possible to use the **--target** option with a Config File that has a default filename without having to specify the Config File name with **--config**. For example:
 
 ```bash
 > build-magic --target test --target build
 ```
 
 !!! Note
-    If running build-magic from a directory that has a Config File with a default filename and another Config File is specified with the `--config` option, both Config Files will be executed with the Config File with the default filename running first.
+    If running build-magic from a directory that has a Config File with a default filename and another Config File is specified with the **--config** option, both Config Files will be executed with the Config File with the default filename running first.
 
 #### Description
 

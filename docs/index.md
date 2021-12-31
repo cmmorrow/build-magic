@@ -66,7 +66,7 @@ Or, if the Config File is named `build-magic.yaml`, can be run similar to a Make
 * Build and deploy new machine learning models.
 * Automate deploying software to staging or production cloud environments.
 * Simplify onboarding new team members by automating development environment setup and installation.
-* Automate launching an application for local testing with the same config file used for deploying in production.
+* Automate launching an application for local testing with the same Config File used for deploying in production.
 * Execute regression, integration, and unit tests across multiple platforms and servers.
 * Automate dry runs of critical commands that cannot be tested on a production system.
 
@@ -86,12 +86,12 @@ There are no looping mechanics or specialized conditional logic handlers beyond 
 
 ### Un-opinionated
 
-As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic config file or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.
+As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic Config File or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.
 
 ### Runtime variables
 
-Build-magic config files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic config file.
+Build-magic Config Files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic Config File.
 
 ### Cross platform
 
-Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic config files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.
+Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic Config Files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.

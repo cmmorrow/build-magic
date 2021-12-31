@@ -8,15 +8,13 @@
 
 An un-opinionated build automation tool.
 
-![build-magic](docs/build-magic.gif)
-
 ## Introduction
 
 Build-magic is a command-line application for automating build/test/install/package/deploy tasks. It aims to provide a common means for automating tasks for developers and DevOps. Build-magic does this by abstracting away how and where the build tasks are executed. Simply tell build-magic what commands to run and where to run them.
 
 Developing a C++ application for Linux on a Windows laptop? Build-magic can build your project in a Linux container or virtual machine. Have a dedicated build server? Build-magic can SSH into the remote server and start the build.
 
-Build-magic allows you to specify commands and the environment to execute the commands from the command-line or from a Config File.
+Build-magic allows you to specify commands and the environment from the command-line or from a Config File.
 
 ## Contributing
 
@@ -32,7 +30,7 @@ Archive two files on a local Linux or Mac OS machine:
 > build-magic tar -czf myfiles.tar.gz file1.txt file2.txt
 ```
 
-For following commands execute the same command on the local system, on a remote system, in a Docker container, and in a virtual machine:
+The following commands execute the same command on the local system, on a remote system, in a Docker container, and in a virtual machine:
 
 ```bash
 > build-magic echo hello world
@@ -46,7 +44,9 @@ For following commands execute the same command on the local system, on a remote
 
 ## Design
 
-Building software is hard enough, and managing shell scripts, documentation, and environments across a project for multiple users and operating systems can become a pain. Build-magic was designed to be the automation tool that works for you. It aims to do for builds what Ansible has done for installs, and Docker has done for deployment. It's time to ditch the shell scripts and complex Makefiles. These are the four features that distinguish build-magic:
+Building software is hard enough, and managing shell scripts, documentation, and environments across a project for multiple users and operating systems can become a pain. Build-magic was designed to be the automation tool that works for you. It aims to do for builds what Ansible has done for installs, and Docker has done for deployment. It's time to ditch the shell scripts and complex Makefiles.
+
+These are the three features that distinguish build-magic:
 
 ### Un-opinionated
 
@@ -255,7 +255,7 @@ The execution of this Config File is identical to the previous one.
 
 ### Environment Variables
 
-Environment variables cannot be set by build-magic commands. However, they can be used by commands by using the `--env` option followed by the variable name and value:
+Environment variables cannot be set by build-magic commands. However, they can be used by build-magic commands by using the `--env` option followed by the variable name and value:
 
 ```bash
 > build-magic --env FOO hello --env BAR world echo '$FOO' '$BAR'

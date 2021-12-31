@@ -38,7 +38,7 @@ Environment variables can be included in commands by wrapping the command in sin
 
 The Working Directory is the path that build-magic operates from. By default, the Working Directory is the current directory of the shell when build-magic is executed. On Linux and MacOS, this directory is the value of `$PWD` or `pwd` on Windows.
 
-The Working Directory can be changed to any path the user has permission to read from with the `--wd` option.
+The Working Directory can be changed to any path the user has permission to read from with the **--wd** option.
 
 === "Command-line"
 
@@ -90,7 +90,7 @@ The *cleanup* Action can be executed with the **--action** option.
 
 ## Specifying a local environment
 
-Optionally, when running a stage locally, you can specify a local environment for the stage to run in. You might want to do this to ensure a stage with Debian Linux specific commands don't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) don't match the current machine, build-magic will skip the stage.
+Optionally, when running a stage locally, you can specify a local environment for the stage to run in. You might want to do this to ensure a stage with Debian Linux specific commands doesn't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) doesn't match the current machine, build-magic will skip the stage.
 
 ```bash
 > build-magic -r local -e debian --verbose echo hello world
