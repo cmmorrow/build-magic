@@ -729,22 +729,22 @@ all | &lt;stage name&gt;... | [-t | --target &lt;stage name&gt;]...
 <p>Execute multiple stages with multiple commands using a Config File. For example:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --config my_config.yaml
 </code></pre></div>
-<p>Alternatively, <code>-C</code> (uppercase c) can be used instead of <code>--config</code>.</p>
+<p>Alternatively, <strong>-C</strong> (uppercase c) can be used instead of <strong>--config</strong>.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic -C my_config.yaml
 </code></pre></div>
-<p>A Config File in a different directory can also be used by providing the relative or absolute path to the config file:</p>
+<p>A Config File in a different directory can also be used by providing the relative or absolute path to the Config File:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --config my_project/config.yaml
 </code></pre></div>
 <p>Multiple Config Files can be specified and they will be executed in order.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --config config1.yaml --config config2.yaml
 </code></pre></div>
-<p>Execute a specific stage in a Config File with the <code>--target</code> option. If for example, a Config File has three stages named <em>build</em>, <em>test</em>, and <em>deploy</em>, the <em>deploy</em> stage can be run on it's own with:</p>
+<p>Execute a specific stage in a Config File with the <strong>--target</strong> option. If for example, a Config File has three stages named <em>build</em>, <em>test</em>, and <em>deploy</em>, the <em>deploy</em> stage can be run on it's own with:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --config my_config.yaml --target deploy
 </code></pre></div>
 <p>Multiple targets can be specified to change the stage execution order of a Config File. Running tests before building can be accomplished with:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --config my_config.yaml --target <span class="nb">test</span> --target build
 </code></pre></div>
-<p>Alternatively, <code>-t</code> can be used instead of <code>--target</code>.</p>
+<p>Alternatively, <strong>-t</strong> can be used instead of <strong>--target</strong>.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic -C my_config.yaml -t <span class="nb">test</span> -t build
 </code></pre></div>
 <p>Named stages in a Config File can also be run similar to a Makefile by specifying the stage name:</p>
@@ -762,14 +762,14 @@ all | &lt;stage name&gt;... | [-t | --target &lt;stage name&gt;]...
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The <code>make</code> like usage is more limited than using the <code>--target</code> option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with <code>all</code>. Stage names also need to be a single word. Also, a Config File must have one of the default filenames mentioned above, which also means multiple Config Files cannot be used. The Config File must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended to use the <code>--target</code> option instead for these reasons.</p>
+<p>The <code>make</code> like usage is more limited than using the <strong>--target</strong> option. Only a single stage can be executed by name as an argument, or all stages can be executed in order with <em>all</em>. Stage names also need to be a single word. Also, a Config File must have one of the default filenames mentioned above, which also means multiple Config Files cannot be used. The Config File must also be in the directory build-magic is being executed from. If a directory has more than one of the above named files in the same directory, an error is returned when running build-magic. While convenient, it's recommended to use the <strong>--target</strong> option instead for these reasons.</p>
 </div>
-<p>It is also possible to use the <code>--target</code> option with a Config File that has a default filename without having to specify the Config File name with <code>--config</code>. For example:</p>
+<p>It is also possible to use the <strong>--target</strong> option with a Config File that has a default filename without having to specify the Config File name with <strong>--config</strong>. For example:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --target <span class="nb">test</span> --target build
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If running build-magic from a directory that has a Config File with a default filename and another Config File is specified with the <code>--config</code> option, both Config Files will be executed with the Config File with the default filename running first.</p>
+<p>If running build-magic from a directory that has a Config File with a default filename and another Config File is specified with the <strong>--config</strong> option, both Config Files will be executed with the Config File with the default filename running first.</p>
 </div>
 <h4 id="description_1">Description<a class="headerlink" href="#description_1" title="Permanent link">&para;</a></h4>
 <p><strong>--help</strong> - Prints build-magic's help text.</p>

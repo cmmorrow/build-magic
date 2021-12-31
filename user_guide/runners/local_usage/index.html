@@ -535,7 +535,7 @@
 </code></pre></div>
 <h2 id="setting-the-working-directory">Setting the Working Directory<a class="headerlink" href="#setting-the-working-directory" title="Permanent link">&para;</a></h2>
 <p>The Working Directory is the path that build-magic operates from. By default, the Working Directory is the current directory of the shell when build-magic is executed. On Linux and MacOS, this directory is the value of <code>$PWD</code> or <code>pwd</code> on Windows.</p>
-<p>The Working Directory can be changed to any path the user has permission to read from with the <code>--wd</code> option.</p>
+<p>The Working Directory can be changed to any path the user has permission to read from with the <strong>--wd</strong> option.</p>
 <div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic --wd ~/myproject make
 </code></pre></div>
@@ -575,7 +575,7 @@
 <p>There is a special exclusion to prevent deleting files and directories that are modified inside the .git directory in the working directory to prevent git from becoming corrupted.</p>
 </div>
 <h2 id="specifying-a-local-environment">Specifying a local environment<a class="headerlink" href="#specifying-a-local-environment" title="Permanent link">&para;</a></h2>
-<p>Optionally, when running a stage locally, you can specify a local environment for the stage to run in. You might want to do this to ensure a stage with Debian Linux specific commands don't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) don't match the current machine, build-magic will skip the stage.</p>
+<p>Optionally, when running a stage locally, you can specify a local environment for the stage to run in. You might want to do this to ensure a stage with Debian Linux specific commands doesn't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) doesn't match the current machine, build-magic will skip the stage.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic -r <span class="nb">local</span> -e debian --verbose <span class="nb">echo</span> hello world
 </code></pre></div>
                 

@@ -627,7 +627,7 @@
 <li>Build and deploy new machine learning models.</li>
 <li>Automate deploying software to staging or production cloud environments.</li>
 <li>Simplify onboarding new team members by automating development environment setup and installation.</li>
-<li>Automate launching an application for local testing with the same config file used for deploying in production.</li>
+<li>Automate launching an application for local testing with the same Config File used for deploying in production.</li>
 <li>Execute regression, integration, and unit tests across multiple platforms and servers.</li>
 <li>Automate dry runs of critical commands that cannot be tested on a production system.</li>
 </ul>
@@ -639,11 +639,11 @@
 <h3 id="simple-but-powerful">Simple but powerful<a class="headerlink" href="#simple-but-powerful" title="Permanent link">&para;</a></h3>
 <p>There are no looping mechanics or specialized conditional logic handlers beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and replicate. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs become idempotent. The persist action will preserve the state of a container or VM after execution of a job.</p>
 <h3 id="un-opinionated">Un-opinionated<a class="headerlink" href="#un-opinionated" title="Permanent link">&para;</a></h3>
-<p>As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic config file or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.</p>
+<p>As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic Config File or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.</p>
 <h3 id="runtime-variables">Runtime variables<a class="headerlink" href="#runtime-variables" title="Permanent link">&para;</a></h3>
-<p>Build-magic config files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic config file.</p>
+<p>Build-magic Config Files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic Config File.</p>
 <h3 id="cross-platform">Cross platform<a class="headerlink" href="#cross-platform" title="Permanent link">&para;</a></h3>
-<p>Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic config files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.</p>
+<p>Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic Config Files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.</p>
                 
               
               

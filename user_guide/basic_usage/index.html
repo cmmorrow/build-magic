@@ -695,14 +695,14 @@
 <div class="highlight"><pre><span></span><code>&gt; build-magic --verbose echo hello world
 </code></pre></div>
 <p><img alt="single command output" src="../../static/single_command.svg" /></p>
-<p>The arguments to <em>build-magic</em> are treated and executed as a single command and the <strong>--verbose</strong> option prints the output of the command.</p>
+<p>The arguments to <em>build-magic</em> are executed as a single command and the <strong>--verbose</strong> option prints the output of the command.</p>
 <h2 id="changing-the-output-format">Changing the output format<a class="headerlink" href="#changing-the-output-format" title="Permanent link">&para;</a></h2>
 <p>Build-magic's output can be changed to a more log-like appearance with the <strong>--plain</strong> option.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --plain <span class="nb">echo</span> hello world
 </code></pre></div>
 <p><img alt="plain output" src="../../static/plain_output.svg" /></p>
 <h2 id="using-command-runners">Using command runners<a class="headerlink" href="#using-command-runners" title="Permanent link">&para;</a></h2>
-<p>Build-magic can run commands locally, remotely via SSH, in a Docker container, or in a VM via Vagrant. The follow commands all print the same output, but are run in different environments:</p>
+<p>Build-magic can run commands locally, remotely via SSH, in a Docker container, or in a VM via Vagrant. The following commands all print the same output, but are run in different environments:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --verbose <span class="nb">echo</span> hello world
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>&gt; build-magic --verbose --runner remote -e user@myhost <span class="nb">echo</span> hello world
@@ -866,7 +866,19 @@
 </code></pre></div>
 <p>The execution of this Config File is identical to the previous one.</p>
 <h2 id="cleanup-action">Cleanup action<a class="headerlink" href="#cleanup-action" title="Permanent link">&para;</a></h2>
-<p>Instead of using a command to manually delete files, you can use the cleanup action with <strong>action: cleanup</strong> which will delete all new files that were created during a build-magic Stage.</p>
+<p>Instead of using a command to manually delete files, you can use the cleanup action with <strong>--action</strong> <em>cleanup</em> on the command-line or <strong>action:</strong> <em>cleanup</em> in a Config File which will delete all new files that were created during a build-magic Stage.</p>
+<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">&gt;</span><span class="err"> build-magic \</span>
+<span class="l l-Scalar l-Scalar-Plain">--name Setup \</span>
+<span class="l l-Scalar l-Scalar-Plain">--runner docker \</span>
+<span class="l l-Scalar l-Scalar-Plain">--environment ubuntu:latest \</span>
+<span class="l l-Scalar l-Scalar-Plain">--action cleanup \</span>
+<span class="l l-Scalar l-Scalar-Plain">--command execute &#39;echo hello &gt; file1.txt&#39; \</span>
+<span class="l l-Scalar l-Scalar-Plain">--command execute &#39;echo world &gt; file2.txt&#39; \</span>
+<span class="l l-Scalar l-Scalar-Plain">--command test &#39;cat file1.txt file2.txt&#39;</span>
+</code></pre></div>
+</div>
+<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
       <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Setup</span>
@@ -878,6 +890,8 @@
         <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">echo world &gt; file2.txt</span>
         <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cat file1.txt file2.txt</span>
 </code></pre></div>
+</div>
+</div>
 <p>After running this Config File, the files <em>file1.txt</em> and <em>file2.txt</em> will be automatically deleted without touching any other files in the directory.</p>
 <h2 id="using-environment-variables">Using environment variables<a class="headerlink" href="#using-environment-variables" title="Permanent link">&para;</a></h2>
 <p>Commands executed by build-magic can use environment variables as if the command was being executed from the shell, but they cannot set new environment variables. This is because each command is atomic and executed in it's own shell environment, so setting an environment variable in one command doesn't carry over to another.</p>
@@ -932,7 +946,7 @@
 <p>You can see that the prompt for <code>password</code> doesn't print any text that is typed, and the prompted value isn't displayed in the output either.</p>
 <h2 id="changing-the-working-directory">Changing the working directory<a class="headerlink" href="#changing-the-working-directory" title="Permanent link">&para;</a></h2>
 <p>By default, build-magic runs in the current directory, but you can override the default by specify the working directory with <strong>working directory</strong> in a Config File or <strong>--wd</strong> from the command-line. For example, the following will set the working directory to <em>~/myprojects/app</em> regardless of the shell's current directory:</p>
-<div class="tabbed-set" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><label for="__tabbed_2_1">Command-line</label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
   --wd ~/myprojects/app <span class="se">\</span>
   --command execute <span class="s2">&quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot;</span> <span class="se">\</span>
@@ -942,7 +956,7 @@
   --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><label for="__tabbed_2_2">Config File</label><div class="tabbed-content">
+<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
       <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">~/myprojects/app</span>
@@ -956,7 +970,7 @@
 </div>
 </div>
 <p>The <strong>working directory</strong> always refers to the directory where build-magic executes commands, regardless of which runner is used. For example if we execute the commands above in a Docker container, the working directory <em>~/myprojects/app</em> will refer to a path in the container.</p>
-<div class="tabbed-set" data-tabs="3:2"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><label for="__tabbed_3_1">Command-line</label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
   --runner docker <span class="se">\</span>
   --environment ubuntu:latest <span class="se">\</span>
@@ -968,7 +982,7 @@
   --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
 </code></pre></div>
 </div>
-<input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><label for="__tabbed_3_2">Config File</label><div class="tabbed-content">
+<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">Config File</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
       <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
@@ -985,14 +999,14 @@
 </div>
 <h2 id="including-files">Including files<a class="headerlink" href="#including-files" title="Permanent link">&para;</a></h2>
 <p>Files can be copied from another directory into the working directory using <strong>copy from directory</strong> in a Config File or the <strong>--copy</strong> option on the command-line:</p>
-<div class="tabbed-set" data-tabs="4:2"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio" /><label for="__tabbed_4_1">Command-line</label><div class="tabbed-content">
+<div class="tabbed-set" data-tabs="5:2"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio" /><label for="__tabbed_5_1">Command-line</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code>&gt; build-magic <span class="se">\</span>
 --copy myproject/src <span class="se">\</span>
 -c execute <span class="s2">&quot;go build main.go&quot;</span> <span class="se">\</span>
 audio.go equalizer.go effects.go
 </code></pre></div>
 </div>
-<input id="__tabbed_4_2" name="__tabbed_4" type="radio" /><label for="__tabbed_4_2">Config File</label><div class="tabbed-content">
+<input id="__tabbed_5_2" name="__tabbed_5" type="radio" /><label for="__tabbed_5_2">Config File</label><div class="tabbed-content">
 <div class="highlight"><pre><span></span><code><span class="nt">build-magic</span><span class="p">:</span>
   <span class="p p-Indicator">-</span> <span class="nt">stage</span><span class="p">:</span>
       <span class="nt">copy from directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">myproject/src</span>
@@ -1008,12 +1022,12 @@ audio.go equalizer.go effects.go
 <h2 id="adding-metadata-to-config-files">Adding metadata to Config Files<a class="headerlink" href="#adding-metadata-to-config-files" title="Permanent link">&para;</a></h2>
 <p>Config Files can contain additional info that isn't used directly by build-magic, but is useful for documenting Config Files. These metadata fields are:</p>
 <ul>
-<li><em>author</em></li>
-<li><em>maintainer</em></li>
-<li><em>version</em></li>
-<li><em>created</em></li>
-<li><em>modified</em></li>
-<li><em>description</em></li>
+<li><strong>author</strong></li>
+<li><strong>maintainer</strong></li>
+<li><strong>version</strong></li>
+<li><strong>created</strong></li>
+<li><strong>modified</strong></li>
+<li><strong>description</strong></li>
 </ul>
 <p>Each of these fields are user definable, as build-magic doesn't enforce any constraints on their formatting.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">0.1.0</span>
@@ -1091,7 +1105,7 @@ audio.go equalizer.go effects.go
 </code></pre></div>
 <p><img alt="multi info output" src="../../static/multi_info.svg" /></p>
 <h2 id="specifying-a-local-environment">Specifying a local environment<a class="headerlink" href="#specifying-a-local-environment" title="Permanent link">&para;</a></h2>
-<p>Optionally, when running a Stage locally, you can specify a local environment for the Stage to run in. You might want to do this to ensure a Stage with Debian Linux specific commands don't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) don't match the current machine, build-magic will skip the Stage.</p>
+<p>Optionally, when running a Stage locally, you can specify a local environment for the Stage to run in. You might want to do this to ensure a Stage with Debian Linux specific commands doesn't run on Red Hat Enterprise Linux, or Windows Powershell commands don't run on MacOS. If the operating system (or Linux distribution) doesn't match the current machine, build-magic will skip the Stage.</p>
 <p>For example, if running CentOS Linux and specifying the local environment as <em>debian</em>, the Stage will be skipped:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic -r <span class="nb">local</span> -e debian --verbose <span class="nb">echo</span> hello world
 </code></pre></div>
