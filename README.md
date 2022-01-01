@@ -62,6 +62,15 @@ Because build-magic lets you execute commands in a container or virtual machine,
 
 ## Installation
 
+### MacOS
+
+Build-magic can be installed with Homebrew using the following commands:
+
+```bash
+> brew tap cmmorrow/build-magic
+> brew install build-magic
+```
+
 ### Linux
 
 You can find instructions for installing build-magic for Fedora based and Debian based distros from the build-magic Linux installation [instructions](https://cmmorrow.github.io/build-magic/getting_started/#linux).

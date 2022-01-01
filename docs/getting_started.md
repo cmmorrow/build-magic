@@ -14,6 +14,15 @@ To get the most out of build-magic, it is recommended to have OpenSSH, Docker, a
 
 ## Installation
 
+### MacOS
+
+Build-magic can be installed with Homebrew using the following commands:
+
+```bash
+> brew tap cmmorrow/build-magic
+> brew install build-magic
+```
+
 ### Linux
 
 The easiest way to install build-magic for Linux is by installing from a package.
