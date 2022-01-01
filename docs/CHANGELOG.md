@@ -13,7 +13,7 @@
 * Build-magic creates and uses a custom Vagrantfile when using the Vagrant command runner and setting bind directory or envvars.
 * Bugfixes
 
-## Version 0.3.3 (Newest)
+## Version 0.3.3
 
 * Fixed a bug where an error when parsing a YAML file was not caught and handled.
 * Code cleanup and style enforcement with Flake8.
