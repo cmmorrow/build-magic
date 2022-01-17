@@ -23,6 +23,14 @@ Build-magic can be installed with Homebrew using the following commands:
 > brew install build-magic
 ```
 
+### Windows
+
+A Windows installer is available for build-magic and can be downloaded from the links below:
+
+| Installer | Version |
+|-----------|---------|
+|[build-magic-0.4.0_amd64_installer.exe](https://github.com/cmmorrow/build-magic/releases/download/v0.4.0/build-magic-0.4.0_amd64_installer.exe)| 0.4.0 |
+
 ### Linux
 
 The easiest way to install build-magic for Linux is by installing from a package.
