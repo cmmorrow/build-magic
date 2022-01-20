@@ -1,11 +1,11 @@
 maintainer: Chris Morrow <cmmorrow@gmail.com>
-version: 1.0.2
+version: 1.0.3
 build-magic:
   - stage:
       name: Run Tests
       commands:
         - execute: flake8 --count --show-source --statistics
-        - test: pytest tests/test* --cov=build_magic --cov-report term-missing
+        - test: pytest -c unit_test.toml
   - stage:
       name: Build Documentation
       action: cleanup

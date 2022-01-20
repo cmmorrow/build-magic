@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+addopts = "--ignore-glob=*integration* -v --cov=build_magic --cov-report term-missing"
+testpaths = [
+    "tests",
+]
