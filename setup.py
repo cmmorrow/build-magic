@@ -39,7 +39,7 @@ setup(
         'click==8.0.3',
         'colorama==0.4.4',
         'cryptography==36.0.1',
-        'jsonschema==4.4.0',
+        'jsonschema==3.2.0',
         'docker==5.0.3',
         'nltk==3.6.7',
         'paramiko==2.9.2',
