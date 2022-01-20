@@ -23,7 +23,7 @@ or can support complex build automation with multiple steps on the command-line 
       --verbose \
       --cleanup \
       --command execute "./configure CC=c99 CFLAGS=-O2 LIBS=-lposix" \
-      --command build "make" \
+      --command build "make build" \
       --command test "make test" \
       --command execute "tar -czf myapp.tar.gz build/*" \
       --command release "jfrog rt upload myapp.tar.gz my-artifactory"
@@ -44,7 +44,7 @@ or can support complex build automation with multiple steps on the command-line 
           action: cleanup
           commands:
             - execute: ./configure CC=c99 CFLAGS=-O2 LIBS=-lposix
-            - build: make
+            - build: make build
             - test: make test
             - execute: tar -czf myapp.tar.gz build/*
             - release: jfrog rt upload myapp.tar.gz my-artifactory
