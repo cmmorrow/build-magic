@@ -589,7 +589,7 @@
   --verbose <span class="se">\</span>
   --cleanup <span class="se">\</span>
   --command execute <span class="s2">&quot;./configure CC=c99 CFLAGS=-O2 LIBS=-lposix&quot;</span> <span class="se">\</span>
-  --command build <span class="s2">&quot;make&quot;</span> <span class="se">\</span>
+  --command build <span class="s2">&quot;make build&quot;</span> <span class="se">\</span>
   --command <span class="nb">test</span> <span class="s2">&quot;make test&quot;</span> <span class="se">\</span>
   --command execute <span class="s2">&quot;tar -czf myapp.tar.gz build/*&quot;</span> <span class="se">\</span>
   --command release <span class="s2">&quot;jfrog rt upload myapp.tar.gz my-artifactory&quot;</span>
@@ -607,7 +607,7 @@
       <span class="nt">action</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cleanup</span>
       <span class="nt">commands</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./configure CC=c99 CFLAGS=-O2 LIBS=-lposix</span>
-        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
+        <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make build</span>
         <span class="p p-Indicator">-</span> <span class="nt">test</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make test</span>
         <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">tar -czf myapp.tar.gz build/*</span>
         <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload myapp.tar.gz my-artifactory</span>
