@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import pathlib
 from pathlib import Path
 import subprocess
 import types
@@ -548,15 +549,15 @@ def test_action_delete_new_files_preserve_modified_file(build_hashes, build_path
 
 
 def test_action_delete_new_files_empty_directory(empty_path, generic_runner, mocker):
-    """Verify the delete_new_files() function works correctly with an empty directory."""
+    """Verify the delete_new_files() function works correctly starting with an empty directory."""
     os.chdir(str(empty_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
-    generic_runner.execute(Macro('echo hello'))
-    assert not generic_runner.teardown()
+    generic_runner.execute(Macro('touch hello.txt'))
+    assert generic_runner.teardown() is True
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
     # Docker capture
@@ -564,8 +565,55 @@ def test_action_delete_new_files_empty_directory(empty_path, generic_runner, moc
     generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
-    generic_runner.execute(Macro('echo hello'))
-    assert not generic_runner.teardown()
+    generic_runner.execute(Macro('touch hello.txt'))
+    assert generic_runner.teardown() is True
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
+
+
+def test_action_delete_new_files_empty_directory_permission_error(empty_path, generic_runner, mocker):
+    """Test the case where delete_new_files() raises a PermissionError attempting to delete a file."""
+    os.chdir(str(empty_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    mocker.patch('os.remove', side_effect=PermissionError)
+    # Local capture
+    generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    assert len(generic_runner._existing_files) == 0
+    generic_runner.execute(Macro('touch hello.txt'))
+    with pytest.raises(PermissionError):
+        generic_runner.teardown()
+
+    pathlib.Path('hello.txt').unlink()
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    assert len(generic_runner._existing_files) == 0
+    generic_runner.execute(Macro('touch hello.txt'))
+    with pytest.raises(PermissionError):
+        generic_runner.teardown()
+
+
+def test_action_delete_new_files_empty_directory_new_directory(empty_path, generic_runner, mocker):
+    """Verify the delete_new_files() function works correctly deleting a directory starting with an empty directory."""
+    os.chdir(str(empty_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    # Local capture
+    generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    assert len(generic_runner._existing_files) == 0
+    generic_runner.execute(Macro('mkdir test1'))
+    assert generic_runner.teardown() is True
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    assert len(generic_runner._existing_files) == 0
+    generic_runner.execute(Macro('mkdir test1'))
+    assert generic_runner.teardown() is True
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
 
@@ -577,7 +625,7 @@ def test_action_delete_new_files_no_existing(generic_runner, mocker):
     assert not generic_runner.teardown()
 
     generic_runner._existing_files = None
-    assert not generic_runner.teardown()
+    assert generic_runner.teardown() is False
 
     # Docker capture
     generic_runner.host_wd = '.'
@@ -585,7 +633,7 @@ def test_action_delete_new_files_no_existing(generic_runner, mocker):
     assert not generic_runner.teardown()
 
     generic_runner._existing_files = None
-    assert not generic_runner.teardown()
+    assert generic_runner.teardown() is False
 
 
 def test_action_delete_nested_directories(build_hashes, build_path, generic_runner, mocker, touch):
