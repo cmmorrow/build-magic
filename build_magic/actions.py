@@ -384,7 +384,7 @@ def delete_new_files(self):
                     continue
                 # Handle a Windows specific case where a PermissionError is raised instead of IsADirectoryError.
                 except PermissionError as error:
-                    if os.sys.platform == 'win32' and file.is_dir():
+                    if os.sys.platform == 'win32' or file.is_dir():
                         continue
                     else:
                         raise error
@@ -401,6 +401,18 @@ def delete_new_files(self):
                 elif hash_ in hashes and (str(file), hash_) not in self._existing_files and new_hashes.count(hash_) > 1:
                     os.remove(file)
                     continue
+            result = True
+        # Handle the case where the working directory started off empty.
+        else:
+            pwd = pathlib.Path(self.working_directory).resolve()
+            for file in pwd.rglob('*'):
+                try:
+                    if file.is_dir():
+                        os.rmdir(file)
+                    else:
+                        os.remove(file)
+                except PermissionError as error:
+                    raise error
             result = True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.working_directory).resolve()
@@ -460,6 +472,18 @@ def docker_delete_new_files(self):
                 elif hash_ in hashes and (str(file), hash_) not in self._existing_files and new_hashes.count(hash_) > 1:
                     os.remove(file)
                     continue
+            result = True
+        # Handle the case where the working directory started off empty.
+        else:
+            pwd = pathlib.Path(self.working_directory).resolve()
+            for file in pwd.rglob('*'):
+                try:
+                    if file.is_dir():
+                        os.rmdir(file)
+                    else:
+                        os.remove(file)
+                except PermissionError as error:
+                    raise error
             result = True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.host_wd).resolve()
