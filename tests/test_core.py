@@ -864,3 +864,27 @@ def test_parse_variables_no_variables():
         '{"build-magic": [{"stage": {"name": "example", "runner": "local", "commands": '
         '[{"execute": "export GOARCH={{ ARCH }}"}, {"execute": "export GOOS={{ OS }}"}]}}]}'
     )
+
+
+def test_parse_variables_windows_path():
+    """Test the case where a Windows path is provided as a variable."""
+    variables = {
+        'wd': 'C:\\Users\\wanda\\repos'
+    }
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'working directory': "'{{ wd }}'",
+                    'commands': [
+                        {'execute': 'echo hello'}
+                    ]
+                }
+            }
+        ]
+    }
+    output = parse_variables(config, variables)
+    assert json.dumps(output) == (
+        '{"build-magic": [{"stage": {"working directory": "\'C://Users//wanda//repos\'", '
+        '"commands": [{"execute": "echo hello"}]}}]}'
+    )

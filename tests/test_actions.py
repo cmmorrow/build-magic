@@ -90,33 +90,6 @@ def generic_runner():
     return GenericRunner('dummy')
 
 
-@pytest.fixture
-def cp():
-    """Provides the correct file copy command for the executing operating system."""
-    if os.sys.platform == 'win32':
-        return 'copy'
-    else:
-        return 'cp'
-
-
-@pytest.fixture
-def mv():
-    """Provides the correct file move command for the executing operating system."""
-    if os.sys.platform == 'win32':
-        return 'move'
-    else:
-        return 'mv'
-
-
-@pytest.fixture
-def touch():
-    """Provides the correct touch command for the executing operating system."""
-    if os.sys.platform == 'win32':
-        return 'type nul >>'
-    else:
-        return 'touch'
-
-
 def test_default_action():
     """Verify there isn't any regression in the default action."""
     ref = {
@@ -570,7 +543,7 @@ def test_action_delete_new_files_empty_directory(empty_path, generic_runner, moc
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
 
-def test_action_delete_new_files_empty_directory_permission_error(empty_path, generic_runner, mocker):
+def test_action_delete_new_files_empty_directory_permission_error(empty_path, generic_runner, mocker, touch):
     """Test the case where delete_new_files() raises a PermissionError attempting to delete a file."""
     os.chdir(str(empty_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
@@ -579,9 +552,9 @@ def test_action_delete_new_files_empty_directory_permission_error(empty_path, ge
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
-    generic_runner.execute(Macro('touch hello.txt'))
-    with pytest.raises(PermissionError):
-        generic_runner.teardown()
+    generic_runner.execute(Macro(f'{touch} hello.txt'))
+    assert generic_runner.teardown() is True
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 1
 
     pathlib.Path('hello.txt').unlink()
 
@@ -590,12 +563,12 @@ def test_action_delete_new_files_empty_directory_permission_error(empty_path, ge
     generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
-    generic_runner.execute(Macro('touch hello.txt'))
-    with pytest.raises(PermissionError):
-        generic_runner.teardown()
+    generic_runner.execute(Macro(f'{touch} hello.txt'))
+    assert generic_runner.teardown() is True
+    assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 1
 
 
-def test_action_delete_new_files_empty_directory_new_directory(empty_path, generic_runner, mocker):
+def test_action_delete_new_files_empty_directory_new_directory(empty_path, generic_runner, mocker, touch):
     """Verify the delete_new_files() function works correctly deleting a directory starting with an empty directory."""
     os.chdir(str(empty_path))
     mocker.patch('build_magic.actions.container_destroy', return_value=True)
@@ -604,6 +577,7 @@ def test_action_delete_new_files_empty_directory_new_directory(empty_path, gener
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro('mkdir test1'))
+    generic_runner.execute(Macro(f'{touch} test1/hello.txt'))
     assert generic_runner.teardown() is True
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 
@@ -613,6 +587,7 @@ def test_action_delete_new_files_empty_directory_new_directory(empty_path, gener
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro('mkdir test1'))
+    generic_runner.execute(Macro(f'{touch} test1/hello.txt'))
     assert generic_runner.teardown() is True
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 0
 

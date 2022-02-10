@@ -150,7 +150,12 @@ def parse_variables(config, variables):
                 for key, value in variables.items():
                     for match in matches:
                         if key in match:
-                            config_string = re.sub(r'{{\s?' + key + r'\s?}}', value, config_string)
+                            # Convert value that might be Windows path.
+                            if '\\' in value:
+                                value = value.encode('unicode-escape').decode('utf-8')
+                                value = value.replace('\\', '/')
+                            pattern = re.compile(r'{{\s?' + key + r'\s?}}')
+                            config_string = re.sub(pattern, value, config_string)
                             matched = True
                             break
             if not matched:
