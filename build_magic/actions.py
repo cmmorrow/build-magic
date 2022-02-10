@@ -408,11 +408,11 @@ def delete_new_files(self):
             for file in pwd.rglob('*'):
                 try:
                     if file.is_dir():
-                        os.rmdir(file)
+                        shutil.rmtree(file)
                     else:
                         os.remove(file)
                 except PermissionError as error:
-                    raise error
+                    continue
             result = True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.working_directory).resolve()
@@ -479,11 +479,11 @@ def docker_delete_new_files(self):
             for file in pwd.rglob('*'):
                 try:
                     if file.is_dir():
-                        os.rmdir(file)
+                        shutil.rmtree(file)
                     else:
                         os.remove(file)
                 except PermissionError as error:
-                    raise error
+                    continue
             result = True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.host_wd).resolve()

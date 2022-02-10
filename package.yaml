@@ -1,5 +1,8 @@
 maintainer: Chris Morrow <cmmorrow@gmail.com>
-version: 1.0.4
+version: 1.1.1
+description: >
+  This Config File is used for building OS-specific build-magic binaries
+  and pushing them to GitHub.
 prepare:
   - &upgrade_pip
       pip3 install --upgrade pip
@@ -119,3 +122,44 @@ build-magic:
             --data-binary @$(ls $HOME/rpmbuild/RPMS/x86_64/*)
             -H "Content-Type: application/octet-stream"
             https://uploads.github.com/repos/cmmorrow/build-magic/releases/$(cat RELEASE_ID)/assets?name=$(ls $HOME/rpmbuild/RPMS/x86_64/* | xargs basename)
+  - stage:
+      name: windows
+      runner: local
+      environment: windows
+      working directory: '{{ working_directory }}'
+      action: cleanup
+      commands:
+        # Create a new virtual environment
+        - execute: python -m venv .\build-magic_{{ version }}-env
+          label: Creating new virtual environment
+        - install: .\build-magic_{{ version }}-env\Scripts\pip3 install pyinstaller
+          label: Installing pyinstaller
+        # Clone and install the repo
+        - execute: *clone_repo
+          label: Cloning build-magic repo
+        - install: .\build-magic_{{ version }}-env\Scripts\pip3 install .\build-magic
+          label: Install build-magic dependencies
+        # Build the application
+        - build: >
+            pyinstaller
+            -n "build-magic_{{ version }}" -D
+            --clean
+            --distpath .\build-magic\build-magic
+            --add-data build-magic\build_magic\static;build_magic\static
+            build-magic\build_magic\__main__.py
+          label: Run pyinstaller
+        # Create the batch file
+        - execute: echo @ECHO OFF >> build-magic\build-magic\build-magic.bat
+        - execute: echo %~dp0build-magic_{{ version }}\build-magic_{{ version }}.exe %* >> build-magic\build-magic\build-magic.bat
+        # Build the installer
+        - execute: copy .\build-magic\package\windows\build-magic\build-magic.nsi .
+        - build: makensis build-magic.nsi
+        # Upload the package to GitHub
+        - execute: *get_release_id
+        - release: >
+            for /F %r in (RELEASE_ID) DO
+            @curl -u {{ user }}:{{ password }}
+            --data-binary @"build-magic-{{ version }}_amd64_installer.exe"
+            -H "Content-Type: application/octet-stream"
+            https://uploads.github.com/repos/cmmorrow/build-magic/releases/%r/assets?name=build-magic-{{ version }}_amd64_installer.exe
+          label: Upload to GitHub

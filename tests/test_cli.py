@@ -313,33 +313,6 @@ def dotenv_config(magic_dir):
     os.remove(magic_dir / dotenv)
 
 
-@pytest.fixture
-def ls():
-    """Provides the correct list command for the executing operating system."""
-    if os.sys.platform == 'win32':
-        return 'dir'
-    else:
-        return 'ls'
-
-
-@pytest.fixture
-def cat():
-    """Provides the correct cat command for the executing operating system."""
-    if os.sys.platform == 'win32':
-        return 'type'
-    else:
-        return 'cat'
-
-
-@pytest.fixture
-def cp():
-    """Provides the correct file copy command for the executing operating system."""
-    if os.sys.platform == 'win32':
-        return 'copy'
-    else:
-        return 'cp'
-
-
 def test_cli_no_options(cli):
     """Verify that the usage is printed when no options or arguments are provided."""
     res = cli.invoke(build_magic)
