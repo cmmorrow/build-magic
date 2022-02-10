@@ -5,6 +5,8 @@
 * Updated python package version.
 * Fixed a cleanup action bug on Windows that prevented directories mis-identified as files from preventing cleanup.
 * Fixed a cleanup action bug that prevented files in an empty working directory from being cleaned up.
+* Fixed a cleanup action bug that prevented an empty directory from being deleted.
+* Fixed a bug that would raise an unhandled exception if a Windows path was provided as a runtime variable.
 
 ## Version 0.4.0 (Newest)
 

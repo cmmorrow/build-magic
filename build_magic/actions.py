@@ -411,7 +411,7 @@ def delete_new_files(self):
                         shutil.rmtree(file)
                     else:
                         os.remove(file)
-                except PermissionError as error:
+                except PermissionError:
                     continue
             result = True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
@@ -482,7 +482,7 @@ def docker_delete_new_files(self):
                         shutil.rmtree(file)
                     else:
                         os.remove(file)
-                except PermissionError as error:
+                except PermissionError:
                     continue
             result = True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):

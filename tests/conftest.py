@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+
 @pytest.fixture
 def ls():
     """Provides the correct list command for the executing operating system."""
