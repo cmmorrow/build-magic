@@ -682,7 +682,10 @@ def remote_delete_files(self):
                 to_delete.append(str(file).strip('\n'))
                 continue
         if to_delete:
-            _execute_command(client, f'rm {" ".join(to_delete)}')
+            if system == WINDOWS:
+                _execute_command(client, f'del /f /s /q {" ".join(to_delete)}')
+            else:
+                _execute_command(client, f'rm {" ".join(to_delete)}')
     if system != WINDOWS:
         to_delete = []
         if current_dirs:

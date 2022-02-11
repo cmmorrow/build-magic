@@ -1644,7 +1644,7 @@ def test_action_remote_delete_files_windows_uname(generic_runner, mocker):
     ]
     assert generic_runner.teardown()
     assert exek.call_count == 4
-    assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
+    assert exek.call_args[0] == ('del /f /s /q C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
 
 
 def test_action_remote_delete_files_windows_uname_ignore_git(generic_runner, mocker):
@@ -1703,7 +1703,7 @@ def test_action_remote_delete_files_windows_uname_ignore_git(generic_runner, moc
     ]
     assert generic_runner.teardown()
     assert exek.call_count == 4
-    assert exek.call_args[0] == ('rm C:\\build-magic\\file2.txt',)
+    assert exek.call_args[0] == ('del /f /s /q C:\\build-magic\\file2.txt',)
 
 
 def test_action_remote_delete_files_windows_os(generic_runner, mocker):
@@ -1766,7 +1766,7 @@ def test_action_remote_delete_files_windows_os(generic_runner, mocker):
     ]
     assert generic_runner.teardown()
     assert exek.call_count == 5
-    assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
+    assert exek.call_args[0] == ('del /f /s /q C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
 
 
 def test_action_remote_delete_files_windows_os_ignore_git(generic_runner, mocker):
@@ -1834,7 +1834,7 @@ def test_action_remote_delete_files_windows_os_ignore_git(generic_runner, mocker
     ]
     assert generic_runner.teardown()
     assert exek.call_count == 5
-    assert exek.call_args[0] == ('rm C:\\build-magic\\file2.txt',)
+    assert exek.call_args[0] == ('del /f /s /q C:\\build-magic\\file2.txt',)
 
 
 def test_action_remote_delete_files_unix_fail(generic_runner, mocker):
@@ -2261,7 +2261,7 @@ def test_action_remote_delete_files_copies_by_filename(generic_runner, mocker):
     ]
     assert generic_runner.teardown()
     assert exek.call_count == 4
-    assert exek.call_args[0] == ('rm C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
+    assert exek.call_args[0] == ('del /f /s /q C:\\build-magic\\myfiles.tar.gz C:\\build-magic\\other_file.txt',)
 
 
 def test_action_remote_delete_files_preserve_renamed_files_by_hash(generic_runner, mocker):
@@ -2405,7 +2405,7 @@ def test_action_remote_delete_files_preserve_renamed_files_by_name(generic_runne
     ]
     assert generic_runner.teardown()
     assert exek.call_count == 4
-    assert exek.call_args[0] == ('rm C:\\build-magic\\copy1.txt',)
+    assert exek.call_args[0] == ('del /f /s /q C:\\build-magic\\copy1.txt',)
 
 
 def test_action_remote_delete_files_remove_directories(generic_runner, mocker):

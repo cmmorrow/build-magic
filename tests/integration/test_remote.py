@@ -206,8 +206,8 @@ def test_cleanup_all(cli, tmp_path_factory):
     assert '[ DONE  ] ( 1/2 ) EXECUTE  : touch file3.txt' in output
     assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert '[ INFO  ] OUTPUT: file1.txt' in output
-    assert re.search(r'\nfile2\.txt\n', output)
-    assert re.search(r'\nfile3\.txt\n', output)
+    assert re.search(r'file2\.txt', output)
+    assert re.search(r'file3\.txt', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
     assert target.joinpath('file1.txt').exists() is False
     assert target.joinpath('file2.txt').exists() is False
@@ -241,8 +241,8 @@ def test_cleanup_select(cli, tmp_path):
     assert '[ DONE  ] ( 1/2 ) EXECUTE  : touch file3.txt' in output
     assert '[ DONE  ] ( 2/2 ) EXECUTE  : ls' in output
     assert '[ INFO  ] OUTPUT: file1.txt' in output
-    assert re.search(r'\nfile2\.txt\n', output)
-    assert re.search(r'\nfile3\.txt\n', output)
+    assert re.search(r'file2\.txt', output)
+    assert re.search(r'file3\.txt', output)
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
     assert file1.exists() is True
     assert file1.exists() is True
