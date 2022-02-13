@@ -527,7 +527,7 @@ def test_cli_empty_string_command(cli):
 
 def test_cli_artifacts_but_empty_string_command(cli):
     """Test the case where artifacts are provided as arguments but with no command."""
-    res = cli.invoke(build_magic, ['file1.txt', 'file2.txt'])
+    res = cli.invoke(build_magic, ['blah', 'file2.txt'])
     assert res.exit_code == ExitCode.FAILED
 
 
