@@ -281,7 +281,7 @@ def test_cleanup_win(cli, tmp_path):
         shell=True,
     )
     output = res.stdout.decode('utf-8')
-    # assert res.returncode == ExitCode.PASSED
+    assert res.returncode == ExitCode.PASSED
     assert '[ INFO  ] Starting Stage 1' in output
     assert '[ DONE  ] ( 1/2 ) EXECUTE  : mkdir new' in output
     assert r'[ DONE  ] ( 2/2 ) EXECUTE  : type nul >> new\file3.txt' in output
