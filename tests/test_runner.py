@@ -338,10 +338,7 @@ def test_local_execute_fail(local_runner, tmp_path):
             b'tar: Exiting with failure status due to previous errors\n'
         )
     elif os.sys.platform == 'win32':
-        assert status.stderr == (
-            b"tar: : Couldn't visit directory: No such file or directory\r\n"
-            b'tar: Error exit delayed from previous errors.\r\n'
-        )
+        assert b"tar: Error exit delayed from previous errors" in status.stderr
     else:
         assert status.stderr == (
             b'tar: dummy.txt: Cannot stat: No such file or directory\n'
