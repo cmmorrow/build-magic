@@ -6,7 +6,7 @@ import subprocess
 import pytest
 
 from build_magic.reference import ExitCode
-from . import unix
+from . import unix, windows
 
 
 @pytest.mark.local
@@ -76,6 +76,39 @@ def test_multiple_commands(cli):
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
+@windows
+@pytest.mark.local
+def test_multiple_commands_win(cli):
+    """Verify passing multiple commands with the -c and --command options works correctly."""
+    res = subprocess.run(
+        'python -m build_magic --verbose --plain -c execute "echo hello world" -c execute "dir"',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : dir' in output
+    assert '[ INFO  ] Stage 1 complete with result DONE' in output
+
+    res = subprocess.run(
+        'python -m build_magic --verbose --plain --command execute "echo hello world" --command execute "dir"',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo hello world' in output
+    assert '[ INFO  ] OUTPUT: hello world' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : dir' in output
+    assert '[ INFO  ] Stage 1 complete with result DONE' in output
+
+
 @unix
 @pytest.mark.local
 def test_redirection(cli, tmp_path):
@@ -93,6 +126,26 @@ def test_redirection(cli, tmp_path):
     assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo "hello world" > hello.txt' in output
     assert '[ DONE  ] ( 2/2 ) EXECUTE  : cat hello.txt' in output
     assert '[ INFO  ] OUTPUT: hello world' in output
+    assert '[ INFO  ] Stage 1 complete with result DONE' in output
+
+
+@windows
+@pytest.mark.local
+def test_redirection_win(cli, tmp_path):
+    """Verify redirecting stdout within a command works correctly."""
+    res = subprocess.run(
+        f'python -m build_magic --verbose --plain --wd {tmp_path} '
+        '-c execute "echo \'hello world\' > hello.txt" -c execute "type hello.txt"',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : echo \'hello world\' > hello.txt' in output
+    assert '[ DONE  ] ( 2/2 ) EXECUTE  : type hello.txt' in output
+    assert '[ INFO  ] OUTPUT: \'hello world\'' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
@@ -132,6 +185,24 @@ def test_env(cli):
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
+@windows
+@pytest.mark.local
+def test_env_win(cli):
+    """Verify using an environment variable within a command works correctly."""
+    res = subprocess.run(
+        "python -m build_magic --verbose --plain echo '^%OS^%'",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert '[ DONE  ] ( 1/1 ) EXECUTE  : echo \'%OS%\'' in output
+    assert '[ INFO  ] OUTPUT: \'Windows_NT\'' in output
+    assert '[ INFO  ] Stage 1 complete with result DONE' in output
+
+
 @unix
 @pytest.mark.local
 def test_wd(cli):
@@ -150,6 +221,25 @@ def test_wd(cli):
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
 
 
+@windows
+@pytest.mark.local
+def test_wd_win(cli):
+    """Verify setting the working directory works correctly."""
+    res = subprocess.run(
+        "python -m build_magic --verbose --plain --wd C:\\Users\\Default echo '^%cd^%'",
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert "[ DONE  ] ( 1/1 ) EXECUTE  : echo '%cd%'" in output
+    assert r"[ INFO  ] OUTPUT: 'C:\Users\Default'" in output
+    assert '[ INFO  ] Stage 1 complete with result DONE' in output
+
+
+@unix
 @pytest.mark.local
 def test_cleanup(cli, tmp_path):
     """Verify the cleanup action works correctly."""
@@ -169,6 +259,32 @@ def test_cleanup(cli, tmp_path):
     assert '[ INFO  ] Starting Stage 1' in output
     assert '[ DONE  ] ( 1/2 ) EXECUTE  : mkdir new' in output
     assert '[ DONE  ] ( 2/2 ) EXECUTE  : touch new/file3.txt' in output
+    assert '[ INFO  ] Stage 1 complete with result DONE' in output
+    assert file1.exists()
+    assert file2.exists()
+    assert not tmp_path.joinpath('new').exists()
+
+
+@windows
+@pytest.mark.local
+def test_cleanup_win(cli, tmp_path):
+    """Verify the cleanup action works."""
+    file1 = tmp_path / 'file1.txt'
+    file2 = tmp_path / 'file2.txt'
+    file1.touch()
+    file2.touch()
+    res = subprocess.run(
+        f"python -m build_magic --verbose --plain --wd {tmp_path} --action cleanup "
+        f'-c execute "mkdir new" -c execute "type nul >> new\\file3.txt"',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
+    output = res.stdout.decode('utf-8')
+    # assert res.returncode == ExitCode.PASSED
+    assert '[ INFO  ] Starting Stage 1' in output
+    assert '[ DONE  ] ( 1/2 ) EXECUTE  : mkdir new' in output
+    assert r'[ DONE  ] ( 2/2 ) EXECUTE  : type nul >> new\file3.txt' in output
     assert '[ INFO  ] Stage 1 complete with result DONE' in output
     assert file1.exists()
     assert file2.exists()

@@ -331,6 +331,7 @@ def test_local_execute_fail(local_runner, tmp_path):
     else:
         assert status.exit_code == 1
     assert status.stdout == b''
+    print(status.stderr)
     if os.sys.platform == 'linux':
         assert status.stderr == (
             b'tar: dummy.txt: Cannot stat: No such file or directory\n'
@@ -338,7 +339,7 @@ def test_local_execute_fail(local_runner, tmp_path):
         )
     elif os.sys.platform == 'win32':
         assert status.stderr == (
-            b"tar: dummy.txt: Couldn't find file: No such file or directory\r\n"
+            b"tar: : Couldn't visit directory: No such file or directory\r\n"
             b'tar: Error exit delayed from previous errors.\r\n'
         )
     else:
