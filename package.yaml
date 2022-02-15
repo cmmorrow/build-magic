@@ -5,9 +5,9 @@ description: >
   and pushing them to GitHub.
 prepare:
   - &upgrade_pip
-      pip3 install --upgrade pip
+      python3 -m pip install --upgrade pip
   - &install_pyinstaller
-      pip3 install pyinstaller
+      python3 -m pip install pyinstaller==4.8
   - &clone_repo
       git clone --depth 1 --branch v{{ version }} https://github.com/cmmorrow/build-magic.git
   - &install_repo
@@ -88,7 +88,6 @@ build-magic:
         - install: *install_pyinstaller
         # Clone the repo
         - execute: *clone_repo
-        - execute: cp /build_magic/setup.py /app/build-magic
         - install: *install_repo
         # Build the application
         - build: *run_pyinstaller

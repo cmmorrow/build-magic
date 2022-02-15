@@ -2,7 +2,7 @@
 
 ## Version 0.4.1
 
-* Updated python package version.
+* Updated python packages.
 * Fixed a cleanup action bug on Windows that prevented directories mis-identified as files from preventing cleanup.
 * Fixed a cleanup action bug that prevented files in an empty working directory from being cleaned up.
 * Fixed a cleanup action bug that prevented an empty directory from being deleted.
