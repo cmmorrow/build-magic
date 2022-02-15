@@ -1,5 +1,5 @@
 maintainer: Chris Morrow <cmmorrow@gmail.com>
-version: 1.1.1
+version: 1.1.2
 description: >
   This Config File is used for building OS-specific build-magic binaries
   and pushing them to GitHub.
