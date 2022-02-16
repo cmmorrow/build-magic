@@ -1,6 +1,6 @@
 # What's New
 
-## Version 0.4.1
+## Version 0.4.1 (Newest)
 
 * Updated python packages.
 * Fixed a cleanup action bug on Windows that prevented directories mis-identified as files from preventing cleanup.
@@ -9,7 +9,7 @@
 * Fixed a bug that would raise an unhandled exception if a Windows path was provided as a runtime variable.
 * Fixed a cleanup action bug on Windows with the remote command runner.
 
-## Version 0.4.0 (Newest)
+## Version 0.4.0
 
 * Added a prep section to config files.
 * Added author, maintainer, version, created, and modified sections to config files.

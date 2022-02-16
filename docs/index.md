@@ -21,11 +21,12 @@ or can support complex build automation with multiple steps on the command-line 
       --runner docker \
       --environment ubuntu:latest \
       --verbose \
-      --cleanup \
+      --action cleanup \
+      --command install "apt update && apt install gcc" \
       --command execute "./configure CC=c99 CFLAGS=-O2 LIBS=-lposix" \
       --command build "make build" \
       --command test "make test" \
-      --command execute "tar -czf myapp.tar.gz build/*" \
+      --command execute "tar -czf myapp.tar.gz dist/*" \
       --command release "jfrog rt upload myapp.tar.gz my-artifactory"
     ```
 
@@ -37,17 +38,17 @@ or can support complex build automation with multiple steps on the command-line 
     ```
     ```yaml
     build-magic:
-      - stage:
-          name: release
-          runner: docker
-          environment: ubuntu:latest
-          action: cleanup
-          commands:
-            - execute: ./configure CC=c99 CFLAGS=-O2 LIBS=-lposix
-            - build: make build
-            - test: make test
-            - execute: tar -czf myapp.tar.gz build/*
-            - release: jfrog rt upload myapp.tar.gz my-artifactory
+    - stage:
+        runner: docker
+        environment: ubuntu:latest
+        action: cleanup
+        commands:
+          - install: apt update && apt install gcc
+          - execute: ./configure CC=c99 CFLAGS=-O2 LIBS=-lposix
+          - build: make build
+          - test: make test
+          - execute: tar -czf myapp.tar.gz dist/*
+          - release: jfrog rt upload myapp.tar.gz my-artifactory
     ```
 
 Build-magic can execute a batch of commands in a Config File with:

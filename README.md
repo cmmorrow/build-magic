@@ -71,6 +71,10 @@ Build-magic can be installed with Homebrew using the following commands:
 > brew install build-magic
 ```
 
+### Windows
+
+You can find an installer for Windows 10 and 11 [here](https://cmmorrow.github.io/build-magic/getting_started/#windows)
+
 ### Linux
 
 You can find instructions for installing build-magic for Fedora based and Debian based distros from the build-magic Linux installation [instructions](https://cmmorrow.github.io/build-magic/getting_started/#linux).
