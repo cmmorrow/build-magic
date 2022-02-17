@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+import platform
 import sys
 from unittest.mock import MagicMock
 
@@ -93,7 +94,7 @@ def current_file(magic_dir):
 @pytest.fixture
 def config_file(magic_dir):
     """Provides a config file in the temp directory."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         filename = 'config_win.yaml'
     else:
         filename = 'config.yaml'
@@ -107,7 +108,7 @@ def config_file(magic_dir):
 @pytest.fixture
 def multi_config(magic_dir):
     """Provides a config file with multiple stage in the temp directory."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         filename = 'multi_win.yaml'
     else:
         filename = 'multi.yaml'
@@ -270,7 +271,7 @@ def skip1fail_config(magic_dir):
 @pytest.fixture
 def env_config(magic_dir):
     """Provides a config file with environment variables."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         config_filename = 'envs_win.yaml'
     else:
         config_filename = 'envs.yaml'
@@ -293,7 +294,7 @@ def env_config(magic_dir):
 @pytest.fixture
 def dotenv_config(magic_dir):
     """Provides a config file that uses a dotenv file in the temp directory."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         config_filename = 'dotenv_win.yaml'
     else:
         config_filename = 'dotenv.yaml'
@@ -355,6 +356,7 @@ Options:
   --description TEXT              The stage description to use.
   -t, --target TEXT               Run a particular stage in a config file by
                                   name.
+  -s, --skip TEXT                 Skip the specified stage.
   --info                          Display config file metadata, variables, and
                                   stage names.
   --env <TEXT TEXT>...            Provide an environment variable to set for
@@ -1116,14 +1118,10 @@ def test_cli_info_extra_options_and_args(cli):
     assert out == ref
 
 
-def test_cli_dotenv(cli):
+def test_cli_dotenv(cli, env):
     """Verify the --dotenv option works correctly."""
-    if os.sys.platform == 'win32':
-        cmd = 'set'
-    else:
-        cmd = 'env'
     env_file = Path(__file__).parent / 'files' / 'test.env'
-    res = cli.invoke(build_magic, ['--dotenv', env_file, '--verbose', cmd])
+    res = cli.invoke(build_magic, ['--dotenv', env_file, '--verbose', env])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
     assert 'FOO=bar' in out
@@ -1143,7 +1141,7 @@ def test_cli_dotenv_warn(cli):
 
 def test_cli_dotenv_config_file(cli, dotenv_config):
     """Verify the dotenv config file property works correctly."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         config = dotenv_config / 'dotenv_win.yaml'
     else:
         config = dotenv_config / 'dotenv.yaml'
@@ -1157,7 +1155,7 @@ def test_cli_dotenv_config_file(cli, dotenv_config):
 
 def test_cli_environment_variables(cli):
     """Verify setting environment variables works correctly."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         cmd = '%HELLO% %WORLD%'
     else:
         cmd = '$HELLO $WORLD'
@@ -1182,7 +1180,7 @@ def test_cli_environment_variables(cli):
 def test_combine_envs_and_dotenv(cli):
     """Verify that using a dotenv and individual environment variables are merged correctly."""
     env_file = Path(__file__).parent / 'files' / 'test.env'
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         cmd = '%HELLO% %WORLD% %FOO%'
     else:
         cmd = '$HELLO $WORLD $FOO'
@@ -1208,7 +1206,7 @@ def test_combine_envs_and_dotenv(cli):
 
 def test_envs_config_file(cli, env_config):
     """Verify that using environment variables with a dotenv file in a config file work correctly."""
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         config = env_config / 'envs_win.yaml'
     else:
         config = env_config / 'envs.yaml'
@@ -1279,3 +1277,43 @@ def test_skip_one_stage_fail(cli, mocker, skip1fail_config):
     assert res.exit_code == ExitCode.FAILED
     assert 'Stage 1 finished with result SKIPPED' in out
     assert 'Stage 2 finished with result FAILED' in out
+
+
+def test_manual_skip_one_stage(cli, targets_config):
+    """Verify manually skipping a single stage works correctly."""
+    res = cli.invoke(build_magic, ['-C', targets_config, '--skip', 'Stage C'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Stage 1: Stage A - finished with result DONE' in out
+    assert 'Stage 2: Stage B - finished with result DONE' in out
+    assert 'Skipping Stage 3: Stage C per user request.' in out
+    assert 'Stage 3: Stage C - finished with result SKIPPED' in out
+    assert 'Stage 4: Stage D - finished with result DONE' in out
+
+
+def test_manual_skip_two_stage(cli, targets_config):
+    """Verify manually skipping multiple stages works correctly."""
+    res = cli.invoke(build_magic, ['-C', targets_config, '--skip', 'Stage A', '-s', 'Stage C'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert 'Skipping Stage 1: Stage A per user request.' in out
+    assert 'Stage 1: Stage A - finished with result SKIPPED' in out
+    assert 'Stage 2: Stage B - finished with result DONE' in out
+    assert 'Skipping Stage 3: Stage C per user request.' in out
+    assert 'Stage 3: Stage C - finished with result SKIPPED' in out
+    assert 'Stage 4: Stage D - finished with result DONE' in out
+
+
+def test_manual_skip_fail(cli, targets_config):
+    """Test the case where a stage to skip is not in the stages to run."""
+    res = cli.invoke(build_magic, ['-C', targets_config, '--skip', 'Stage Z', '-s', 'Stage C'])
+    out = res.output
+    assert "Cannot skip stage Stage Z because it was not found in ['Stage A', 'Stage B', 'Stage C', 'Stage D']." in out
+
+
+def test_manual_skip_fail_multiple_configs(cli, meta_config, targets_config):
+    """Test the case where a stage to skip is not in the stages to run from multiple config files."""
+    res = cli.invoke(build_magic, ['-C', targets_config, '-C', meta_config, '--skip', 'Stage Z'])
+    out = res.output
+    ref = "Cannot skip stage Stage Z because it was not found in ['Stage A', 'Stage B', 'Stage C', 'Stage D', 'Test']."
+    assert ref in out

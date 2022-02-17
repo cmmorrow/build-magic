@@ -320,6 +320,7 @@ class StageFactory:
             envs=None,
             labels=None,
             description=None,
+            skip=False,
     ):
         """Validates inputs and generates a new Stage object.
 
@@ -337,6 +338,7 @@ class StageFactory:
         :param dict|None envs: A dictionary of environment variables to use.
         :param dict|None labels: Command descriptions.
         :param str|None description: A description of the stage.
+        :param bool skip: If True, indicates the stage should be skipped.
         :rtype: Stage
         :return: The generated Stage object.
         """
@@ -388,7 +390,7 @@ class StageFactory:
             envs=envs,
         )
 
-        return Stage(cmd_runner, macros, directives, sequence, action, name, description)
+        return Stage(cmd_runner, macros, directives, sequence, action, name, description, skip)
 
 
 class Stage:
@@ -405,9 +407,10 @@ class Stage:
         '_sequence',
         '_name',
         '_description',
+        '_skip',
     ]
 
-    def __init__(self, cmd_runner, macros, directives, sequence, action, name='', description=''):
+    def __init__(self, cmd_runner, macros, directives, sequence, action, name='', description='', skip=False):
         """Instantiates a new Stage object.
 
         Note: Stage objects should not be constructed directly and should instead be created by a StageFactory.
@@ -419,6 +422,7 @@ class Stage:
         :param str action: The Action to use.
         :param str name: The stage name if provided.
         :param str description: The description of the stage if provided.
+        :param bool skip: If True, the stage should be skipped (not run by the Engine).
         """
         try:
             self._action = getattr(actions, action.capitalize())
@@ -434,6 +438,7 @@ class Stage:
         self._is_setup = False
         self._name = name
         self._description = description
+        self._skip = skip
 
     @property
     def sequence(self):
@@ -454,6 +459,11 @@ class Stage:
     def description(self):
         """The stage description."""
         return self._description or ''
+
+    @property
+    def skip(self):
+        """True if the stage should be skipped from execution."""
+        return self._skip
 
     def _get_action_function(self, method):
         """Fetches the mapped action function for the provided command runner method.
@@ -490,6 +500,12 @@ class Stage:
         def stop_spinner():
             if spinner is not None:
                 _output.log(mode.PROCESS_SPINNER, spinner, process_active=False)
+
+        if self.skip:
+            stop_spinner()
+            msg = f'Skipping Stage {self.sequence}{": " + self.name if self.name else ""} per user request.'
+            _output.log(mode.SKIP, msg)
+            return ExitCode.SKIPPED
 
         # Setup if not already setup.
         if not self.is_setup:
