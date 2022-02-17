@@ -98,6 +98,7 @@ PLAIN_HELP = 'Enables basic output. Ideal for logging and automation.'
 PROMPT_HELP = 'Config file variable with prompt for value.'
 QUIET_HELP = 'Suppresses all output from build-magic.'
 RUNNER_HELP = 'The command runner to use.'
+SKIP_HELP = 'Skip the specified stage.'
 TARGET_HELP = 'Run a particular stage in a config file by name.'
 TEMPLATE_HELP = 'Generates a config file template in the current directory.'
 VARIABLE_HELP = 'Space separated key/value config file variables.'
@@ -193,6 +194,7 @@ def set_tty(_, param, value):
 @click.option('--name', help=NAME_HELP, type=str, default='')
 @click.option('--description', help=DESCRIPTION_HELP, type=str, default='')
 @click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
+@click.option('--skip', '-s', help=SKIP_HELP, multiple=True, type=str)
 @click.option('--info', help=INFO_HELP, is_flag=True)
 @click.option('--env', help=ENV_HELP, multiple=True, type=(str, str))
 @click.option('--dotenv', help=DOTENV_HELP, type=CONFIG, default=None)
@@ -224,6 +226,7 @@ def build_magic(
         runner,
         name,
         target,
+        skip,
         description,
         wd,
         plain,
@@ -390,7 +393,7 @@ def build_magic(
         if runner:
             stage.update(dict(runner_type=runner))
 
-    stages = build_stages(stages_)
+    stages = build_stages(stages_, skip=skip)
     engine = core.Engine(stages, continue_on_fail=continue_, output_format=out, verbose=verbose)
     code = execute_stages(engine)
 
@@ -555,13 +558,26 @@ def execute_stages(engine):
         )
 
 
-def build_stages(args):
+def build_stages(args, skip=None):
     """Helper function for building each Stage object.
 
     :param list[dict] args: A list of keyword arguments to pass to the Stage factory.
+    :param tuple[str]|None skip: A list of stage names to skip.
     :rtype: list[Stage]
     :return: A list of corresponding Stage objects.
     """
+    if isinstance(skip, tuple):
+        names = [s.get('name') for s in args if s.get('name')]
+        for stg in skip:
+            if stg in names:
+                skip_index = names.index(stg)
+                args[skip_index]['skip'] = True
+            else:
+                error(
+                    ctx=click.get_current_context(),
+                    msg=f'Cannot skip stage {stg} because it was not found in {names}.',
+                    code=reference.ExitCode.INPUT_ERROR,
+                )
     stages = []
     for stage in args:
         try:

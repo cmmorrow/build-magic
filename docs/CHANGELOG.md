@@ -1,5 +1,9 @@
 # What's New
 
+## Version 0.5.0
+
+Added the --skip switch to manually skip named stages.
+
 ## Version 0.4.1 (Newest)
 
 * Updated python packages.

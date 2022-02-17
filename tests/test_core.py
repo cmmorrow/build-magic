@@ -12,7 +12,7 @@ from build_magic.core import (
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs, ValidationError
 from build_magic.macro import Macro
-from build_magic.reference import KeyPath, KeyType
+from build_magic.reference import ExitCode, KeyPath, KeyType
 from build_magic.runner import Local
 
 
@@ -29,6 +29,9 @@ def test_stage_constructor():
     assert stage._results == []
     assert stage.sequence == 1
     assert not stage.is_setup
+    assert stage._name == ''
+    assert stage._description == ''
+    assert stage.skip is False
 
 
 def test_stage_constructor_invalid_action():
@@ -53,119 +56,102 @@ def test_stage_setup(mocker):
     assert stage._command_runner.teardown() is True
 
 
-def test_stage_run():
+def test_stage_run(capsys, ls):
     """Verify the Stage run() method works correctly."""
-    if os.sys.platform == 'win32':
-        cmd = 'dir'
-    else:
-        cmd = 'ls'
-    args = (Local(), [Macro(cmd)], ['execute'], 1, 'default')
+    args = (Local(), [Macro(ls)], ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
     exit_code = stage.run()
+    capsys.readouterr()
     assert exit_code == 0
     assert len(stage._results) == 1
     assert stage.is_setup is True
 
 
-def test_stage_run_multiple():
+def test_stage_run_multiple(capsys, ls):
     """Verify the stage run() method works correctly with multiple commands."""
-    if os.sys.platform == 'win32':
-        cmd = 'dir'
-    else:
-        cmd = 'ls'
-    macros = [Macro(cmd), Macro(prefix='echo', command='hello'), Macro(cmd)]
+    macros = [Macro(ls), Macro(prefix='echo', command='hello'), Macro(ls)]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
     exit_code = stage.run()
+    capsys.readouterr()
     assert exit_code == 0
     assert len(stage._results) == 3
     assert stage.is_setup is True
 
 
-def test_stage_run_setup_fail(mocker):
+def test_stage_run_setup_fail(capsys, mocker):
     """Test the case where the Stage run() method raises a SetupError."""
     mocker.patch('build_magic.actions.null', return_value=False)
     args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
     stage = Stage(*args)
     with pytest.raises(SetupError, match='Setup failed'):
         stage.run()
+        capsys.readouterr()
 
 
-def test_stage_run_teardown_fail(mocker):
+def test_stage_run_teardown_fail(capsys, mocker):
     """Test the case where the Stage run() method raises a TeardownError."""
     mocker.patch('build_magic.actions.null', side_effect=(True, False))
     args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
     stage = Stage(*args)
     with pytest.raises(TeardownError, match='Teardown failed'):
         stage.run()
+    capsys.readouterr()
 
 
-def test_stage_run_fail():
+def test_stage_run_fail(capsys):
     """Test the case where the command executed by the run() method returns a non-zero exit code."""
     args = (Local(), [Macro('cp')], ['execute'], 1, 'default')
     stage = Stage(*args)
     exit_code = stage.run()
+    capsys.readouterr()
     assert exit_code > 0
 
 
-def test_stage_run_exception(mocker):
+def test_stage_run_exception(capsys, ls, mocker):
     """Test the case where the command raises an Exception."""
     mocker.patch('build_magic.runner.Local.execute', side_effect=RuntimeError)
-    if os.sys.platform == 'win32':
-        cmd = 'dir'
-    else:
-        cmd = 'ls'
-    args = (Local(), [Macro(cmd)], ['execute'], 1, 'default')
+    args = (Local(), [Macro(ls)], ['execute'], 1, 'default')
     stage = Stage(*args)
     with pytest.raises(ExecutionError, match='Command execution error'):
         stage.run()
+    capsys.readouterr()
 
 
-def test_stage_run_multiple_fail():
+def test_stage_run_multiple_fail(capsys, ls):
     """Test the case where multiple commands are run and the last one returns a non-zero exit code."""
-    if os.sys.platform == 'win32':
-        cmd = 'dir'
-    else:
-        cmd = 'ls'
-    macros = [Macro(cmd), Macro(prefix='echo', command='hello'), Macro('cp')]
+    macros = [Macro(ls), Macro(prefix='echo', command='hello'), Macro('cp')]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
     exit_code = stage.run()
+    capsys.readouterr()
     assert exit_code == 1
     assert len(stage._results) == 3
 
 
-def test_stage_run_multiple_fail_2():
+def test_stage_run_multiple_fail_2(capsys, ls):
     """Test the case where multiple commands are run and execution halts with a command in the middle."""
-    if os.sys.platform == 'win32':
-        cmd = 'dir'
-    else:
-        cmd = 'ls'
-    macros = [Macro(cmd), Macro('cp'), Macro(prefix='echo', command='hello')]
+    macros = [Macro(ls), Macro('cp'), Macro(prefix='echo', command='hello')]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
     exit_code = stage.run()
+    capsys.readouterr()
     assert exit_code == 1
     assert len(stage._results) == 2
 
 
-def test_stage_run_multiple_continue_on_fail():
+def test_stage_run_multiple_continue_on_fail(capsys, cp, ls):
     """Test the case where multiple commands are run, one fails, but execution continues."""
-    if os.sys.platform == 'win32':
-        ls = 'dir'
-        cp = 'copy'
-    else:
-        ls = 'ls'
-        cp = 'cp'
     macros = [Macro(ls), Macro(cp), Macro(prefix='echo', command='hello')]
     args = (Local(), macros, ['execute'], 1, 'default')
     stage = Stage(*args)
     assert stage.is_setup is False
     exit_code = stage.run(continue_on_fail=True)
+    capsys.readouterr()
     assert exit_code == 1
     assert len(stage._results) == 3
 
@@ -183,6 +169,17 @@ def test_stage_run_verbose(capsys):
     assert stage.description == 'This is a test'
     captured = capsys.readouterr()
     assert '\nOUTPUT: hello\n' in captured.out
+
+
+def test_stage_run_skip(capsys):
+    """Verify the Stage run() method handles skipping correctly."""
+    args = (Local(), [Macro('echo hello')], ['execute'], 1, 'default')
+    stage = Stage(*args, name='Test', description='This is a test', skip=True)
+    assert stage.skip is True
+    exit_code = stage.run(verbose=True)
+    assert exit_code == ExitCode.SKIPPED
+    captured = capsys.readouterr()
+    assert '\x1b[33mSkipping Stage 1: Test per user request.\x1b[0m\n' in captured.err
 
 
 def test_stagefactory_build():
@@ -216,11 +213,12 @@ def test_stagefactory_build_invalid_directive():
         StageFactory.build(*args)
 
 
-def test_stagefactory_build_no_jobs():
+def test_stagefactory_build_no_jobs(capsys):
     """Test the case where no jobs a passed to the StageFactory build() method."""
     args = (0, 'local', ['execute'], None, [], '', 'default', '.', '.')
     with pytest.raises(NoJobs, match='No jobs to execute'):
         StageFactory.build(*args)
+    capsys.readouterr()
 
 
 def test_stagefactory_build_invalid_environment():
