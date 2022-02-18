@@ -248,6 +248,28 @@ def test_basic_skip(capsys):
     assert captured.out == '2021-01-02T01:06:34 build-magic [ SKIP  ] OUTPUT: Stage skipped.\n'
 
 
+@freeze_time('2022-02-17 20:28:12')
+def test_basic_working_directory(capsys):
+    """Verify the basic working_directory() method works as expected."""
+    output = Output()
+    with pytest.raises(NotImplementedError):
+        output.log(OutputMethod.WORKING_DIRECTORY)
+
+    output = Basic()
+    output.log(OutputMethod.WORKING_DIRECTORY, '.')
+    captured = capsys.readouterr()
+    assert captured.out == '2022-02-17T20:28:12 build-magic [ INFO  ] Current working directory: .\n'
+
+    output.log(OutputMethod.WORKING_DIRECTORY, '/home/user/myapp')
+    captured = capsys.readouterr()
+    assert captured.out == '2022-02-17T20:28:12 build-magic [ INFO  ] Current working directory: /home/user/myapp\n'
+
+    output.log(OutputMethod.WORKING_DIRECTORY, 'C:\\Users\\Default\\myapp')
+    captured = capsys.readouterr()
+    ref = '2022-02-17T20:28:12 build-magic [ INFO  ] Current working directory: C:\\Users\\Default\\myapp\n'
+    assert captured.out == ref
+
+
 def test_tty_get_width_and_height(mocker):
     """Verify the TTY get_width and get_height methods work correctly."""
     output = Tty()
@@ -386,6 +408,22 @@ def test_tty_skip(capsys):
     output.log(OutputMethod.SKIP, 'stage skipped.\n\n')
     captured = capsys.readouterr()
     assert captured.err == 'stage skipped.\n'
+
+
+def test_tty_working_directory(capsys):
+    """Verify the tty working_directory() method works correctly."""
+    output = Tty()
+    output.log(OutputMethod.WORKING_DIRECTORY, '.')
+    captured = capsys.readouterr()
+    assert captured.out == '=> Current working directory: .\n'
+
+    output.log(OutputMethod.WORKING_DIRECTORY, '/home/user/myapp')
+    captured = capsys.readouterr()
+    assert captured.out == '=> Current working directory: /home/user/myapp\n'
+
+    output.log(OutputMethod.WORKING_DIRECTORY, 'C:\\Users\\Default\\myapp')
+    captured = capsys.readouterr()
+    assert captured.out == '=> Current working directory: C:\\Users\\Default\\myapp\n'
 
 
 @pytest.mark.parametrize(

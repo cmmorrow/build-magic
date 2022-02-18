@@ -2,7 +2,8 @@
 
 ## Version 0.5.0
 
-Added the --skip switch to manually skip named stages.
+* Added the --skip switch to manually skip named stages.
+* Added the current working directory to stdout.
 
 ## Version 0.4.1 (Newest)
 

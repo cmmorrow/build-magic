@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+import platform
 import socket
 import subprocess
 from unittest.mock import MagicMock
@@ -313,7 +314,7 @@ def test_local_execute(build_path, local_runner, tmp_path):
     local_runner.prepare()
     status = local_runner.execute(cmd)
     assert status.exit_code == 0
-    if os.sys.platform == 'linux':
+    if platform.system() == 'Linux':
         assert status.stdout == b'hello.txt\n'
         assert status.stderr == b''
     else:
@@ -326,13 +327,12 @@ def test_local_execute_fail(local_runner, tmp_path):
     cmd = Macro('tar -v -czf hello.tar.gz dummy.txt')
     local_runner.prepare()
     status = local_runner.execute(cmd)
-    if os.sys.platform == 'linux':
+    if platform.system() == 'Linux':
         assert status.exit_code == 2
     else:
         assert status.exit_code == 1
     assert status.stdout == b''
-    print(status.stderr)
-    if os.sys.platform == 'linux':
+    if platform.system() == 'Linux':
         assert status.stderr == (
             b'tar: dummy.txt: Cannot stat: No such file or directory\n'
             b'tar: Exiting with failure status due to previous errors\n'
@@ -346,19 +346,14 @@ def test_local_execute_fail(local_runner, tmp_path):
         )
 
 
-def test_local_envs(local_runner):
+def test_local_envs(env, local_runner):
     """Verify envs passed to the Local runner are included in execute()."""
     envs = {
         'HELLO': 'world',
         'FOO': 'bar',
     }
 
-    if os.sys.platform == 'win32':
-        cmd = 'set'
-    else:
-        cmd = 'env'
-
-    macro = Macro(cmd)
+    macro = Macro(env)
     local_runner.envs = envs
     status = local_runner.execute(macro)
     assert status.exit_code == 0
@@ -389,7 +384,7 @@ def test_docker_constructor(mocker):
     assert runner.bind_path == '/build_magic'
     assert runner.envs == {}
 
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         host_wd = 'C:\\my_repo'
     else:
         host_wd = '/my_repo'
@@ -569,7 +564,7 @@ def test_vagrant_constructor(mocker):
     assert read.call_count == 0
     assert write.call_count == 0
 
-    if os.sys.platform == 'win32':
+    if platform.system() == 'Windows':
         host_wd = 'C:\\my_repo'
         env = 'C:\\opt'
     else:

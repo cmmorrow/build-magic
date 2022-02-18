@@ -56,6 +56,10 @@ class Output:
     def skip(self, *args, **kwargs):
         """Communicates a skipping message."""
 
+    def working_directory(self, *args, **kwargs):
+        """Communicates the current working directory."""
+        raise NotImplementedError
+
     @staticmethod
     def _display(line, err=False):
         """Prints a message to stdout.
@@ -209,6 +213,15 @@ class Basic(Output):
         """
         msg = msg.rstrip()
         message = f'{datetime.now().isoformat()} build-magic [ SKIP  ] OUTPUT: {msg}'
+        self._display(message)
+
+    def working_directory(self, wd):
+        """Communicates the current working directory.
+
+        :param str wd: The path to display.
+        :return: None
+        """
+        message = f'{datetime.now().isoformat()} build-magic [ INFO  ] Current working directory: {wd}'
         self._display(message)
 
     def process_spinner(self, *args, **kwargs):
@@ -383,6 +396,15 @@ class Tty(Output):
         msg = msg.rstrip()
         self._display(Fore.YELLOW + str(msg) + Style.RESET_ALL, err=True)
 
+    def working_directory(self, wd):
+        """Communicates the current working directory.
+
+        :param str wd: The path to display.
+        :return: None
+        """
+        message = f'=> {Style.BRIGHT}Current working directory:{Style.RESET_ALL} {wd}'
+        self._display(message)
+
     @staticmethod
     def process_spinner(spinner, process_active=False):
         """Indicates whether a process is underway.
@@ -438,6 +460,10 @@ class Silent(Output):
 
     def skip(self, *args, **kwargs):
         """Communicates a skipping message."""
+        return
+
+    def working_directory(self, *args, **kwargs):
+        """Communicates the current working directory."""
         return
 
     def process_spinner(self, *args, **kwargs):

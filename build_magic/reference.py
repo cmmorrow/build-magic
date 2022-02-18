@@ -271,6 +271,7 @@ class OutputMethod(enum.Enum):
     ERROR = 'error'
     INFO = 'info'
     SKIP = 'skip'
+    WORKING_DIRECTORY = 'working_directory'
     PROCESS_SPINNER = 'process_spinner'
 
 
