@@ -21,6 +21,7 @@ def test_stage_constructor():
     args = (Local(), [Macro('ls')], ['execute'], 1, 'default')
     stage = Stage(*args)
     assert isinstance(stage._command_runner, Local)
+    assert isinstance(stage.command_runner, Local)
     assert stage._action is Default
     assert stage._directives == ['execute']
     assert isinstance(stage._macros[0], Macro)

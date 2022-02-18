@@ -390,7 +390,10 @@ Options:
 def test_cli_single_command(cli):
     """Verify passing a single single command as arguments works correctly."""
     res = cli.invoke(build_magic, ['echo hello world'])
+    out = res.output
     assert res.exit_code == ExitCode.PASSED
+    assert 'Starting Stage 1' in out
+    assert '=> Current working directory: .' in out
 
 
 def test_cli_multiple_commands(cli, ls):
@@ -672,8 +675,8 @@ def test_cli_copy(cat, cli, tmp_file):
 def test_cli_working_directory(cat, cli, tmp_file):
     """Verify the --wd option works correctly."""
     res = cli.invoke(build_magic, ['--wd', str(tmp_file), '--verbose', '-c', 'execute', f'{cat} hello.txt'])
-    assert 'OUTPUT: hello world' in res.output
     assert res.exit_code == ExitCode.PASSED
+    assert 'OUTPUT: hello world' in res.output
 
 
 def test_cli_copy_working_directory(cat, cli, current_file):
@@ -796,7 +799,6 @@ def test_cli_config_parameters(cli, mocker, parameters_config):
     )
     mocker.patch('paramiko.SSHClient.close')
     res = cli.invoke(build_magic, ['--config', str(parameters_config)])
-    print(res.output)
     assert res.exit_code == ExitCode.PASSED
     assert "Starting Stage 1" in res.output
     assert "( 1/1 ) EXECUTE : echo hello ........................................ RUNNING" in res.output

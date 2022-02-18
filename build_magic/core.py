@@ -211,6 +211,7 @@ class Engine:
             spinner = yaspin()
             # Run the stage.
             _output.log(mode.STAGE_START, stage.sequence, stage.name, stage.description)
+            _output.log(mode.WORKING_DIRECTORY, stage.command_runner.working_directory)
             # Launch the process spinner
             _output.log(mode.PROCESS_SPINNER, spinner, process_active=True)
             stage.setup()
@@ -464,6 +465,11 @@ class Stage:
     def skip(self):
         """True if the stage should be skipped from execution."""
         return self._skip
+
+    @property
+    def command_runner(self):
+        """The command runner associated with the stage."""
+        return self._command_runner
 
     def _get_action_function(self, method):
         """Fetches the mapped action function for the provided command runner method.
