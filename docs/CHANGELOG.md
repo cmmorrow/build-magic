@@ -4,6 +4,7 @@
 
 * Added the --skip switch to manually skip named stages.
 * Added the current working directory to stdout.
+* Fixed a regression bug that caused the bind and hostwd parameters to fail validation.
 
 ## Version 0.4.1 (Newest)
 

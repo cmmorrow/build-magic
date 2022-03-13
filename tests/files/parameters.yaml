@@ -3,6 +3,8 @@ build-magic:
       runner: remote
       environment: user@myhost:2222
       parameters:
+        bind: .
+        hostwd: myhost
         keytype: ecdsa
         keypath: $HOME/user/.ssh/key_ecdsa
         keypass: "1234"
