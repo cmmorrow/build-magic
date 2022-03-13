@@ -448,7 +448,7 @@
                                         "properties": {
                                             "hostwd": {
                                                 "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/hostwd",
-                                                "type": "object",
+                                                "type": "string",
                                                 "title": "hostwd",
                                                 "description": "The host working directory",
                                                 "default": "",
@@ -460,7 +460,7 @@
                                             "bind": {
                                                 "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/bind",
                                                 "type": "object",
-                                                "title": "bind",
+                                                "title": "string",
                                                 "description": "The directory in the guest machine that is bound to the host machine.",
                                                 "default": "",
                                                 "examples": [
