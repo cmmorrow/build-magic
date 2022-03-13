@@ -459,8 +459,8 @@
                                             },
                                             "bind": {
                                                 "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/parameters/items/anyOf/0/properties/bind",
-                                                "type": "object",
-                                                "title": "string",
+                                                "type": "string",
+                                                "title": "bind",
                                                 "description": "The directory in the guest machine that is bound to the host machine.",
                                                 "default": "",
                                                 "examples": [
