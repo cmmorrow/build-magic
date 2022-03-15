@@ -3,6 +3,7 @@
 import hashlib
 import os
 import pathlib
+import platform
 import re
 import shutil
 import subprocess
@@ -384,7 +385,7 @@ def delete_new_files(self):
                     continue
                 # Handle a Windows specific case where a PermissionError is raised instead of IsADirectoryError.
                 except PermissionError as error:
-                    if os.sys.platform == 'win32' or file.is_dir():
+                    if platform.system() == 'Windows' or file.is_dir():
                         continue
                     else:
                         raise error
@@ -403,11 +404,13 @@ def delete_new_files(self):
                     continue
             result = True
         # Handle the case where the working directory started off empty.
-        else:
+        elif hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
             pwd = pathlib.Path(self.working_directory).resolve()
             for file in pwd.rglob('*'):
                 try:
                     if file.is_dir():
+                        if str(file) in self._existing_dirs:
+                            continue
                         shutil.rmtree(file)
                     else:
                         os.remove(file)
@@ -455,7 +458,7 @@ def docker_delete_new_files(self):
                     continue
                 # Handle a Windows specific case where a PermissionError is raised instead of IsADirectoryError.
                 except PermissionError as error:
-                    if os.sys.platform == 'win32' and file.is_dir():
+                    if platform.system() == 'Windows' and file.is_dir():
                         continue
                     else:
                         raise error
@@ -474,11 +477,13 @@ def docker_delete_new_files(self):
                     continue
             result = True
         # Handle the case where the working directory started off empty.
-        else:
+        elif hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
             pwd = pathlib.Path(self.working_directory).resolve()
             for file in pwd.rglob('*'):
                 try:
                     if file.is_dir():
+                        if str(file) in self._existing_dirs:
+                            continue
                         shutil.rmtree(file)
                     else:
                         os.remove(file)
