@@ -5,6 +5,7 @@
 * Added the --skip switch to manually skip named stages.
 * Added the current working directory to stdout.
 * Fixed a regression bug that caused the bind and hostwd parameters to fail validation.
+* Fixed a bug introduced in 0.4.1 that would delete existing directories when the cleanup action was used.
 
 ## Version 0.4.1 (Newest)
 

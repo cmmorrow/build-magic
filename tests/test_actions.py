@@ -66,6 +66,41 @@ def git_path(build_path):
 
 
 @pytest.fixture
+def nested_path(tmp_path_factory):
+    """Provides a temp directory with nested directories in it."""
+    magic = tmp_path_factory.mktemp('build_magic')
+    dir1level1 = magic / 'dir1level1'
+    dir2level1 = magic / 'dir2level1'
+    dir1level1.mkdir()
+    dir2level1.mkdir()
+    dir1level2 = dir1level1 / 'dir1level2'
+    dir2level2 = dir1level1 / 'dir2level2'
+    dir3level2 = dir2level1 / 'dir3level2'
+    dir4level2 = dir2level1 / 'dir4level2'
+    dir1level2.mkdir()
+    dir2level2.mkdir()
+    dir3level2.mkdir()
+    dir4level2.mkdir()
+    dir1level3 = dir1level2 / 'dir1level3'
+    dir2level3 = dir1level2 / 'dir2level3'
+    dir3level3 = dir2level2 / 'dir3level3'
+    dir4level3 = dir2level2 / 'dir4level3'
+    dir5level3 = dir3level2 / 'dir5level3'
+    dir6level3 = dir3level2 / 'dir6level3'
+    dir7level3 = dir4level2 / 'dir7level3'
+    dir8level3 = dir4level2 / 'dir8level3'
+    dir1level3.mkdir()
+    dir2level3.mkdir()
+    dir3level3.mkdir()
+    dir4level3.mkdir()
+    dir5level3.mkdir()
+    dir6level3.mkdir()
+    dir7level3.mkdir()
+    dir8level3.mkdir()
+    return magic
+
+
+@pytest.fixture
 def build_hashes():
     """Provides the hashes for files in build_path."""
     return (
@@ -528,6 +563,7 @@ def test_action_delete_new_files_empty_directory(empty_path, generic_runner, moc
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = generic_runner._existing_files
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro('touch hello.txt'))
     assert generic_runner.teardown() is True
@@ -551,6 +587,7 @@ def test_action_delete_new_files_empty_directory_permission_error(empty_path, ge
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = generic_runner._existing_files
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro(f'{touch} hello.txt'))
     assert generic_runner.teardown() is True
@@ -562,6 +599,7 @@ def test_action_delete_new_files_empty_directory_permission_error(empty_path, ge
     generic_runner.host_wd = '.'
     generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = generic_runner._existing_files
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro(f'{touch} hello.txt'))
     assert generic_runner.teardown() is True
@@ -575,6 +613,7 @@ def test_action_delete_new_files_empty_directory_new_directory(empty_path, gener
     # Local capture
     generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = generic_runner._existing_files
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro('mkdir test1'))
     generic_runner.execute(Macro(f'{touch} test1/hello.txt'))
@@ -585,6 +624,7 @@ def test_action_delete_new_files_empty_directory_new_directory(empty_path, gener
     generic_runner.host_wd = '.'
     generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
     generic_runner._existing_files = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = generic_runner._existing_files
     assert len(generic_runner._existing_files) == 0
     generic_runner.execute(Macro('mkdir test1'))
     generic_runner.execute(Macro(f'{touch} test1/hello.txt'))
@@ -658,6 +698,35 @@ def test_action_delete_nested_directories(build_hashes, build_path, generic_runn
     generic_runner.execute(Macro(f'{touch} dir1{os.sep}file7'))
     assert generic_runner.teardown()
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 2
+
+
+def test_action_delete_existing_nested_directories(generic_runner, mocker, nested_path, touch):
+    """Test the case where a single file needs to be cleaned up in a directory hierarchy."""
+    os.chdir(str(nested_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+
+    # Local capture
+    generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    files = []
+    generic_runner._existing_files = files
+    dirs = [str(directory) for directory in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = dirs
+    generic_runner.execute(Macro(f'{touch} dir1level1/dir2level2/dir4level3/file'))
+    assert generic_runner.teardown()
+    for file in Path.cwd().resolve().glob('*'):
+        assert str(file) in dirs
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    files = []
+    generic_runner._existing_files = files
+    dirs = [str(directory) for directory in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = dirs
+    generic_runner.execute(Macro(f'{touch} dir1level1/dir2level2/dir4level3/file'))
+    assert generic_runner.teardown()
+    for file in Path.cwd().resolve().glob('*'):
+        assert str(file) in dirs
 
 
 def test_action_delete_dir_ignore_git(build_path, git_path, generic_runner, mocker, touch):
