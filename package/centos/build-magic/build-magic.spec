@@ -1,5 +1,5 @@
 Name: build-magic
-Version: 0.3.1
+Version: 0.5.0
 %{?el7:Release: 0%{?dist}.9}
 %{?el8:Release: 0%{?dist}.4}
 Summary: An un-opinionated build automation tool.

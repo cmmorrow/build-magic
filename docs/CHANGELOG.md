@@ -1,13 +1,13 @@
 # What's New
 
-## Version 0.5.0
+## Version 0.5.0 (Newest)
 
 * Added the --skip switch to manually skip named stages.
 * Added the current working directory to stdout.
 * Fixed a regression bug that caused the bind and hostwd parameters to fail validation.
 * Fixed a bug introduced in 0.4.1 that would delete existing directories when the cleanup action was used.
 
-## Version 0.4.1 (Newest)
+## Version 0.4.1
 
 * Updated python packages.
 * Fixed a cleanup action bug on Windows that prevented directories mis-identified as files from preventing cleanup.
