@@ -21,10 +21,10 @@ build-magic:
       environment: centos:7
       working directory: *myproject
       parameters:
-        - bind: *myproject
+        bind: *myproject
       environment variables:
-        - GOOS: linux
-        - GOARCH: amd64
+        GOOS: linux
+        GOARCH: amd64
       commands:
         - execute: configure
         - build: make
@@ -36,7 +36,7 @@ build-magic:
       environment: centos:7
       working directory: *myproject
       parameters:
-        - bind: *myproject
+        bind: *myproject
       dotenv: mydb.env
       continue on fail: true
       commands: 
@@ -52,7 +52,7 @@ build-magic:
       environment: centos:7
       working directory: *myproject
       parameters:
-        - bind: *myproject
+        bind: *myproject
       commands:
         - build: make rpm
         - release: jfrog rt upload "build/RPMS/x86_64/(*).rpm" my-artifactory

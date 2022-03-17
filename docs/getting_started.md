@@ -23,12 +23,16 @@ Build-magic can be installed with Homebrew using the following commands:
 > brew install build-magic
 ```
 
+!!! Note
+    Installing using homebrew is currently very slow because the build-magic dependencies are all built from source.
+
 ### Windows
 
 A Windows installer is available for build-magic and can be downloaded from the links below:
 
 | Installer | Version |
 |-----------|---------|
+|[build-magic-0.5.0_amd64_installer.exe](https://github.com/cmmorrow/build-magic/releases/download/v0.5.0/build-magic-0.5.0_amd64_installer.exe)| 0.5.0 |
 |[build-magic-0.4.1_amd64_installer.exe](https://github.com/cmmorrow/build-magic/releases/download/v0.4.1/build-magic-0.4.1_amd64_installer.exe)| 0.4.1 |
 |[build-magic-0.4.0_amd64_installer.exe](https://github.com/cmmorrow/build-magic/releases/download/v0.4.0/build-magic-0.4.0_amd64_installer.exe)| 0.4.0 |
 
@@ -42,6 +46,7 @@ Minimum compatible versions are Debian 10 (buster), Ubuntu 20.04 (focal fossa), 
 
 | Package | Version | SHA256 Hash |
 |---------|---------|-------------|
+|[build-magic-0.5.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.5.0/build-magic-0.5.0_amd64.deb)| 0.5.0 | [build-magic-0.5.0_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.5.0/build-magic-0.5.0_amd64.hash)|
 |[build-magic-0.4.1_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.4.1/build-magic-0.4.1_amd64.deb)| 0.4.1 | [build-magic-0.4.1_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.4.1/build-magic-0.4.1_amd64.hash)|
 |[build-magic-0.4.0_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.4.0/build-magic-0.4.0_amd64.deb)| 0.4.0 | [build-magic-0.4.0_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.4.0/build-magic-0.4.0_amd64.hash)|
 |[build-magic-0.3.3_amd64.deb](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3_amd64.deb)| 0.3.3 | [build-magic-0.3.3_amd64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3_amd64.hash)|
@@ -62,6 +67,7 @@ Minimum compatible versions are CentOS/RHEL 7.9 and Fedora 33.
 
 | Package | Version | SHA256 Hash |
 |---------|---------|-------------|
+|[build-magic-0.5.0-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.5.0/build-magic-0.5.0-0.el7.9.x86_64.rpm)| 0.5.0 | [build-magic-0.5.0-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.5.0/build-magic-0.5.0-0.el7.9.x86_64.hash)|
 |[build-magic-0.4.1-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.4.1/build-magic-0.4.1-0.el7.9.x86_64.rpm)| 0.4.1 |[build-magic-0.4.1-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.4.1/build-magic-0.4.1-0.el7.9.x86_64.hash)|
 |[build-magic-0.4.0-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.4.0/build-magic-0.4.0-0.el7.9.x86_64.rpm)| 0.4.0 |[build-magic-0.4.0-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.4.0/build-magic-0.4.0-0.el7.9.x86_64.hash)|
 |[build-magic-0.3.3-0.el7.9.x86_64.rpm](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3-0.el7.9.x86_64.rpm)| 0.3.3 |[build-magic-0.3.3-0.el7.9.x86_64.hash](https://github.com/cmmorrow/build-magic/releases/download/v0.3.3/build-magic-0.3.3-0.el7.9.x86_64.hash)|

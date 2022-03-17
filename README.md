@@ -10,7 +10,7 @@ An un-opinionated build automation tool.
 
 ## Introduction
 
-Build-magic is a command-line application for automating build/test/install/package/deploy tasks. It aims to provide a common means for automating tasks for developers and DevOps. Build-magic does this by abstracting away how and where the build tasks are executed. Simply tell build-magic what commands to run and where to run them.
+Build-magic is a command-line application for automating build/test/install/deploy tasks. It aims to provide a common means for automating tasks for developers and DevOps engineers. Build-magic does this by abstracting away how and where the commands are executed. Simply tell build-magic what commands to run and where to run them.
 
 Developing a C++ application for Linux on a Windows laptop? Build-magic can build your project in a Linux container or virtual machine. Have a dedicated build server? Build-magic can SSH into the remote server and start the build.
 
@@ -54,7 +54,7 @@ As much as possible, build-magic strives to setup environments and execute comma
 
 ### Declarative
 
-Build-magic uses a simple syntax that lets you describe what commands to automate, the environment to use, and what files to include. There's no need for conditional statements that you might need when automating with a shell or batch script. Build-magic will take care of the details and execute the specified commands in the specified environment.
+Build-magic uses a simple syntax that lets you describe what commands to run, the environment to use, and what files to include. There's no need for conditional statements that you might need when automating with a shell or batch script. Build-magic will take care of the details and execute the given commands in the specified environment.
 
 ### Reproducible
 
@@ -73,7 +73,7 @@ Build-magic can be installed with Homebrew using the following commands:
 
 ### Windows
 
-You can find an installer for Windows 10 and 11 [here](https://cmmorrow.github.io/build-magic/getting_started/#windows)
+You can find an installer for Windows 10 and 11 [here](https://cmmorrow.github.io/build-magic/getting_started/#windows).
 
 ### Linux
 

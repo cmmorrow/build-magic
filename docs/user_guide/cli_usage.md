@@ -9,14 +9,14 @@ build-magic [-r | --runner (local | remote | vagrant | docker)]
     [-e | --environment <env>] [--name <stage>] [--wd <working-directory>] 
     [-p | --parameter <p-name p-value>]... 
     [--description] [--env <name value>]... [--dotenv <dotenv-file>]
-    [--action (default | cleanup | persist)] 
+    [--skip <stage>] [--action (default | cleanup | persist)] 
     [--fancy | --plain | --quiet] [--verbose] <command>
 
 build-magic [-r | --runner (local | remote | vagrant | docker)] 
     [-e | --environment <env>] [--name <stage>] [--wd <working-directory>] 
     [-p | --parameter <p-name p-value>]... 
     [--description] [--env <name value>]... [--dotenv <dotenv-file>]
-    [--action (default | cleanup | persist)] 
+    [--skip <stage>] [--action (default | cleanup | persist)] 
     [--fancy | --plain | --quiet] [--verbose] [--copy <copy-from>] 
     [--continue | --stop] [-c | --command <directive command>]... 
     [<artifact>...]
@@ -26,7 +26,7 @@ build-magic [-r | --runner (local | remote | vagrant | docker)]
 
 ```text
 build-magic [--fancy | --plain | --quiet] [--verbose] 
-[-t | --target <stage name>]... 
+[--skip <stage name>] [-t | --target <stage name>]... 
 [-v | --variable <var-name var-value>]... 
 [--prompt <prompt-name>]... -C | --config <config-file>
 
@@ -94,6 +94,8 @@ In this form, any arguments provided after valid options are interpreted as one 
 If **--runner** is defined and not equal to *local*, **--environment** is required.
 
 **--name** - Optional name **<stage\>** to give the executing stage. If **--name** isn't provided, the default stage name is 1.
+
+**--skip** - Optional **<stage\>** name to skip.
 
 **--env** - Key/value pairs **<name value\>** sets an environment variable to be used in the executing stage. Can be provided multiple times.
 
@@ -170,6 +172,12 @@ Alternatively, **-t** can be used instead of **--target**.
 
 ```bash
 > build-magic -C my_config.yaml -t test -t build
+```
+
+Specifically named stages can be skipped with **--skip**. For example, to skip the *test* stage but still run the *build* stage use:
+
+```bash
+> build-magic -C my_config.yaml --skip test -t build
 ```
 
 Named stages in a Config File can also be run similar to a Makefile by specifying the stage name:

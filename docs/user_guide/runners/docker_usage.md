@@ -75,7 +75,7 @@ By default, the Host Working Directory is the current directory build-magic is e
           runner: docker
           environment: alpine
           parameters:
-            - hostwd: /home/myproject
+            hostwd: /home/myproject
           commands:
             - execute: make
     ```
@@ -97,7 +97,7 @@ The Bind Directory and Working Directory both default to `/build-magic` in the c
           environment: alpine
           working directory: /app
           parameters:
-            - bind /app
+            bind: /app
           commands:
             make
     ```
@@ -164,8 +164,8 @@ Instead of copying individual files to the Working Directory, an entire director
           runner: docker
           environment: alpine:latest
           parameters:
-            - hostwd: /home/myproject
-            - bind: /app
+            hostwd: /home/myproject
+            bind: /app
           working directory: /app
           commands:
             - install: apk add gcc

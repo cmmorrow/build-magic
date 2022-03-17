@@ -233,7 +233,7 @@ The *remote* Command Runner uses SSH public/private keypairs to connect to remot
           runner: remote
           environment: user@myhost
           parameters:
-            - keypath: ~/.ssh/keys/id_rsa
+            keypath: ~/.ssh/keys/id_rsa
           commands:
             - execute: echo hello world
     ```
@@ -266,8 +266,8 @@ The SSH key type can be specified with **--parameter keytype**:
           runner: remote
           environment: user@myhost
           parameters:
-            - keytype: ecdsa
-            - keypath: ~/.ssh/id_ecdsa
+            keytype: ecdsa
+            keypath: ~/.ssh/id_ecdsa
           commands:
             - execute: echo hello world
     ```
@@ -294,9 +294,9 @@ To use a private key protected by a passphrase, use **--parameter keypass**:
           runner: remote
           environment: user@myhost
           parameters:
-            - keytype: ecdsa
-            - keypath: ~/.ssh/id_ecdsa
-            - keypass: secret
+            keytype: ecdsa
+            keypath: ~/.ssh/id_ecdsa
+            keypass: secret
           commands:
             - execute: echo hello world
     ```
