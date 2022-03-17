@@ -526,10 +526,10 @@
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
       <span class="nt">working directory</span><span class="p">:</span> <span class="nv">*myproject</span>
       <span class="nt">parameters</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
+        <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
       <span class="nt">environment variables</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">GOOS</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">linux</span>
-        <span class="p p-Indicator">-</span> <span class="nt">GOARCH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">amd64</span>
+        <span class="nt">GOOS</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">linux</span>
+        <span class="nt">GOARCH</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">amd64</span>
       <span class="nt">commands</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">configure</span>
         <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
@@ -541,7 +541,7 @@
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
       <span class="nt">working directory</span><span class="p">:</span> <span class="nv">*myproject</span>
       <span class="nt">parameters</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
+        <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
       <span class="nt">dotenv</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">mydb.env</span>
       <span class="nt">continue on fail</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
       <span class="nt">commands</span><span class="p">:</span> 
@@ -557,7 +557,7 @@
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">centos:7</span>
       <span class="nt">working directory</span><span class="p">:</span> <span class="nv">*myproject</span>
       <span class="nt">parameters</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
+        <span class="nt">bind</span><span class="p">:</span> <span class="nv">*myproject</span>
       <span class="nt">commands</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make rpm</span>
         <span class="p p-Indicator">-</span> <span class="nt">release</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">jfrog rt upload &quot;build/RPMS/x86_64/(*).rpm&quot; my-artifactory</span>

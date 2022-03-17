@@ -582,7 +582,7 @@
       <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine</span>
       <span class="nt">parameters</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">hostwd</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+        <span class="nt">hostwd</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
       <span class="nt">commands</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="nt">execute</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">make</span>
 </code></pre></div>
@@ -600,7 +600,7 @@
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine</span>
       <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
       <span class="nt">parameters</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">bind /app</span>
+        <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
       <span class="nt">commands</span><span class="p">:</span>
         <span class="l l-Scalar l-Scalar-Plain">make</span>
 </code></pre></div>
@@ -656,8 +656,8 @@
       <span class="nt">runner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">docker</span>
       <span class="nt">environment</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">alpine:latest</span>
       <span class="nt">parameters</span><span class="p">:</span>
-        <span class="p p-Indicator">-</span> <span class="nt">hostwd</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
-        <span class="p p-Indicator">-</span> <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
+        <span class="nt">hostwd</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/home/myproject</span>
+        <span class="nt">bind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
       <span class="nt">working directory</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/app</span>
       <span class="nt">commands</span><span class="p">:</span>
         <span class="p p-Indicator">-</span> <span class="nt">install</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">apk add gcc</span>

@@ -646,21 +646,21 @@
     [-e | --environment &lt;env&gt;] [--name &lt;stage&gt;] [--wd &lt;working-directory&gt;] 
     [-p | --parameter &lt;p-name p-value&gt;]... 
     [--description] [--env &lt;name value&gt;]... [--dotenv &lt;dotenv-file&gt;]
-    [--action (default | cleanup | persist)] 
+    [--skip &lt;stage&gt;] [--action (default | cleanup | persist)] 
     [--fancy | --plain | --quiet] [--verbose] &lt;command&gt;
 
 build-magic [-r | --runner (local | remote | vagrant | docker)] 
     [-e | --environment &lt;env&gt;] [--name &lt;stage&gt;] [--wd &lt;working-directory&gt;] 
     [-p | --parameter &lt;p-name p-value&gt;]... 
     [--description] [--env &lt;name value&gt;]... [--dotenv &lt;dotenv-file&gt;]
-    [--action (default | cleanup | persist)] 
+    [--skip &lt;stage&gt;] [--action (default | cleanup | persist)] 
     [--fancy | --plain | --quiet] [--verbose] [--copy &lt;copy-from&gt;] 
     [--continue | --stop] [-c | --command &lt;directive command&gt;]... 
     [&lt;artifact&gt;...]
 </code></pre></div>
 <h3 id="provide-config-files">Provide Config Files<a class="headerlink" href="#provide-config-files" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>build-magic [--fancy | --plain | --quiet] [--verbose] 
-[-t | --target &lt;stage name&gt;]... 
+[--skip &lt;stage name&gt;] [-t | --target &lt;stage name&gt;]... 
 [-v | --variable &lt;var-name var-value&gt;]... 
 [--prompt &lt;prompt-name&gt;]... -C | --config &lt;config-file&gt;
 
@@ -703,6 +703,7 @@ all | &lt;stage name&gt;... | [-t | --target &lt;stage name&gt;]...
 </ul>
 <p>If <strong>--runner</strong> is defined and not equal to <em>local</em>, <strong>--environment</strong> is required.</p>
 <p><strong>--name</strong> - Optional name <strong>&lt;stage></strong> to give the executing stage. If <strong>--name</strong> isn't provided, the default stage name is 1.</p>
+<p><strong>--skip</strong> - Optional <strong>&lt;stage></strong> name to skip.</p>
 <p><strong>--env</strong> - Key/value pairs <strong>&lt;name value></strong> sets an environment variable to be used in the executing stage. Can be provided multiple times.</p>
 <p><strong>--dotenv</strong> - The path to a dotenv file of environment variables to set in the executing stage.</p>
 <p><strong>--wd</strong> - The working directory build-magic will operate from. If not specified, the default working directory is the current directory. In the case of the <em>local</em> and <em>remote</em> command runners, the working directory is on the host machine. For <em>vagrant</em> and <em>docker</em> command runners, the working directory is on the guest machine, i.e. inside the virtual machine or running container. If the <strong>copy</strong> option is provided along with <strong>&lt;artifacts></strong>, the <strong>&lt;artifacts></strong> are copied from <strong>&lt;copy-from></strong> to <strong>&lt;working-directory></strong>.</p>
@@ -746,6 +747,9 @@ all | &lt;stage name&gt;... | [-t | --target &lt;stage name&gt;]...
 </code></pre></div>
 <p>Alternatively, <strong>-t</strong> can be used instead of <strong>--target</strong>.</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic -C my_config.yaml -t <span class="nb">test</span> -t build
+</code></pre></div>
+<p>Specifically named stages can be skipped with <strong>--skip</strong>. For example, to skip the <em>test</em> stage but still run the <em>build</em> stage use:</p>
+<div class="highlight"><pre><span></span><code>&gt; build-magic -C my_config.yaml --skip <span class="nb">test</span> -t build
 </code></pre></div>
 <p>Named stages in a Config File can also be run similar to a Makefile by specifying the stage name:</p>
 <div class="highlight"><pre><span></span><code>&gt; build-magic deploy
