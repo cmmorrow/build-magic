@@ -1,5 +1,9 @@
 # What's New
 
+## Version 0.5.1
+
+* Fixed a cleanup action bug that prevented existing empty directories from being deleted.
+
 ## Version 0.5.0 (Newest)
 
 * Added the --skip switch to manually skip named stages.
