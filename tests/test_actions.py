@@ -700,6 +700,39 @@ def test_action_delete_nested_directories(build_hashes, build_path, generic_runn
     assert len([str(file) for file in Path.cwd().resolve().rglob('*')]) == 2
 
 
+def test_action_delete_existing_empty_directory(empty_path, generic_runner, mocker, touch):
+    """Test the case where a single file needs to be cleaned up in a directory with an existing empty directory."""
+    os.chdir(str(empty_path))
+    mocker.patch('build_magic.actions.container_destroy', return_value=True)
+    generic_runner.teardown = types.MethodType(actions.delete_new_files, generic_runner)
+    empty = Path('new_empty')
+    empty.mkdir()
+
+    # Local capture
+    generic_runner._existing_files = []
+    dirs = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = dirs
+
+    generic_runner.execute(Macro(f'{touch} file.txt'))
+    assert generic_runner.teardown()
+    remaining = [str(f) for f in Path.cwd().resolve().rglob('*')]
+    assert len(remaining) == 1
+    assert Path(remaining[0]).stem == 'new_empty'
+
+    # Docker capture
+    generic_runner.host_wd = '.'
+    generic_runner.teardown = types.MethodType(actions.docker_delete_new_files, generic_runner)
+    generic_runner._existing_files = []
+    dirs = [str(file) for file in Path.cwd().resolve().rglob('*')]
+    generic_runner._existing_dirs = dirs
+
+    generic_runner.execute(Macro(f'{touch} file.txt'))
+    assert generic_runner.teardown()
+    remaining = [str(f) for f in Path.cwd().resolve().rglob('*')]
+    assert len(remaining) == 1
+    assert Path(remaining[0]).stem == 'new_empty'
+
+
 def test_action_delete_existing_nested_directories(generic_runner, mocker, nested_path, touch):
     """Test the case where a single file needs to be cleaned up in a directory hierarchy."""
     os.chdir(str(nested_path))

@@ -403,7 +403,7 @@ def delete_new_files(self):
                     os.remove(file)
                     continue
             result = True
-        # Handle the case where the working directory started off empty.
+        # Handle the case where the working directory started off without any files.
         elif hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
             pwd = pathlib.Path(self.working_directory).resolve()
             for file in pwd.rglob('*'):
@@ -416,7 +416,7 @@ def delete_new_files(self):
                         os.remove(file)
                 except PermissionError:
                     continue
-            result = True
+            return True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.working_directory).resolve()
         for file in sorted(pwd.rglob('*'), reverse=True):
@@ -476,7 +476,7 @@ def docker_delete_new_files(self):
                     os.remove(file)
                     continue
             result = True
-        # Handle the case where the working directory started off empty.
+        # Handle the case where the working directory started off without any files.
         elif hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
             pwd = pathlib.Path(self.working_directory).resolve()
             for file in pwd.rglob('*'):
@@ -489,7 +489,7 @@ def docker_delete_new_files(self):
                         os.remove(file)
                 except PermissionError:
                     continue
-            result = True
+            return True
     if hasattr(self, '_existing_dirs') and isinstance(self._existing_dirs, list):
         pwd = pathlib.Path(self.host_wd).resolve()
         for file in sorted(pwd.rglob('*'), reverse=True):
