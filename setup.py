@@ -42,7 +42,7 @@ setup(
         'jsonschema==3.2.0',
         'docker==5.0.3',
         'nltk==3.6.7',
-        'paramiko==2.9.2',
+        'paramiko==2.10.1',
         'python-vagrant==0.5.15',
         'PyYAML==6.0',
         'scp==0.14.2',

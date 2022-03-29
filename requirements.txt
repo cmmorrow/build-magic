@@ -36,7 +36,7 @@ mkdocs-material==7.1.2
 mkdocs-material-extensions==1.0.1
 nltk==3.6.7
 packaging==21.3
-paramiko==2.9.2
+paramiko==2.10.1
 pkginfo==1.7.0
 pluggy==0.13.1
 py==1.10.0
