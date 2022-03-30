@@ -3,6 +3,7 @@
 ## Version 0.5.1
 
 * Fixed a cleanup action bug that prevented existing empty directories from being deleted.
+* Updated paramiko to 2.10.1.
 
 ## Version 0.5.0 (Newest)
 
