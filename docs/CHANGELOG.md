@@ -1,11 +1,11 @@
 # What's New
 
-## Version 0.5.1
+## Version 0.5.1 (Newest)
 
 * Fixed a cleanup action bug that prevented existing empty directories from being deleted.
 * Updated paramiko to 2.10.1.
 
-## Version 0.5.0 (Newest)
+## Version 0.5.0
 
 * Added the --skip switch to manually skip named stages.
 * Added the current working directory to stdout.
