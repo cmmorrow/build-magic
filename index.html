@@ -221,8 +221,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#work-the-way-you-want-to-work" class="md-nav__link">
-    Work the way you want to work
+  <a href="#builds-that-work-for-you" class="md-nav__link">
+    Builds that work for you
   </a>
   
 </li>
@@ -514,8 +514,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#work-the-way-you-want-to-work" class="md-nav__link">
-    Work the way you want to work
+  <a href="#builds-that-work-for-you" class="md-nav__link">
+    Builds that work for you
   </a>
   
 </li>
@@ -575,7 +575,7 @@
                 
                 <h1 id="build-magic">build-magic &#x1F528;&#x2728;<a class="headerlink" href="#build-magic" title="Permanent link">&para;</a></h1>
 <p>An un-opinionated, build automation tool.</p>
-<p>Build-magic is a command-line application for automating build, test, install, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.</p>
+<p>Build-magic is a command-line application for automating build, test, install, and deploy tasks. It runs anywhere and is designed to be easy to use by both developers and DevOps engineers.</p>
 <hr />
 <p><img alt="build-magic" src="build-magic.gif" /></p>
 <p>Using build-magic can be as simple as:</p>
@@ -633,18 +633,18 @@
 <li>Automate dry runs of critical commands that cannot be tested on a production system.</li>
 </ul>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
-<h3 id="work-the-way-you-want-to-work">Work the way you want to work<a class="headerlink" href="#work-the-way-you-want-to-work" title="Permanent link">&para;</a></h3>
+<h3 id="builds-that-work-for-you">Builds that work for you<a class="headerlink" href="#builds-that-work-for-you" title="Permanent link">&para;</a></h3>
 <p>Developing for Linux from a Windows or MacOS laptop? Build-magic lets you build, test, and deploy your application within a Docker container, virtual machine, or on a remote machine. Build-magic will manage the environment differences for you so you can focus on the details that matter.</p>
 <h3 id="automate-everything">Automate everything<a class="headerlink" href="#automate-everything" title="Permanent link">&para;</a></h3>
 <p>If your terminal can do it, build-magic can automate it! Build-magic is a modern alternative to automating with Makefiles and shell scripts. Build-magic Config Files feature an easy to use YAML syntax for executing multiple stages (targets). Build-magic actions can also apply setup and teardown behaviors for preserving container or VM state, or clean up extra files generated as part of a build process. Build-magic also gives you control over how output is displayed by providing a TTY friendly format as well a log file friendly format.</p>
 <h3 id="simple-but-powerful">Simple but powerful<a class="headerlink" href="#simple-but-powerful" title="Permanent link">&para;</a></h3>
-<p>There are no looping mechanics or specialized conditional logic handlers beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and replicate. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs become idempotent. The persist action will preserve the state of a container or VM after execution of a job.</p>
+<p>There are no looping mechanics or specialized conditional logic directives beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and reproduce. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs can become idempotent. The persist action will preserve the state of a container or VM after execution of a job.</p>
 <h3 id="un-opinionated">Un-opinionated<a class="headerlink" href="#un-opinionated" title="Permanent link">&para;</a></h3>
 <p>As much as possible, build-magic strives to setup environments and execute commands the same way, whether commands are being executed locally, remotely, in a container, or in a VM. Also, unlike similar automation tools that have builtin directives, build-magic command directives don't impart any special meaning or track state -- they are simply descriptive. This keeps things simple, and what you see in a build-magic Config File or in command-line arguments is exactly what's executed. Aside from the simple syntax, build-magic doesn't care how you run commands.</p>
 <h3 id="runtime-variables">Runtime variables<a class="headerlink" href="#runtime-variables" title="Permanent link">&para;</a></h3>
-<p>Build-magic Config Files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic Config File.</p>
+<p>Build-magic Config Files support placeholders using a template syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic Config File. Need static variables available at runtime? Environment variables can be selectively applied to a group of commands.</p>
 <h3 id="cross-platform">Cross platform<a class="headerlink" href="#cross-platform" title="Permanent link">&para;</a></h3>
-<p>Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic Config Files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.</p>
+<p>Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Have some commands that can only run on Windows? Simply mark a stage as Windows only and the associated commands will be skipped on other platforms. Also, build-magic Config Files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.</p>
                 
               
               
