@@ -2,7 +2,7 @@
 
 An un-opinionated, build automation tool.
 
-Build-magic is a command-line application for automating build, test, install, and deploy tasks. It's designed to be easy to use by both developers and DevOps engineers.
+Build-magic is a command-line application for automating build, test, install, and deploy tasks. It runs anywhere and is designed to be easy to use by both developers and DevOps engineers.
 
 ---
 
@@ -73,7 +73,7 @@ Or, if the Config File is named `build-magic.yaml`, can be run similar to a Make
 
 ## Features
 
-### Work the way you want to work
+### Builds that work for you
 
 Developing for Linux from a Windows or MacOS laptop? Build-magic lets you build, test, and deploy your application within a Docker container, virtual machine, or on a remote machine. Build-magic will manage the environment differences for you so you can focus on the details that matter.
 
@@ -83,7 +83,7 @@ If your terminal can do it, build-magic can automate it! Build-magic is a modern
 
 ### Simple but powerful
 
-There are no looping mechanics or specialized conditional logic handlers beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and replicate. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs become idempotent. The persist action will preserve the state of a container or VM after execution of a job.
+There are no looping mechanics or specialized conditional logic directives beyond what can be done via the command-line. This might seem like a disadvantage but it makes build-magic jobs easier to debug, re-run, and reproduce. What build-magic lacks in programming language-like features, it makes up for with easy of use and powerful actions. By using the cleanup action, build-magic jobs can become idempotent. The persist action will preserve the state of a container or VM after execution of a job.
 
 ### Un-opinionated
 
@@ -91,8 +91,8 @@ As much as possible, build-magic strives to setup environments and execute comma
 
 ### Runtime variables
 
-Build-magic Config Files support placeholders using a Jinja-like syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic Config File.
+Build-magic Config Files support placeholders using a template syntax. At runtime, dynamic values and secrets can be assigned and substituted for the placeholders, allowing for general-purpose, multi-user use cases. Simplify onboarding a new team member by automating project setup with a single build-magic Config File. Need static variables available at runtime? Environment variables can be selectively applied to a group of commands.
 
 ### Cross platform
 
-Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Build-magic Config Files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.
+Build-magic runs on Windows, Mac OS, and Linux. For ultimate portability, build-magic supports executing commands on a remote server via SSH, in a Docker container, or in a virtual machine via Vagrant. Have some commands that can only run on Windows? Simply mark a stage as Windows only and the associated commands will be skipped on other platforms. Also, build-magic Config Files support variable substitution so dynamic values like version numbers and credentials can be supplied at runtime and substituted into commands.
