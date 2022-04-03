@@ -14,6 +14,7 @@ nav:
       - Using the Vagrant Runner: user_guide/runners/vagrant_usage.md
       - Using the Remote Runner: user_guide/runners/remote_usage.md
   - Examples: examples.md
+  - Troubleshooting: troubleshooting.md
   - Comparison with Similar Tools: comparison.md
 markdown_extensions:
   - toc:

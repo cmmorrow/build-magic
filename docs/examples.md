@@ -388,6 +388,8 @@ Calling the **/predict** endpoint with the following JSON payload will return th
 
 The webserver is built as a Docker image with the following Dockerfile:
 
+=== "Dockerfile"
+
 ```dockerfile
 FROM ubuntu:latest
 WORKDIR /app
