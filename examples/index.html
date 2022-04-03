@@ -547,6 +547,21 @@
   
   
     <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../comparison/" class="md-nav__link">
         Comparison with Similar Tools
       </a>
@@ -1044,6 +1059,8 @@ mv slate-2.12.0 /srv/slate
 <span class="p">}</span>
 </code></pre></div>
 <p>The webserver is built as a Docker image with the following Dockerfile:</p>
+<div class="tabbed-set" data-tabs="11:1"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><label for="__tabbed_11_1">Dockerfile</label><div class="tabbed-content"></div>
+</div>
 <div class="highlight"><pre><span></span><code><span class="k">FROM</span> <span class="s">ubuntu:latest</span>
 <span class="k">WORKDIR</span><span class="s"> /app</span>
 <span class="k">COPY</span> server.py requirements.txt /app/
@@ -1056,7 +1073,7 @@ mv slate-2.12.0 /srv/slate
 <p>The web server should be started with <code>docker run -d -p 3000:3000 -v $PWD/data/deploy:/app/data/deploy:ro --name model_server model_server</code>.</p>
 <h4 id="etl">ETL<a class="headerlink" href="#etl" title="Permanent link">&para;</a></h4>
 <p>The ETL script simply converts the dataset to a feather file with pyArrow.</p>
-<div class="tabbed-set" data-tabs="11:1"><input checked="checked" id="__tabbed_11_1" name="__tabbed_11" type="radio" /><label for="__tabbed_11_1">etl.py</label><div class="tabbed-content"></div>
+<div class="tabbed-set" data-tabs="12:1"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><label for="__tabbed_12_1">etl.py</label><div class="tabbed-content"></div>
 </div>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -1084,7 +1101,7 @@ mv slate-2.12.0 /srv/slate
 </code></pre></div>
 <h4 id="model-training">Model Training<a class="headerlink" href="#model-training" title="Permanent link">&para;</a></h4>
 <p>The training script reads the feather file, trains the model based on the input parameters, prints the model statistics, and saves the model as a pickle file.</p>
-<div class="tabbed-set" data-tabs="12:1"><input checked="checked" id="__tabbed_12_1" name="__tabbed_12" type="radio" /><label for="__tabbed_12_1">train.py</label><div class="tabbed-content"></div>
+<div class="tabbed-set" data-tabs="13:1"><input checked="checked" id="__tabbed_13_1" name="__tabbed_13" type="radio" /><label for="__tabbed_13_1">train.py</label><div class="tabbed-content"></div>
 </div>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
@@ -1187,13 +1204,13 @@ mv slate-2.12.0 /srv/slate
         </a>
       
       
-        <a href="../comparison/" class="md-footer__link md-footer__link--next" rel="next">
+        <a href="../troubleshooting/" class="md-footer__link md-footer__link--next" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Comparison with Similar Tools
+              Troubleshooting
             </div>
           </div>
           <div class="md-footer__button md-icon">

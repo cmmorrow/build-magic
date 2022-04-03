@@ -273,8 +273,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#debianubuntumint" class="md-nav__link">
-    Debian/Ubuntu/Mint
+  <a href="#debianubuntumintchrome-os" class="md-nav__link">
+    Debian/Ubuntu/Mint/Chrome OS
   </a>
   
 </li>
@@ -542,6 +542,21 @@
   
   
     <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        Troubleshooting
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../comparison/" class="md-nav__link">
         Comparison with Similar Tools
       </a>
@@ -612,8 +627,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#debianubuntumint" class="md-nav__link">
-    Debian/Ubuntu/Mint
+  <a href="#debianubuntumintchrome-os" class="md-nav__link">
+    Debian/Ubuntu/Mint/Chrome OS
   </a>
   
 </li>
@@ -761,8 +776,9 @@
 </table>
 <h3 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h3>
 <p>The easiest way to install build-magic for Linux is by installing from a package.</p>
-<h4 id="debianubuntumint">Debian/Ubuntu/Mint<a class="headerlink" href="#debianubuntumint" title="Permanent link">&para;</a></h4>
+<h4 id="debianubuntumintchrome-os">Debian/Ubuntu/Mint/Chrome OS<a class="headerlink" href="#debianubuntumintchrome-os" title="Permanent link">&para;</a></h4>
 <p>Minimum compatible versions are Debian 10 (buster), Ubuntu 20.04 (focal fossa), or Mint Linux 19 (Tara).</p>
+<p>If installing on Chrome OS, a Chromebook capable of running Linux is required with the Linux Runtime enabled.</p>
 <table>
 <thead>
 <tr>
@@ -821,6 +837,7 @@
 <li><strong>(Optional)</strong> If you downloaded the hash file, you can view the hash with <code>cat build-magic-(version)_amd64.hash</code>, where <code>(version)</code> matches the version in the downloaded hash file. Next, compare the SHA256 hash of the downloaded package with <code>shasum -a 256 build-magic-(version)_amd64.deb</code>. If the hash matches the content of the downloaded hash file, the package hasn't been altered since it was built.</li>
 <li>Install the downloaded package with <code>sudo dpkg --install build-magic-(version)_amd64.deb</code>, where <code>(version)</code> matches the version in the downloaded package.</li>
 </ol>
+<p>To install on Chrome OS, click on the newest version of the <strong>.deb</strong> file. If the Files app, move the <strong>.deb</strong> file from Downloads to Linux Files. Finally, double click on the <strong>.deb</strong> file to install build-magic.</p>
 <h4 id="fedoracentosred-hat">Fedora/CentOS/Red Hat<a class="headerlink" href="#fedoracentosred-hat" title="Permanent link">&para;</a></h4>
 <p>Minimum compatible versions are CentOS/RHEL 7.9 and Fedora 33.</p>
 <table>

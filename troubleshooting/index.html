@@ -14,7 +14,7 @@
     
     
       
-        <title>Comparison with Similar Tools - build-magic</title>
+        <title>Troubleshooting - build-magic</title>
       
     
     
@@ -63,7 +63,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#comparison-with-similar-tools" class="md-skip">
+        <a href="#troubleshooting-common-problems-with-build-magic" class="md-skip">
           Skip to content
         </a>
       
@@ -93,7 +93,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Comparison with Similar Tools
+              Troubleshooting
             
           </span>
         </div>
@@ -384,21 +384,6 @@
 
   
   
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        Troubleshooting
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
     
   
   
@@ -411,12 +396,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Comparison with Similar Tools
+          Troubleshooting
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
-        Comparison with Similar Tools
+        Troubleshooting
       </a>
       
         
@@ -434,22 +419,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#make" class="md-nav__link">
-    Make
+  <a href="#runtimeerror-click-will-abort-further-execution-because-python-was-configured-to-use-ascii" class="md-nav__link">
+    RuntimeError: Click will abort further execution because Python was configured to use ASCII
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#shellbatch-scripts" class="md-nav__link">
-    Shell/Batch Scripts
+  <a href="#upgrading-build-magic-on-centos-doesnt-work" class="md-nav__link">
+    Upgrading build-magic on CentOS doesn't work
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#ansible" class="md-nav__link">
-    Ansible
+  <a href="#installing-build-magic-from-brew-is-really-slow" class="md-nav__link">
+    Installing build-magic from brew is really slow
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modulenotfounderror-no-module-named-setuptools_rust" class="md-nav__link">
+    ModuleNotFoundError: No module named 'setuptools_rust'
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#microsoft-edge-blocks-downloading-the-build-magic-windows-installer" class="md-nav__link">
+    Microsoft Edge blocks downloading the build-magic Windows installer
   </a>
   
 </li>
@@ -458,6 +457,21 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../comparison/" class="md-nav__link">
+        Comparison with Similar Tools
+      </a>
     </li>
   
 
@@ -488,22 +502,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#make" class="md-nav__link">
-    Make
+  <a href="#runtimeerror-click-will-abort-further-execution-because-python-was-configured-to-use-ascii" class="md-nav__link">
+    RuntimeError: Click will abort further execution because Python was configured to use ASCII
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#shellbatch-scripts" class="md-nav__link">
-    Shell/Batch Scripts
+  <a href="#upgrading-build-magic-on-centos-doesnt-work" class="md-nav__link">
+    Upgrading build-magic on CentOS doesn't work
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#ansible" class="md-nav__link">
-    Ansible
+  <a href="#installing-build-magic-from-brew-is-really-slow" class="md-nav__link">
+    Installing build-magic from brew is really slow
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modulenotfounderror-no-module-named-setuptools_rust" class="md-nav__link">
+    ModuleNotFoundError: No module named 'setuptools_rust'
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#microsoft-edge-blocks-downloading-the-build-magic-windows-installer" class="md-nav__link">
+    Microsoft Edge blocks downloading the build-magic Windows installer
   </a>
   
 </li>
@@ -521,23 +549,46 @@
               
                 
                 
-                <h1 id="comparison-with-similar-tools">Comparison with Similar Tools<a class="headerlink" href="#comparison-with-similar-tools" title="Permanent link">&para;</a></h1>
-<p>There are already several great automation tools out there, so why use build-magic? First of all, build-magic is primarily focused on the problem of automating build tasks. That's why it's in the name. Here's how build-magic stacks up against similar tools.</p>
-<h2 id="make">Make<a class="headerlink" href="#make" title="Permanent link">&para;</a></h2>
-<p>Makefiles are tried and true. There's a reason they're still in use after 40+ years. Make allows a user to specify rules, targets, and commands to execute in a Makefile, in a very similar way to build-magic. Although it is primarily used for compiling files in C and C++ projects, Makefiles have found their way into command automation. While build-magic can certainly be used for compiling C and C++ projects, it isn't as focused on this as make is.</p>
-<p>Make is often a popular choice in DevOps for its ubiquity and ease of integration into pipelines. This works fine so long as Make is always executing in a Unix-like operating system, because it doesn't run on Windows. Microsoft provides nmake for Windows, which has a slightly different syntax and isn't 100% compatible with Make. Build-magic has no problem executing on Windows, MacOS, or Linux. Also, Makefiles use their own specific syntax (requiring tabs), while build-magic uses YAML, which should be familiar to anyone who's used Docker, Ansible, or most CI/CD tools.</p>
-<p>Build-magic also makes executing targets in a Docker container or virtual machine much easier compared to Make. For example, to execute several commands inside a Docker container using a Make target would involve starting a detached container, calling <code>docker exec</code> for each command, and finally <code>docker stop &amp;&amp; docker rm</code> to stop and delete the container. Build-magic abstracts away the container management and allows the user to just worry about which commands to execute.</p>
-<p>When using Make from the command-line, only a single target can be specified. This can often lead to a situation where rules need to be created to run multiple targets in order. The syntax for this can often be confusing for newcomers. Build-magic takes the approach of running stages in the order they're defined. If more fine-grained control is needed, the order of stages can be changed at runtime, and multiple Config Files can be specified to expand the pool of available stages to specify at runtime.</p>
-<p>Makefile variables are a useful feature, considering Make executes each command in it's own shell. Build-magic makes use of YAML aliases and anchors for hard-coding variables, with the advantage that anchors can also be commands instead of just strings. Build-magic also allows for specifying variables at runtime and specifying new environment variables in addition to hard-coded variables.</p>
-<p>Make does have a few advantages over build-magic. Make can implicitly skip execution on files that haven't been modified since Make last ran. Makefiles can define rules that apply to file suffixes and patterns. Gnu Make also has some imperative programming constructs like conditional statements and the foreach loop.</p>
-<h2 id="shellbatch-scripts">Shell/Batch Scripts<a class="headerlink" href="#shellbatch-scripts" title="Permanent link">&para;</a></h2>
-<p>Shell scripts have been used for building software for over 45 years. In fact, sometimes the fastest way to write a simple command-line tool is to knock out a quick shell script. But as the decades have rolled by, new shells have come and gone. This means old csh and ksh scripts might not run on a user's new machine.</p>
-<p>For this reason, developers and DevOps engineers often default to writing scripts with <code>/bin/sh</code>, forgoing modern features of newer shells in the name of compatibility. Build-magic doesn't break backwards compatibility, so older Config Files will still work with newer versions of build-magic.</p>
-<p>Shell scripts are written in an imperative programming style, compared to build-magic's declarative style. The obvious advantage shell scripts have is being able to execute conditional statements. However, this can also be a weakness as shell scripts often have to use conditional statements to check the current state of the file system before executing a command. Build-magic strives to make jobs idempotent, so that the job is executed the same way every time without side effects. If conditional statements and loops are needed for execution, a shell script can always be executed by build-magic.</p>
-<h2 id="ansible">Ansible<a class="headerlink" href="#ansible" title="Permanent link">&para;</a></h2>
-<p>Ansible is an automation tool that simplifies configuration management. It can be used to automate most tasks that can be performed on the command-line, but it really excels at installing software.</p>
-<p>Ansible uses YAML files called Playbooks that describe what state a system should be in after running the Playbook. If the system is already in the desired state, no action is needed. This methodology works great for installing software but breaks down with building software. Often software needs to be built for a particular OS and architecture, which Ansible tries to abstract away. This forces a user to execute shell commands within Ansible, giving up it's biggest advantage.</p>
-<p>With build-magic primarily focused on build automation, a user describes exactly what commands to run, without regard to the current state of the system. Build-magic runs precisely the commands you tell it to. Ansible also is very focused on managing remote systems. This is where Ansible scales really well, as build-magic cannot run a set of commands on multiple remote machines in parallel. However, build-magic can run commands in containers and virtual machines with easy; something Ansible struggles with.</p>
+                <h1 id="troubleshooting-common-problems-with-build-magic">Troubleshooting Common Problems With build-magic<a class="headerlink" href="#troubleshooting-common-problems-with-build-magic" title="Permanent link">&para;</a></h1>
+<ul>
+<li><a href="./#runtimeerror-click-will-abort-further-execution-because-python-was-configured-to-use-ascii">RuntimeError: Click will abort further execution because Python was configured to use ASCII</a></li>
+<li><a href="./#upgrading-build-magic-on-centos-doesnt-work">Upgrading build-magic on CentOS doesn't work</a></li>
+<li><a href="./#installing-build-magic-from-brew-is-really-slow">Installing build-magic from brew is really slow</a></li>
+<li><a href="./#modulenotfounderror-no-module-named-setuptools_rust">ModuleNotFoundError: No module named 'setuptools_rust'</a></li>
+<li><a href="./#microsoft-edge-blocks-downloading-the-build-magic-windows-installer">Microsoft Edge blocks downloading the build-magic Windows installer</a></li>
+</ul>
+<h2 id="runtimeerror-click-will-abort-further-execution-because-python-was-configured-to-use-ascii">RuntimeError: Click will abort further execution because Python was configured to use ASCII<a class="headerlink" href="#runtimeerror-click-will-abort-further-execution-because-python-was-configured-to-use-ascii" title="Permanent link">&para;</a></h2>
+<p>When running build-magic for the first time on CentOS, you might encounter the following error message:</p>
+<div class="highlight"><pre><span></span><code>Traceback (most recent call last):
+File &quot;build_magic/__main__.py&quot;, line 7, in &lt;module&gt;
+File &quot;click/core.py&quot;, line 1128, in __call__
+File &quot;click/core.py&quot;, line 1034, in main
+File &quot;click/_unicodefun.py&quot;, line 100, in _verify_python_env
+RuntimeError: Click will abort further execution because Python was configured to use ASCII as encoding for the environment. Consult https://click.palletsprojects.com/unicode-support/ for mitigation steps.
+
+This system lists some UTF-8 supporting locales that you can pick from. The following suitable locales were discovered: en_AG.utf8, en_AU.utf8, en_BW.utf8, en_CA.utf8, en_DK.utf8, en_GB.utf8, en_HK.utf8, en_IE.utf8, en_IN.utf8, en_NG.utf8, en_NZ.utf8, en_PH.utf8, en_SG.utf8, en_US.utf8, en_ZA.utf8, en_ZM.utf8, en_ZW.utf8
+[65] Failed to execute script &#39;__main__&#39; due to unhandled exception!
+</code></pre></div>
+<p>This is a known issue with Click, a package build-magic uses for building the command-line interface. Essentially, Python3 thinks you are restricted to using ASCII on your machine. You can read about the issue <a href="https://click.palletsprojects.com/en/8.1.x/unicode-support/#surrogate-handling">here</a>. The solution is to set environment variables for the locale and langauge on your system. For example, on a machine in the US, you would use:</p>
+<div class="highlight"><pre><span></span><code>export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+</code></pre></div>
+<h2 id="upgrading-build-magic-on-centos-doesnt-work">Upgrading build-magic on CentOS doesn't work<a class="headerlink" href="#upgrading-build-magic-on-centos-doesnt-work" title="Permanent link">&para;</a></h2>
+<p>After upgrading build-magic on CentOS, you might see the following message:</p>
+<div class="highlight"><pre><span></span><code>/usr/local/bin/build-magic: No such file or directory
+</code></pre></div>
+<p>This happens if you installed build-magic from the RPM package and attempt to upgrade to a newer version of build-magic. This is because there's a bug in the RPM package that deletes the old version and breaks the symlink to the build-magic executable. There are two ways to solve this problem:</p>
+<ol>
+<li>Uninstall build-magic with <code>yum remove build-magic</code> and reinstall with <code>yum install build-magic*.rpm</code>.</li>
+<li>Manually add the symlink. For example, if you have build-magic version 0.5.1 installed, you need to create the symlink with <code>ln -s /usr/local/bin/build-magic_0.5.1/build-magic_0.5.1 /usr/local/bin/build-magic</code>.</li>
+</ol>
+<h2 id="installing-build-magic-from-brew-is-really-slow">Installing build-magic from brew is really slow<a class="headerlink" href="#installing-build-magic-from-brew-is-really-slow" title="Permanent link">&para;</a></h2>
+<p>Currently, installing build-magic from <strong>brew</strong> can take 10+ minutes because every Python package is built from source. This is because there isn't a build-magic Cask (binary) available just yet. With some patience, build-magic should install successfully.</p>
+<h2 id="modulenotfounderror-no-module-named-setuptools_rust">ModuleNotFoundError: No module named 'setuptools_rust'<a class="headerlink" href="#modulenotfounderror-no-module-named-setuptools_rust" title="Permanent link">&para;</a></h2>
+<p>This error can appear when installing build-magic using <strong>pip</strong>. To resolve this error, upgrade <strong>pip</strong> to a newer version with <code>python3 -m pip install --upgrade pip</code>.</p>
+<h2 id="microsoft-edge-blocks-downloading-the-build-magic-windows-installer">Microsoft Edge blocks downloading the build-magic Windows installer<a class="headerlink" href="#microsoft-edge-blocks-downloading-the-build-magic-windows-installer" title="Permanent link">&para;</a></h2>
+<p>The Microsoft Edge browser might block downloading the build-magic Windows installer. This is because build-magic is a fairly new application and hasn't been recognized by Microsoft's security team yet. To allow the download, click on the download icon at the top right corner of the browser. In the pop up menu, click <strong>Keep Anyway</strong>. Another window might appear that says Microsoft doesn't recognize the file being downloaded. In this window, again click <strong>Keep Anyway</strong>.</p>
+<p>The build-magic Windows installer is uploaded to VirusTotal and the Crowd Strike Hybrid Analysis sandbox with every new version. If you are still uncomfortable installing build-magic from the Windows installer, you can alternatively install build-magic using <strong>pip</strong> or <strong>pipx</strong>.</p>
                 
               
               
@@ -556,7 +607,7 @@
   
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
-        <a href="../troubleshooting/" class="md-footer__link md-footer__link--prev" rel="prev">
+        <a href="../examples/" class="md-footer__link md-footer__link--prev" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -565,11 +616,25 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Troubleshooting
+              Examples
             </div>
           </div>
         </a>
       
+      
+        <a href="../comparison/" class="md-footer__link md-footer__link--next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Comparison with Similar Tools
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
       
     </nav>
   
