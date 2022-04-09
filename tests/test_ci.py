@@ -91,15 +91,25 @@ def test_step_bad_sequence():
         (Step(':', sequence=1), Step(':', sequence=1), operator.le, True),
         (Step(':', sequence=1), Step(':', sequence=1), operator.ge, True),
         (Step(':', sequence=1), Step(':', sequence=2), operator.ne, True),
+        (Step(':', sequence=1), 'dummy', operator.ne, True),
         (Step(':', sequence=1), Step(':', sequence=2), operator.lt, True),
+        (Step(':', sequence=1), 'dummy', operator.lt, False),
         (Step(':', sequence=1), Step(':', sequence=2), operator.le, True),
+        (Step(':', sequence=1), 'dummy', operator.le, False),
         (Step(':', sequence=1), Step(':', sequence=2), operator.gt, False),
+        (Step(':', sequence=1), 'dummy', operator.gt, False),
         (Step(':', sequence=1), Step(':', sequence=2), operator.ge, False),
+        (Step(':', sequence=1), 'dummy', operator.ge, False),
     ]
 )
 def test_step_comparison(first, second, op, expected):
     """Verify comparing Step objects works correctly."""
     assert op(first, second) is expected
+
+
+def test_step_repr():
+    """Verify the Step __repr__ method works as expected."""
+    assert str(Step('echo hello', 'say hello', 2)) == '<echo hello say hello 2>'
 
 
 @pytest.mark.parametrize(
@@ -165,6 +175,7 @@ def test_stage_bad_sequence():
     [
         (Stage([ds], sequence=1), Stage([ds], sequence=1), operator.eq, True),
         (Stage([ds], 'ok'), Stage([ds], 'ok'), operator.eq, True),
+        (Stage([ds]), 'dummy', operator.ne, True),
         (Stage([ds], 'ok', 'docker'), Stage([ds], 'ok', 'docker'), operator.eq, True),
         (Stage([ds], 'ok', 'docker', 'f'), Stage([ds], 'ok', 'docker', 'f'), operator.eq, True),
         (Stage([ds], 'z', 'd', 'f', {'T': 't'}), Stage([ds], 'z', 'd', 'f', {'T': 't'}), operator.eq, True),
@@ -176,14 +187,24 @@ def test_stage_bad_sequence():
         (Stage([ds], sequence=1), Stage([ds], sequence=1), operator.le, True),
         (Stage([ds], sequence=1), Stage([ds], sequence=1), operator.ge, True),
         (Stage([ds], sequence=1), Stage([ds], sequence=2), operator.lt, True),
+        (Stage([ds], sequence=1), 'dummy', operator.lt, False),
         (Stage([ds], sequence=1), Stage([ds], sequence=2), operator.le, True),
+        (Stage([ds], sequence=1), 'dummy', operator.le, False),
         (Stage([ds], sequence=1), Stage([ds], sequence=2), operator.gt, False),
+        (Stage([ds], sequence=1), 'dummy', operator.gt, False),
         (Stage([ds], sequence=1), Stage([ds], sequence=2), operator.ge, False),
+        (Stage([ds], sequence=1), 'dummy', operator.ge, False),
     ]
 )
 def test_stage_comparisons(first, second, op, expected):
     """Verify comparing Stage objects works correctly."""
     assert op(first, second) is expected
+
+
+def test_stage_repr():
+    """Verify the Stage __repr__ method works correctly."""
+    assert str(Stage([ds], 'test', environment='linux', variables={'HELLO': 'world'})) == \
+           "<(<:  1>,) test local linux dict_keys(['HELLO']) 1>"
 
 
 def test_ci_prepare_single_stage(single_stage_config):
@@ -226,6 +247,12 @@ def test_ci_prepare_bad_config():
     config = {'hello': 'world'}
     with pytest.raises(KeyError, match='build-magic key not found in config'):
         CI(config)._prepare()
+
+
+def test_ci_base_class_convert(single_stage_config):
+    """Test the case where the CI.convert() abstract method is called."""
+    with pytest.raises(NotImplementedError):
+        CI(single_stage_config).to_yaml()
 
 
 def test_ci_prepare_missing_commands():

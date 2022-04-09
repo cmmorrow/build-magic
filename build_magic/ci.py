@@ -327,19 +327,14 @@ class CI:
         stages = self._prepare()
         self._output = self._convert(stages)
 
-    def to_yaml(self, filename=None):
+    def to_yaml(self):
         """Attempts to formats the concrete CI representation as YAML.
 
-        :param str|None filename: Optional filename to write the YAML output to.
         :rtype: str
-        :return: If filename is provided, writes the YAML output to a file, otherwise, returns the YAML output.
+        :return: Writes the YAML output to stdout.
         """
         if not self._output:
             self._export()
-        if filename:
-            with open(filename, 'w') as path:
-                out = yaml.dump(self._output, path, sort_keys=False, Dumper=self.CIDumper)
-                return out
         return yaml.dump(self._output, sort_keys=False, Dumper=self.CIDumper)
 
 
