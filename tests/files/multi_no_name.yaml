@@ -1,0 +1,12 @@
+build-magic:
+  - stage:
+      commands:
+        - execute: echo one
+        - execute: echo two
+  - stage:
+      commands:
+        - execute: echo three
+  - stage:
+      commands:
+        - execute: echo four
+        - execute: echo five

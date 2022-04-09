@@ -6,7 +6,7 @@
 
 #---------------------------------
 
-!define VERSION "0.5.1"
+!define VERSION "0.6.0rc0"
 Name "build-magic ${VERSION}"
 OutFile "build-magic-${VERSION}_amd64_installer.exe"
 
