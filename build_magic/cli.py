@@ -14,6 +14,7 @@ import yaml
 logging.disable(logging.WARNING)
 
 from build_magic import __version__ as ver
+from build_magic.ci import export
 from build_magic import core
 from build_magic.exc import ExecutionError, HostWorkingDirectoryNotFound, NoJobs, SetupError, TeardownError
 from build_magic import reference
@@ -90,6 +91,7 @@ DESCRIPTION_HELP = 'The stage description to use.'
 DOTENV_HELP = 'Provide a dotenv file to set additional environment variables.'
 ENV_HELP = 'Provide an environment variable to set for stage execution.'
 ENVIRONMENT_HELP = 'The command runner environment to use.'
+EXPORT_HELP = 'Export a Config File to GitHub Actions or GitLab CI.'
 FANCY_HELP = 'Enables output with colors. Ideal for an interactive terminal session.'
 INFO_HELP = 'Display config file metadata, variables, and stage names.'
 NAME_HELP = 'The stage name to use.'
@@ -115,6 +117,31 @@ def error(ctx, msg, code):
     """
     click.secho(str(msg), fg='red', err=True)
     ctx.exit(code)
+
+
+def get_export(ctx, _, value):
+    """Callback that exports a Config File to a CI YAML file.
+
+    :param ctx:
+    :param _:
+    :param value:
+    :return:
+    """
+    if not value:
+        return
+    config_file, ci = value
+    output = ''
+    try:
+        with open(config_file, 'r') as file:
+            config = yaml.safe_load(file)
+    except (FileNotFoundError, IsADirectoryError, PermissionError) as err:
+        error(ctx, str(err), reference.ExitCode.INPUT_ERROR)
+    try:
+        output = export(config=config, export_type=ci)
+    except (KeyError, TypeError, ValueError) as err:
+        error(ctx, str(err), reference.ExitCode.INPUT_ERROR)
+    click.echo(output)
+    ctx.exit()
 
 
 def get_template(ctx, _, value):
@@ -196,6 +223,7 @@ def set_tty(_, param, value):
 @click.option('--target', '-t', help=TARGET_HELP, multiple=True, type=str)
 @click.option('--skip', '-s', help=SKIP_HELP, multiple=True, type=str)
 @click.option('--info', help=INFO_HELP, is_flag=True)
+@click.option('--export', help=EXPORT_HELP, is_eager=True, type=(str, str), expose_value=False, callback=get_export)
 @click.option('--env', help=ENV_HELP, multiple=True, type=(str, str))
 @click.option('--dotenv', help=DOTENV_HELP, type=CONFIG, default=None)
 @click.option('--template', help=TEMPLATE_HELP, is_flag=True, is_eager=True, expose_value=False, callback=get_template)

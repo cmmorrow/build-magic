@@ -276,6 +276,14 @@ class OutputMethod(enum.Enum):
 
 
 @unique
+class ExportType(EnumExt):
+    """Valid CI export options."""
+
+    GITHUB = 'github'
+    GITLAB = 'gitlab'
+
+
+@unique
 class PromptSequence(str, enum.Enum):
     """Provides the prefix, suffix, and hidden strings that indicate a prompted variable."""
 
