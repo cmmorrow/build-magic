@@ -65,22 +65,6 @@ def cli():
 
 
 @pytest.fixture
-def magic_dir(tmp_path_factory):
-    """Provides a temporary directory for testing copy/working directory behavior."""
-    magic = tmp_path_factory.mktemp('build_magic')
-    return magic
-
-
-@pytest.fixture
-def tmp_file(magic_dir):
-    """Provides a test file in the temp directory."""
-    hello = magic_dir / 'hello.txt'
-    hello.write_text('hello world')
-    yield magic_dir
-    os.remove('hello.txt')
-
-
-@pytest.fixture
 def current_file(magic_dir):
     """Provides a test file in the current directory."""
     current = Path().cwd().resolve()
@@ -89,34 +73,6 @@ def current_file(magic_dir):
     yield magic_dir
     os.chdir(str(current))
     os.remove('hello.txt')
-
-
-@pytest.fixture
-def config_file(magic_dir):
-    """Provides a config file in the temp directory."""
-    if platform.system() == 'Windows':
-        filename = 'config_win.yaml'
-    else:
-        filename = 'config.yaml'
-    config = magic_dir / filename
-    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
-    config.write_text(content)
-    yield config
-    os.remove(magic_dir / filename)
-
-
-@pytest.fixture
-def multi_config(magic_dir):
-    """Provides a config file with multiple stage in the temp directory."""
-    if platform.system() == 'Windows':
-        filename = 'multi_win.yaml'
-    else:
-        filename = 'multi.yaml'
-    config = magic_dir / filename
-    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
-    config.write_text(content)
-    yield config
-    os.remove(magic_dir / filename)
 
 
 @pytest.fixture
@@ -156,7 +112,7 @@ def second_default(magic_dir):
 
 
 @pytest.fixture
-def variable_and_default_config(default_config, variables_config):
+def variable_and_default_config(default_config, magic_dir, variables_config):
     """Provides a default and variable config file in the current directory."""
     filename = variables_config.name
     current = Path().cwd().resolve()
@@ -168,7 +124,7 @@ def variable_and_default_config(default_config, variables_config):
 
 
 @pytest.fixture
-def prompt_and_default_config(default_config, prompt_config):
+def prompt_and_default_config(default_config, magic_dir, prompt_config):
     """Provides a default and prompt config file in the current directory."""
     filename = prompt_config.name
     current = Path().cwd().resolve()
@@ -236,17 +192,6 @@ def meta_config(magic_dir):
 
 
 @pytest.fixture
-def labels_config(magic_dir):
-    """Provides a config file with command labels in the temp directory."""
-    filename = 'labels.yaml'
-    config = magic_dir / filename
-    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
-    config.write_text(content)
-    yield config
-    os.remove(magic_dir / filename)
-
-
-@pytest.fixture
 def skip1_config(magic_dir):
     """Provides a config file with one stage to skip in the temp directory."""
     filename = 'skip1.yaml'
@@ -269,8 +214,8 @@ def skip1fail_config(magic_dir):
 
 
 @pytest.fixture
-def env_config(magic_dir):
-    """Provides a config file with environment variables."""
+def env_and_dotenv_config(magic_dir):
+    """Provides a config file with environment variables and dotenv file."""
     if platform.system() == 'Windows':
         config_filename = 'envs_win.yaml'
     else:
@@ -359,6 +304,8 @@ Options:
   -s, --skip TEXT                 Skip the specified stage.
   --info                          Display config file metadata, variables, and
                                   stage names.
+  --export <TEXT TEXT>...         Export a Config File to GitHub Actions or
+                                  GitLab CI.
   --env <TEXT TEXT>...            Provide an environment variable to set for
                                   stage execution.
   --dotenv FILENAME               Provide a dotenv file to set additional
@@ -1206,12 +1153,12 @@ def test_combine_envs_and_dotenv(cli):
     assert 'OUTPUT: hello world bar' in out
 
 
-def test_envs_config_file(cli, env_config):
+def test_envs_config_file(cli, env_and_dotenv_config):
     """Verify that using environment variables with a dotenv file in a config file work correctly."""
     if platform.system() == 'Windows':
-        config = env_config / 'envs_win.yaml'
+        config = env_and_dotenv_config / 'envs_win.yaml'
     else:
-        config = env_config / 'envs.yaml'
+        config = env_and_dotenv_config / 'envs.yaml'
     res = cli.invoke(build_magic, ['-C', config, '--verbose'])
     out = res.output
     assert res.exit_code == ExitCode.PASSED
@@ -1319,3 +1266,64 @@ def test_manual_skip_fail_multiple_configs(cli, meta_config, targets_config):
     out = res.output
     ref = "Cannot skip stage Stage Z because it was not found in ['Stage A', 'Stage B', 'Stage C', 'Stage D', 'Test']."
     assert ref in out
+
+
+def test_export_gitlab(cli, config_file):
+    """Verify exporting a config file to gitlab works correctly."""
+    res = cli.invoke(build_magic, ['--export', config_file, 'gitlab'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == """Test stage:
+  stage: Test stage
+  scripts:
+    - echo hello
+    - ls
+
+"""
+
+
+def test_export_github(cli, config_file):
+    """Verify exporting a config file to github works correctly."""
+    res = cli.invoke(build_magic, ['--export', config_file, 'github'])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == """jobs:
+  Test stage:
+    steps:
+      - run: echo hello
+      - run: ls
+
+"""
+
+
+def test_export_wrong_path(cli):
+    """Test the case where a non-existent file is passed to --export."""
+    res = cli.invoke(build_magic, ['--export', '/tmp/dummy', 'gitlab'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == "[Errno 2] No such file or directory: '/tmp/dummy'\n"
+
+
+def test_export_bad_ci_type(cli, config_file):
+    """Test the case where a bad ci type is provided to --export."""
+    res = cli.invoke(build_magic, ['--export', config_file, 'dummy'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == "Export type must be one of ('github', 'gitlab')\n"
+
+
+def test_export_path_is_directory(cli, magic_dir):
+    """Test the case where the path provided to --export is a directory."""
+    res = cli.invoke(build_magic, ['--export', magic_dir, 'gitlab'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert '[Errno 21] Is a directory' in out
+
+
+def test_export_not_a_config_file(cli, dotenv_config):
+    """Test the case where a file that isn't a config file is provided to --export."""
+    file = dotenv_config / 'test.env'
+    res = cli.invoke(build_magic, ['--export', file, 'gitlab'])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == 'Cannot read config.\n'
