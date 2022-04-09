@@ -292,7 +292,7 @@ class CI:
                         f'Key {(commands.symmetric_difference(directives) & commands).pop()} not found in command.'
                     )
                 cmd = command.get(directive)
-                steps.append(Step(cmd, label, i+1))
+                steps.append(Step(cmd, label, i + 1))
             name = stage_['stage'].get('name', '')
             runner = stage_['stage'].get('runner', 'local')
             environment = stage_['stage'].get('environment', '')
@@ -304,7 +304,7 @@ class CI:
                     runner=runner,
                     environment=environment,
                     variables=variables,
-                    sequence=(seq+1),
+                    sequence=(seq + 1),
                 )
             )
         return stages
