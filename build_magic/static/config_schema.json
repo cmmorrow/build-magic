@@ -324,6 +324,22 @@
                                         ],
                                         "additionalItems": true
                                     },
+                                    "downloads": {
+                                        "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/downloads",
+                                        "type": "array",
+                                        "title": "The downloads schema",
+                                        "description": "A list of files to download before running the stage.",
+                                        "default": [],
+                                        "examples": [
+                                            "https://github.com/cmmorrow/build-magic/archive/refs/tags/v0.5.1.tar.gz",
+                                            "https://github.com/cmmorrow/build-magic/archive/refs/tags/v0.5.1.zip"
+                                        ],
+                                        "additionalItems": true,
+                                        "items": {
+                                            "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/downloads/items",
+                                            "type": "string"
+                                        }
+                                    },
                                     "commands": {
                                         "$id": "#/properties/build-magic/items/anyOf/0/properties/stage/properties/commands",
                                         "type": "array",

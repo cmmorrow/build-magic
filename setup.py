@@ -35,6 +35,7 @@ setup(
         ],
     },
     install_requires=[
+        'aiohttp==3.8.1',
         'cffi==1.14.6',
         'click==8.0.3',
         'colorama==0.4.4',
@@ -46,6 +47,7 @@ setup(
         'python-vagrant==0.5.15',
         'PyYAML==6.0',
         'scp==0.14.2',
+        'yarl==1.7.2',
         'yaspin==2.1.0',
     ],
     tests_require=[

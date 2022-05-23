@@ -5,6 +5,7 @@ import os
 import sys
 
 from colorama import Cursor, Fore, init, Style
+from tqdm import tqdm
 
 from build_magic import __version__ as version
 from build_magic.reference import OutputMethod, ExitCode
@@ -417,6 +418,12 @@ class Tty(Output):
             spinner.start()
         else:
             spinner.stop()
+
+    @staticmethod
+    def progress_bar(iterable, message=''):
+        """"""
+        for part in tqdm(iterable, desc=message, file=sys.stdout, ascii=False):
+
 
 
 class Silent(Output):

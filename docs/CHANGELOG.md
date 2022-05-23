@@ -2,6 +2,7 @@
 
 ## Version 0.6.0
 
+* Added support for downloading files per stage.
 * Added support for exporting a Config File to GitHub Actions or GitLab CI.
 
 ## Version 0.5.1 (Newest)

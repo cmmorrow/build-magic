@@ -97,6 +97,7 @@ def config_parser(config):
         stage['wd'] = data.get('working directory', '.')
         stage['copy'] = data.get('copy from directory', '')
         stage['artifacts'] = data.get('artifacts', [])
+        stage['downloads'] = data.get('downloads', [])
         stage['dotenv'] = data.get('dotenv', '')
 
         # Set the action.
