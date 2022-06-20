@@ -4,16 +4,27 @@ import json
 import os
 import pathlib
 
+import jsonschema
 import pytest
 
 from build_magic.actions import Default
 from build_magic.core import (
-    config_parser, Engine, generate_config_template, iterate_sequence, parse_variables, Stage, StageFactory
+    config_parser, Engine, generate_config_template, iterate_sequence, parse_variables, Stage, StageFactory,
+    validate_config_against_schema,
 )
 from build_magic.exc import ExecutionError, SetupError, TeardownError, NoJobs, ValidationError
 from build_magic.macro import Macro
 from build_magic.reference import ExitCode, KeyPath, KeyType
 from build_magic.runner import Local
+
+
+@pytest.fixture
+def config_schema():
+    """Provides a config schema for testing."""
+    schema_path = pathlib.Path(__file__).parent.parent / 'build_magic' / 'static' / 'config_schema.json'
+    with open(schema_path, 'r') as file:
+        schema = json.load(file)
+    return schema
 
 
 def test_stage_constructor():
@@ -316,6 +327,37 @@ def test_generate_config_template():
     content = config.read_text()
     os.unlink(config)
     assert content == ref
+
+
+def test_validate_config_against_schema(config_schema):
+    """Verify the validate_config_against_schema function works correctly."""
+    config = {
+        'build-magic': [
+            {
+                'stage': {
+                    'commands': [
+                        {'execute': 'echo hello'}
+                    ]
+                }
+            }
+        ]
+    }
+    assert validate_config_against_schema(config, config_schema) is None
+
+
+def test_validate_config_against_schema_fail(config_schema):
+    """Test the case where config file validation fails."""
+    config = {
+        'build-magic': [
+            {
+                'stage': [
+                    {'execute': 'echo hello'}
+                ]
+            }
+        ]
+    }
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        validate_config_against_schema(config, config_schema)
 
 
 def test_config_parser():

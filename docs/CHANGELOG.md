@@ -3,6 +3,7 @@
 ## Version 0.6.0
 
 * Added support for exporting a Config File to GitHub Actions or GitLab CI.
+* Added the --validate switch to validate a config file.
 
 ## Version 0.5.1 (Newest)
 

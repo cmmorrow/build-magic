@@ -66,6 +66,47 @@ def generate_config_template():
     return file
 
 
+def validate_config(config):
+    """High-level function for validating a config file.
+
+    :param dict config: The config file to validate.
+    :return: None is returned if the config file is valid, otherwise a ValueError is raised.
+    """
+    schema = get_config_schema()
+    try:
+        validate_config_against_schema(config, schema)
+    except ValidationError as err:
+        raise ValueError(err)
+
+
+def get_config_schema():
+    """Reads the config schema from disk.
+
+    :rtype: dict
+    :return: A Python dictionary representing the config schema loaded from disk.
+    """
+    schema_path = Path(__file__).parent / 'static' / 'config_schema.json'
+    with open(schema_path, 'r') as file:
+        schema = json.load(file)
+    return schema
+
+
+def validate_config_against_schema(config, schema):
+    """Validates a config file against the config file schema.
+
+    :param dict config: The config to validate.
+    :param dict schema: The config schema to validate against.
+    :return: None is returned if the config file is valid, otherwise a ValidationError is raised.
+    """
+    try:
+        jsvalidator(config, schema=schema)
+    except ValidationError as err:
+        truncated = str(err).split('\n', 3)
+        if truncated[2][-1] == ':':
+            truncated[2] = truncated[2][0:-1]
+        raise ValidationError('Config validation failed: {}'.format("\n".join(truncated[0:3])))
+
+
 def config_parser(config):
     """Parse the parameters from a build-magic config file.
 
@@ -73,16 +114,7 @@ def config_parser(config):
     :rtype: list[dict]
     :return: A list of stage parameters.
     """
-    # Read the config schema.
-    schema = Path(__file__).parent / 'static' / 'config_schema.json'
-    with open(schema, 'r') as file:
-        schema = json.load(file)
-
-    # Validate the config file.
-    try:
-        jsvalidator(config, schema=schema)
-    except ValidationError as err:
-        raise ValueError('Config validation failed: {}'.format(err))
+    validate_config(config)
 
     # Build the stages.
     stages = []
