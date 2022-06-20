@@ -1359,4 +1359,3 @@ Failed validating 'type' in schema[0]['properties']['stage']['properties']['comm
     out = res.output
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert out == ref
-
