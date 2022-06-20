@@ -112,6 +112,17 @@ def second_default(magic_dir):
 
 
 @pytest.fixture
+def invalid_config(magic_dir):
+    """Provides an invalid config file."""
+    filename = 'invalid.yaml'
+    config = magic_dir / filename
+    content = Path(__file__).parent.joinpath('files').joinpath(filename).read_text()
+    config.write_text(content)
+    yield config
+    os.remove(magic_dir / filename)
+
+
+@pytest.fixture
 def variable_and_default_config(default_config, magic_dir, variables_config):
     """Provides a default and variable config file in the current directory."""
     filename = variables_config.name
@@ -316,6 +327,7 @@ Options:
                                   specific settings.
   -v, --variable <TEXT TEXT>...   Space separated key/value config file
                                   variables.
+  --validate FILENAME             Validate a config file by name.
   --prompt TEXT                   Config file variable with prompt for value.
   --action [default|cleanup|persist]
                                   The setup and teardown action to perform.
@@ -1327,3 +1339,23 @@ def test_export_not_a_config_file(cli, dotenv_config):
     out = res.output
     assert res.exit_code == ExitCode.INPUT_ERROR
     assert out == 'Cannot read config.\n'
+
+
+def test_validate_config_file(cli, default_config):
+    """Verify the --validate switch works correctly."""
+    res = cli.invoke(build_magic, ['--validate', default_config])
+    out = res.output
+    assert res.exit_code == ExitCode.PASSED
+    assert out == ''
+
+
+def test_validate_config_file_fail(cli, invalid_config):
+    """Test the case where a config file fails validation using the --validate switch."""
+    ref = """Config validation failed: {'execute': 'echo "hello"'} is not of type 'array'
+
+Failed validating 'type' in schema[0]['properties']['stage']['properties']['commands']
+"""
+    res = cli.invoke(build_magic, ['--validate', invalid_config])
+    out = res.output
+    assert res.exit_code == ExitCode.INPUT_ERROR
+    assert out == ref

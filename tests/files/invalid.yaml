@@ -1,0 +1,4 @@
+build-magic:
+  - stage:
+      commands:
+        execute: echo "hello"

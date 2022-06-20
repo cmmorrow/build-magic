@@ -104,6 +104,7 @@ SKIP_HELP = 'Skip the specified stage.'
 TARGET_HELP = 'Run a particular stage in a config file by name.'
 TEMPLATE_HELP = 'Generates a config file template in the current directory.'
 VARIABLE_HELP = 'Space separated key/value config file variables.'
+VALIDATE_HELP = 'Validate a config file by name.'
 VERBOSE_HELP = 'Verbose output -- stdout from executed commands will be printed when complete.'
 WD_HELP = 'The working directory to run commands from.'
 
@@ -171,6 +172,30 @@ def get_template(ctx, _, value):
         )
 
 
+def validate_config(ctx, _, value):
+    """Tests to see if the config file is valid.
+
+    :param click.Context ctx: The context of the click command.
+    :param click.Parameter _: The validate parameter object.
+    :param TextIOWrapper value: The config file path.
+    :return: None
+    """
+    if not value:
+        return
+    # Read the config YAML file.
+    config = read_config_file(value)
+
+    try:
+        core.validate_config(config)
+        ctx.exit()
+    except ValueError as err:
+        error(
+            ctx=ctx,
+            msg=str(err),
+            code=reference.ExitCode.INPUT_ERROR,
+        )
+
+
 def set_silent(_, param, value):
     """Callback that sets the quiet output type.
 
@@ -229,6 +254,7 @@ def set_tty(_, param, value):
 @click.option('--template', help=TEMPLATE_HELP, is_flag=True, is_eager=True, expose_value=False, callback=get_template)
 @click.option('--parameter', '-p', help=PARAMETER_HELP, multiple=True, type=(str, str))
 @click.option('--variable', '-v', help=VARIABLE_HELP, multiple=True, type=(str, str))
+@click.option('--validate', help=VALIDATE_HELP, type=CONFIG, expose_value=False, callback=validate_config)
 @click.option('--prompt', help=PROMPT_HELP, multiple=True, type=str)
 @click.option('--action', help=ACTION_HELP, type=ACTIONS)
 @click.option('--plain', help=PLAIN_HELP, is_flag=True, default=False, callback=set_basic)
@@ -433,7 +459,7 @@ def read_config_file(cfg):
 
     :param TextIOWrapper cfg: The config file to read.
     :rtype: dict
-    :return: A dictionary representing the the loaded config.
+    :return: A dictionary representing the loaded config.
     """
     try:
         obj = yaml.safe_load(cfg)

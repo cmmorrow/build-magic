@@ -41,9 +41,11 @@ A Windows installer is available for build-magic and can be downloaded from the 
 
 The easiest way to install build-magic for Linux is by installing from a package.
 
-#### Debian/Ubuntu/Mint
+#### Debian/Ubuntu/Mint/Chrome OS
 
 Minimum compatible versions are Debian 10 (buster), Ubuntu 20.04 (focal fossa), or Mint Linux 19 (Tara).
+
+If installing on Chrome OS, a Chromebook capable of running Linux is required with the Linux Runtime enabled.
 
 | Package | Version | SHA256 Hash |
 |---------|---------|-------------|
@@ -62,6 +64,8 @@ Instructions:
 2. **(Optional)** Download the SHA256 hash file to compare with with the hash of the downloaded package.
 3. **(Optional)** If you downloaded the hash file, you can view the hash with `cat build-magic-(version)_amd64.hash`, where `(version)` matches the version in the downloaded hash file. Next, compare the SHA256 hash of the downloaded package with `shasum -a 256 build-magic-(version)_amd64.deb`. If the hash matches the content of the downloaded hash file, the package hasn't been altered since it was built.
 4. Install the downloaded package with `sudo dpkg --install build-magic-(version)_amd64.deb`, where `(version)` matches the version in the downloaded package.
+
+To install on Chrome OS, click on the newest version of the **.deb** file. If the Files app, move the **.deb** file from Downloads to Linux Files. Finally, double click on the **.deb** file to install build-magic.
 
 #### Fedora/CentOS/Red Hat
 
