@@ -38,7 +38,7 @@ setup(
         'cffi==1.14.6',
         'click==8.0.3',
         'colorama==0.4.4',
-        'cryptography==36.0.1',
+        'cryptography==39.0.1',
         'jsonschema==3.2.0',
         'docker==5.0.3',
         'nltk==3.6.7',
